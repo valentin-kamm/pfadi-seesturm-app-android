@@ -3,19 +3,18 @@ package ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Comment
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.TagFaces
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,50 +22,70 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import ch.seesturm.pfadiseesturm.data.data_store.dao.SeesturmPreferencesDao
-import ch.seesturm.pfadiseesturm.data.data_store.repository.GespeichertePersonenRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.data_store.repository.SelectedStufenRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApiImpl
-import ch.seesturm.pfadiseesturm.data.firestore.repository.FirestoreRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventDto
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventStartEndDto
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.NaechsteAktivitaetRepositoryImpl
-import ch.seesturm.pfadiseesturm.domain.data_store.service.GespeichertePersonenService
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.NaechsteAktivitaetService
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.components.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTertiaryElementType
-import ch.seesturm.pfadiseesturm.presentation.common.viewModelFactoryHelper
-import ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen.FakeDataStore
-import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.SeesturmTextField
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
+import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.state.ActionState
+import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
 fun AktivitaetAnAbmeldenView(
     viewModel: AktivitaetDetailViewModel,
-    aktivitaet: GoogleCalendarEvent,
     stufe: SeesturmStufe,
-    columnState: LazyListState = rememberLazyListState(),
     modifier: Modifier = Modifier
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    AktivitaetAnAbmeldenContentView(
+        stufe = stufe,
+        selectedSheetMode = uiState.selectedSheetMode,
+        anAbmeldenState = uiState.anAbmeldenState,
+        vornameState = uiState.vornameState,
+        nachnameState = uiState.nachnameState,
+        pfadinameState = uiState.pfadinameState,
+        bemerkungState = uiState.bemerkungState,
+        onChangeSheetMode = { interaction ->
+            viewModel.changeSheetMode(interaction)
+        },
+        onSubmit = {
+            viewModel.sendAnAbmeldung()
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun AktivitaetAnAbmeldenContentView(
+    stufe: SeesturmStufe,
+    selectedSheetMode: AktivitaetInteractionType,
+    anAbmeldenState: ActionState<AktivitaetInteractionType>,
+    vornameState: SeesturmTextFieldState,
+    nachnameState: SeesturmTextFieldState,
+    pfadinameState: SeesturmTextFieldState,
+    bemerkungState: SeesturmTextFieldState,
+    onChangeSheetMode: (AktivitaetInteractionType) -> Unit,
+    onSubmit: () -> Unit,
+    modifier: Modifier,
+    columnState: LazyListState = rememberLazyListState(),
+) {
+
     val firstTextFieldCount = 3
 
     LazyColumn(
@@ -85,8 +104,11 @@ fun AktivitaetAnAbmeldenView(
                 mainContent = FormItemContentType.Custom(
                     content = {
                         SeesturmTextField(
-                            state = uiState.vornameState,
-                            icon = Icons.Outlined.AccountBox,
+                            state = vornameState,
+                            leadingIcon = Icons.Outlined.AccountBox,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                         )
@@ -100,8 +122,11 @@ fun AktivitaetAnAbmeldenView(
                 mainContent = FormItemContentType.Custom(
                     content = {
                         SeesturmTextField(
-                            state = uiState.nachnameState,
-                            icon = Icons.Filled.AccountBox,
+                            state = nachnameState,
+                            leadingIcon = Icons.Filled.AccountBox,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                         )
@@ -115,8 +140,11 @@ fun AktivitaetAnAbmeldenView(
                 mainContent = FormItemContentType.Custom(
                     content = {
                         SeesturmTextField(
-                            state = uiState.pfadinameState,
-                            icon = Icons.Outlined.TagFaces,
+                            state = pfadinameState,
+                            leadingIcon = Icons.Outlined.TagFaces,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                         )
@@ -126,17 +154,22 @@ fun AktivitaetAnAbmeldenView(
             )
         }
         item {
-            BasicListHeader("Bemerkung (optional)")
+            BasicListHeader(
+                mode = BasicListHeaderMode.Normal("Bemerkung (optional)")
+            )
             FormItem(
                 items = (0..<1).toList(),
                 index = 0,
                 mainContent = FormItemContentType.Custom(
                     content = {
                         SeesturmTextField(
-                            state = uiState.bemerkungState,
-                            icon = Icons.AutoMirrored.Outlined.Comment,
+                            state = bemerkungState,
+                            leadingIcon = Icons.AutoMirrored.Outlined.Comment,
                             singleLine = false,
                             hideLabel = true,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(100.dp)
@@ -153,26 +186,26 @@ fun AktivitaetAnAbmeldenView(
                 mainContent = FormItemContentType.Text(
                     title = "An-/Abmeldung"
                 ),
-                trailingElement = FormItemTertiaryElementType.Custom(
+                trailingElement = FormItemTrailingElementType.Custom(
                     content = {
                         DropdownButton(
-                            title = uiState.selectedSheetMode.nomen,
-                            contentColor = uiState.selectedSheetMode.color,
+                            title = selectedSheetMode.nomen,
+                            contentColor = selectedSheetMode.color,
                             dropdown = { isShown, dismiss ->
-                                DropdownMenu(
+                                ThemedDropdownMenu(
                                     expanded = isShown,
                                     onDismissRequest = {
                                         dismiss()
                                     }
                                 ) {
                                     stufe.allowedAktivitaetInteractions.forEach { interaction ->
-                                        DropdownMenuItem(
+                                        ThemedDropdownMenuItem(
                                             text = {
                                                 Text(interaction.nomen)
                                             },
                                             onClick = {
                                                 dismiss()
-                                                viewModel.changeSheetMode(interaction)
+                                                onChangeSheetMode(interaction)
                                             },
                                             trailingIcon = {
                                                 Icon(
@@ -192,78 +225,127 @@ fun AktivitaetAnAbmeldenView(
         item {
             SeesturmButton(
                 type = SeesturmButtonType.Primary(
-                    buttonColor = uiState.selectedSheetMode.color
+                    buttonColor = selectedSheetMode.color
                 ),
-                title = "${uiState.selectedSheetMode.nomen} senden",
-                isLoading = uiState.anAbmeldenState.isLoading,
-                onClick = {
-                    viewModel.sendAnAbmeldung()
-                }
+                title = "${selectedSheetMode.nomen} senden",
+                isLoading = anAbmeldenState.isLoading,
+                onClick = onSubmit
             )
         }
     }
 }
 
-@Preview
+@Preview("Loading")
 @Composable
-private fun AktivitaetAnAbmeldenViewPreview() {
-    val na = GoogleCalendarEventDto(
-        id = "17v15laf167s75oq47elh17a3t",
-        summary = "Biberstufen-Aktivität",
-        description = "Ob uns wohl der Pfadi-Chlaus dieses Jahr wieder viele Nüssli und Schöggeli bringt? Die genauen Zeiten werden später kommuniziert.",
-        location = "Geiserparkplatz",
-        created = "2022-08-28T15:25:45.701Z",
-        updated = "2022-08-28T15:19:45.726Z",
-        start = GoogleCalendarEventStartEndDto(
-            dateTime = "2022-12-10T13:00:00Z",
-            date = null
-        ),
-        end = GoogleCalendarEventStartEndDto(
-            dateTime = "2022-12-10T15:00:00Z",
-            date = null
+private fun AktivitaetAnAbmeldenViewPreview1() {
+    PfadiSeesturmTheme {
+        AktivitaetAnAbmeldenContentView(
+            stufe = SeesturmStufe.Biber,
+            selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
+            anAbmeldenState = ActionState.Loading(AktivitaetInteractionType.ABMELDEN),
+            vornameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            nachnameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            pfadinameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            bemerkungState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            onChangeSheetMode = {},
+            onSubmit = {},
+            modifier = Modifier
         )
-    ).toGoogleCalendarEvent()
-    AktivitaetAnAbmeldenView(
-        viewModel = viewModel<AktivitaetDetailViewModel>(
-            factory = viewModelFactoryHelper {
-                AktivitaetDetailViewModel(
-                    service = NaechsteAktivitaetService(
-                        repository = NaechsteAktivitaetRepositoryImpl(
-                            api = Retrofit.Builder()
-                                .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build()
-                                .create(WordpressApi::class.java)
-                        ),
-                        firestoreRepository = FirestoreRepositoryImpl(
-                            api = FirestoreApiImpl(
-                                Firebase.firestore
-                            ),
-                            db = Firebase.firestore
-                        ),
-                        selectedStufenRepository = SelectedStufenRepositoryImpl(
-                            dataStore = FakeDataStore(
-                                initialValue = SeesturmPreferencesDao()
-                            )
-                        )
-                    ),
-                    gespeichertePersonenService = GespeichertePersonenService(
-                        repository = GespeichertePersonenRepositoryImpl(
-                            dataStore = FakeDataStore(
-                                initialValue = SeesturmPreferencesDao()
-                            )
-                        )
-                    ),
-                    stufe = SeesturmStufe.Biber,
-                    eventId = "",
-                    dismiss = {},
-                    userId = null
-                )
-            }
-        ),
-        aktivitaet = na,
-        stufe = SeesturmStufe.Pio,
-        modifier = Modifier
-            .fillMaxSize()
-    )
+    }
+}
+@Preview("Error")
+@Composable
+private fun AktivitaetAnAbmeldenViewPreview2() {
+    PfadiSeesturmTheme {
+        AktivitaetAnAbmeldenContentView(
+            stufe = SeesturmStufe.Biber,
+            selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
+            anAbmeldenState = ActionState.Idle,
+            vornameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                onValueChanged = {}
+            ),
+            nachnameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                onValueChanged = {}
+            ),
+            pfadinameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                onValueChanged = {}
+            ),
+            bemerkungState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                onValueChanged = {}
+            ),
+            onChangeSheetMode = {},
+            onSubmit = {},
+            modifier = Modifier
+        )
+    }
+}
+@Preview("Idle")
+@Composable
+private fun AktivitaetAnAbmeldenViewPreview3() {
+    PfadiSeesturmTheme {
+        AktivitaetAnAbmeldenContentView(
+            stufe = SeesturmStufe.Biber,
+            selectedSheetMode = AktivitaetInteractionType.ANMELDEN,
+            anAbmeldenState = ActionState.Idle,
+            vornameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            nachnameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            pfadinameState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            bemerkungState = SeesturmTextFieldState(
+                text = "",
+                label = "Vorname",
+                state = SeesturmBinaryUiState.Success(Unit),
+                onValueChanged = {}
+            ),
+            onChangeSheetMode = {},
+            onSubmit = {},
+            modifier = Modifier
+        )
+    }
 }

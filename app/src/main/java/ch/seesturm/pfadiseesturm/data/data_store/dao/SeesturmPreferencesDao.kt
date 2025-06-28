@@ -1,8 +1,8 @@
 package ch.seesturm.pfadiseesturm.data.data_store.dao
 
-import ch.seesturm.pfadiseesturm.presentation.main.SeesturmAppTheme
-import ch.seesturm.pfadiseesturm.util.SeesturmFCMNotificationTopic
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
+import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,5 +15,6 @@ data class SeesturmPreferencesDao(
         SeesturmStufe.Pfadi,
         SeesturmStufe.Pio
     ),
-    val selectedTheme: SeesturmAppTheme = SeesturmAppTheme.System
+    val selectedTheme: SeesturmAppTheme = SeesturmAppTheme.System,
+    val showOnboardingView2: Boolean = true
 )

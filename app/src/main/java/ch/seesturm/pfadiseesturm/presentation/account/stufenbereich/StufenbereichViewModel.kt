@@ -3,17 +3,14 @@ package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich
 import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.seesturm.pfadiseesturm.domain.account.service.StufenbereichService
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.toAktivitaetWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
-import ch.seesturm.pfadiseesturm.presentation.home.HomeListState
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
-import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -23,7 +20,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.ZonedDateTime
 
 class StufenbereichViewModel(
     private val stufe: SeesturmStufe,
@@ -61,40 +57,33 @@ class StufenbereichViewModel(
                 }
             }
         }
-    val selectedDateFormatted: String
-        get() = DateTimeUtil.shared.formatDate(
-            date = state.value.selectedDate,
-            format = "dd.MM.yyyy",
-            withRelativeDateFormatting = false,
-            includeTimeInRelativeFormatting = false
-        )
+
     private val mustReloadAktivitaeten: Boolean
-        get() = when (val localState = state.value.aktivitaetenState) {
-            is UiState.Success -> {
-                val endDates = localState.data.map { it.endDate }
-                val oldestEndDate = endDates.minOrNull()
-                if (oldestEndDate != null) {
-                    state.value.selectedDate < oldestEndDate
-                }
-                else {
-                    true
-                }
+        get() {
+
+            val localState = state.value.aktivitaetenState
+
+            if (localState !is UiState.Success) {
+                return  false
             }
-            else -> {
-                false
+
+            val endDates = localState.data.map { it.end }
+            val oldestEndDate = endDates.minOrNull()
+            return if (oldestEndDate != null) {
+                state.value.selectedDate < oldestEndDate
+            }
+            else {
+                true
             }
         }
 
     fun isEditButtonLoading(aktivitaet: GoogleCalendarEventWithAnAbmeldungen): Boolean {
+
         val localDeleteState = state.value.deleteAbmeldungenState
         val localPushNotificationState = state.value.sendPushNotificationState
-        if (localDeleteState is ActionState.Loading) {
-            return localDeleteState.action == aktivitaet
-        }
-        if (localPushNotificationState is ActionState.Loading) {
-            return localPushNotificationState.action == aktivitaet
-        }
-        return false
+
+        return (localDeleteState is ActionState.Loading && localDeleteState.action == aktivitaet) ||
+                (localPushNotificationState is ActionState.Loading && localPushNotificationState.action == aktivitaet)
     }
 
     fun refresh() {
@@ -188,7 +177,7 @@ class StufenbereichViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
                             allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
@@ -212,7 +201,7 @@ class StufenbereichViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Success,
+                            type = SeesturmSnackbarType.Success,
                             allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
@@ -249,7 +238,7 @@ class StufenbereichViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
                             allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
@@ -273,7 +262,7 @@ class StufenbereichViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Success,
+                            type = SeesturmSnackbarType.Success,
                             allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
@@ -292,67 +281,22 @@ class StufenbereichViewModel(
 
     fun deleteAllAnAbmeldungen() {
 
+        val localState = state.value.anAbmeldungenState
+
+        if (localState !is UiState.Success) {
+            return
+        }
+
+        _state.update {
+            it.copy(
+                deleteAllAbmeldungenState = ActionState.Loading(Unit)
+            )
+        }
+
         viewModelScope.launch {
-            when (val localState = state.value.anAbmeldungenState) {
-                is UiState.Success -> {
-                    _state.update {
-                        it.copy(
-                            deleteAllAbmeldungenState = ActionState.Loading(Unit)
-                        )
-                    }
-                    when (val result = service.deleteAllPastAnAbmeldungen(stufe, localState.data)) {
-                        is SeesturmResult.Error -> {
-                            val message = "An- und Abmeldungen konnten nicht gelöscht werden. ${result.error.defaultMessage})"
-                            _state.update {
-                                it.copy(
-                                    deleteAllAbmeldungenState = ActionState.Error(Unit, message)
-                                )
-                            }
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
-                                    message = message,
-                                    duration = SnackbarDuration.Long,
-                                    type = SnackbarType.Error,
-                                    allowManualDismiss = true,
-                                    onDismiss = {
-                                        _state.update {
-                                            it.copy(
-                                                deleteAllAbmeldungenState = ActionState.Idle
-                                            )
-                                        }
-                                    },
-                                    showInSheetIfPossible = false
-                                )
-                            )
-                        }
-                        is SeesturmResult.Success -> {
-                            val message = "Vergangene An- und Abmeldungen für die ${stufe.stufenName} erfolgreich gelöscht."
-                            _state.update {
-                                it.copy(
-                                    deleteAllAbmeldungenState = ActionState.Success(Unit, message)
-                                )
-                            }
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
-                                    message = message,
-                                    duration = SnackbarDuration.Long,
-                                    type = SnackbarType.Success,
-                                    allowManualDismiss = true,
-                                    onDismiss = {
-                                        _state.update {
-                                            it.copy(
-                                                deleteAllAbmeldungenState = ActionState.Idle
-                                            )
-                                        }
-                                    },
-                                    showInSheetIfPossible = false
-                                )
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    val message = "An- und Abmeldungen konnten nicht gelöscht werden. Die Daten wurden noch nicht geladen."
+            when (val result = service.deleteAllPastAnAbmeldungen(stufe, localState.data)) {
+                is SeesturmResult.Error -> {
+                    val message = "An- und Abmeldungen konnten nicht gelöscht werden. ${result.error.defaultMessage})"
                     _state.update {
                         it.copy(
                             deleteAllAbmeldungenState = ActionState.Error(Unit, message)
@@ -362,7 +306,31 @@ class StufenbereichViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
+                            allowManualDismiss = true,
+                            onDismiss = {
+                                _state.update {
+                                    it.copy(
+                                        deleteAllAbmeldungenState = ActionState.Idle
+                                    )
+                                }
+                            },
+                            showInSheetIfPossible = false
+                        )
+                    )
+                }
+                is SeesturmResult.Success -> {
+                    val message = "Vergangene An- und Abmeldungen für die ${stufe.stufenName} erfolgreich gelöscht."
+                    _state.update {
+                        it.copy(
+                            deleteAllAbmeldungenState = ActionState.Success(Unit, message)
+                        )
+                    }
+                    SnackbarController.sendEvent(
+                        event = SeesturmSnackbarEvent(
+                            message = message,
+                            duration = SnackbarDuration.Long,
+                            type = SeesturmSnackbarType.Success,
                             allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
@@ -379,7 +347,7 @@ class StufenbereichViewModel(
         }
     }
 
-    fun updateSelectedAktivitaetInteraction(interaction: AktivitaetInteraction) {
+    fun updateSelectedAktivitaetInteraction(interaction: AktivitaetInteractionType) {
         _state.update {
             it.copy(
                 selectedAktivitaetInteraction = interaction

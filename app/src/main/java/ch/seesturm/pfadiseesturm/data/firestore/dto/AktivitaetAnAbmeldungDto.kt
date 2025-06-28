@@ -1,15 +1,17 @@
 package ch.seesturm.pfadiseesturm.data.firestore.dto
 
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetAnAbmeldung
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.UUID
 
 data class AktivitaetAnAbmeldungDto(
+
     @DocumentId override var id: String? = null,
     var eventId: String = "",
     var uid: String? = null,
@@ -38,8 +40,10 @@ data class AktivitaetAnAbmeldungDto(
 }
 
 fun AktivitaetAnAbmeldungDto.toAktivitaetAnAbmeldung(): AktivitaetAnAbmeldung {
+
     val createdDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(created)
     val modifiedDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(modified)
+
     return AktivitaetAnAbmeldung(
         id = id ?: UUID.randomUUID().toString(),
         eventId = eventId,
@@ -48,21 +52,19 @@ fun AktivitaetAnAbmeldungDto.toAktivitaetAnAbmeldung(): AktivitaetAnAbmeldung {
         nachname = nachname,
         pfadiname = pfadiname,
         bemerkung = bemerkung,
-        type = AktivitaetInteraction.fromId(typeId),
+        type = AktivitaetInteractionType.fromId(typeId),
         stufe = SeesturmStufe.fromId(stufenId),
         created = createdDate,
         modified = modifiedDate,
         createdString = DateTimeUtil.shared.formatDate(
             date = createdDate,
-            format = "EEEE, dd. MMMM, HH:mm",
-            withRelativeDateFormatting = true,
-            includeTimeInRelativeFormatting = true
+            format = "EEEE, dd. MMMM, HH:mm 'Uhr'",
+            type = DateFormattingType.Relative(true)
         ),
         modifiedString = DateTimeUtil.shared.formatDate(
             date = modifiedDate,
-            format = "EEEE, dd. MMMM, HH:mm",
-            withRelativeDateFormatting = true,
-            includeTimeInRelativeFormatting = true
+            format = "EEEE, dd. MMMM, HH:mm 'Uhr'",
+            type = DateFormattingType.Relative(true)
         )
     )
 }

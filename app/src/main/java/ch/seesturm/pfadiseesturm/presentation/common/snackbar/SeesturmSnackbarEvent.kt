@@ -8,8 +8,8 @@ data class SeesturmSnackbarEvent(
     override val duration: SnackbarDuration,
     override val actionLabel: String? = null,
     override val withDismissAction: Boolean = false,
-    val type: SnackbarType,
+    val type: SeesturmSnackbarType,
     val allowManualDismiss: Boolean,
     val onDismiss: () -> Unit,
-    val showInSheetIfPossible: Boolean
+    val showInSheetIfPossible: Boolean,
 ): SnackbarVisuals

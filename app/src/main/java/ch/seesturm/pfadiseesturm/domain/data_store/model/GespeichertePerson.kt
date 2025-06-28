@@ -5,7 +5,7 @@ data class GespeichertePerson(
     val vorname: String,
     val nachname: String,
     val pfadiname: String?,
-    val swipeActionsRevealed: Boolean
+    val swipeActionsRevealed: Boolean = false
 ) {
     val displayName: String
         get() = if (pfadiname == null) {

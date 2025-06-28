@@ -1,8 +1,26 @@
 package ch.seesturm.pfadiseesturm.util
 
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 
 sealed interface SeesturmError {
     val defaultMessage: String
+}
+
+sealed class SchoepflialarmError(override val defaultMessage: String): SeesturmError {
+    data class TooFarAway(
+        val message: String
+    ): SchoepflialarmError(message)
+    data class TooEarly(
+        val message: String
+    ): SchoepflialarmError(message)
+    data object MessagingPermissionMissing: SchoepflialarmError("Um diese Funktion nutzen zu können, musst du Push-Nachrichten in den Einstellungen aktivieren.")
+    data class LocationError(
+        val message: String
+    ): SchoepflialarmError(message)
+    data object LocationPermissionMissing: SchoepflialarmError("Um diese Funktion zu nutzen, müssen die Ortungsdienste aktiviert sein.")
+    data class Unknown(
+        val message: String
+    ): SchoepflialarmError(message)
 }
 
 sealed interface DataError: SeesturmError {
@@ -93,4 +111,38 @@ sealed class PfadiSeesturmAppError(override val message: String): Exception(mess
     class UnknownAktivitaetInteraction(message: String): PfadiSeesturmAppError(message)
     class AuthError(message: String): PfadiSeesturmAppError(message)
     class Cancelled(message: String): PfadiSeesturmAppError(message)
+    class UnknownNotificationTopic(message: String): PfadiSeesturmAppError(message)
+    class UnknownSchoepflialarmReactionType(message: String): PfadiSeesturmAppError(message)
+}
+
+sealed class SchoepflialarmLocalizedError(override val message: String): Exception(message) {
+    class TooFarAway(
+        distanceDescription: String
+    ): SchoepflialarmLocalizedError(
+        "Du befindest dich $distanceDescription vom Schöpfli entfernt und kannst somit keinen Schöpflialarm auslösen."
+    )
+    class TooEarly(message: String): SchoepflialarmLocalizedError(message)
+    class LocationError(message: String): SchoepflialarmLocalizedError(message)
+    class LocationPermissionError : SchoepflialarmLocalizedError("Um diese Funktion zu nutzen, müssen die Ortungsdienste aktiviert sein.")
+    class Unknown(message: String): SchoepflialarmLocalizedError(message)
+
+    fun toSchoepflialarmError(): SchoepflialarmError {
+        return when (this) {
+            is TooFarAway -> {
+                SchoepflialarmError.TooFarAway(this.message)
+            }
+            is TooEarly -> {
+                SchoepflialarmError.TooEarly(this.message)
+            }
+            is LocationError -> {
+                SchoepflialarmError.LocationError(this.message)
+            }
+            is LocationPermissionError -> {
+                SchoepflialarmError.LocationPermissionMissing
+            }
+            is Unknown -> {
+                SchoepflialarmError.Unknown(this.message)
+            }
+        }
+    }
 }

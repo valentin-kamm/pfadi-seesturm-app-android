@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.UUID
 
 data class FoodOrderDto(
+
     @DocumentId override var id: String? = null,
     @ServerTimestamp override var created: Timestamp? = null,
     @ServerTimestamp override var modified: Timestamp? = null,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,27 +18,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.presentation.account.auth.components.AuthIntentController
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichView
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffoldStaticSnackbarType
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.ObserveAsEvents
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
-import ch.seesturm.pfadiseesturm.presentation.common.viewModelFactoryHelper
-import ch.seesturm.pfadiseesturm.presentation.main.AppState
-import ch.seesturm.pfadiseesturm.presentation.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.main.SeesturmApplication.Companion.accountModule
-import ch.seesturm.pfadiseesturm.util.SeesturmAuthState
-import ch.seesturm.pfadiseesturm.util.SeesturmCalendar
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
+import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import kotlinx.coroutines.launch
 
@@ -45,8 +36,6 @@ import kotlinx.coroutines.launch
 fun AccountView(
     appStateViewModel: AppStateViewModel,
     bottomNavigationInnerPadding: PaddingValues,
-    calendar: SeesturmCalendar,
-    accountNavController: NavController,
     leiterbereich: (FirebaseHitobitoUser) -> @Composable () -> Unit
 ) {
 
@@ -69,14 +58,12 @@ fun AccountView(
     }
 
     AccountContentView(
-        appState = appState,
-        buttonIsLoading = appState.authState.signInButtonIsLoading,
+        authState = appState.authState,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-        accountNavController = accountNavController,
-        onStartAuthentication = {
+        onAuthenticate = {
             appStateViewModel.startAuthFlow()
         },
-        onErrorButtonClick = {
+        onResetAuthState = {
             appStateViewModel.resetAuthState()
         },
         leiterbereich = { user ->
@@ -85,29 +72,30 @@ fun AccountView(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AccountContentView(
-    appState: AppState,
-    buttonIsLoading: Boolean,
+    authState: SeesturmAuthState,
     bottomNavigationInnerPadding: PaddingValues,
-    accountNavController: NavController,
-    onStartAuthentication: () -> Unit,
-    onErrorButtonClick: () -> Unit,
+    onAuthenticate: () -> Unit,
+    onResetAuthState: () -> Unit,
     leiterbereich: @Composable (FirebaseHitobitoUser) -> Unit,
     columnState: LazyListState = rememberLazyListState()
 ) {
-    when (appState.authState) {
+
+    when (authState) {
         is SeesturmAuthState.SignedOut -> {
+
             TopBarScaffold(
                 topBarStyle = TopBarStyle.Large,
                 title = "Account",
-                staticSnackbar = when(appState.authState.state) {
+                staticSnackbar = when (authState.state) {
                     is ActionState.Idle -> {
                         TopBarScaffoldStaticSnackbarType.Show(
                             snackbarEvent = SeesturmSnackbarEvent(
                                 message = "Die Anmeldung ist nur fürs Leitungsteam der Pfadi Seesturm möglich",
                                 duration = SnackbarDuration.Indefinite,
-                                type = SnackbarType.Info,
+                                type = SeesturmSnackbarType.Info,
                                 allowManualDismiss = false,
                                 onDismiss = {},
                                 showInSheetIfPossible = false
@@ -136,16 +124,16 @@ private fun AccountContentView(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
-                    when (appState.authState.state) {
+                    when (authState.state) {
                         is ActionState.Success, is ActionState.Loading, ActionState.Idle -> {
                             item(
                                 key = "AccountSignedOutView"
                             ) {
                                 LoggedOutView(
-                                    isLoading = buttonIsLoading,
-                                    onLogin = {
-                                        onStartAuthentication()
-                                    }
+                                    authState = authState,
+                                    onAuthenticate = onAuthenticate,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
@@ -154,10 +142,8 @@ private fun AccountContentView(
                                 key = "AccountErrorView"
                             ) {
                                 AuthErrorView(
-                                    message = appState.authState.state.message,
-                                    onButtonClick = {
-                                        onErrorButtonClick()
-                                    },
+                                    message = authState.state.message,
+                                    onResetAuthState = onResetAuthState,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                 )
@@ -168,23 +154,47 @@ private fun AccountContentView(
             }
         }
         is SeesturmAuthState.SignedInWithHitobito -> {
-            leiterbereich(appState.authState.user)
+            leiterbereich(authState.user)
         }
     }
 }
 
-@Preview
+@Preview("Idle")
 @Composable
-private fun AccountViewPreview() {
-    AccountContentView(
-        appState = AppState(
-            authState = SeesturmAuthState.SignedOut(state = ActionState.Idle)
-        ),
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        accountNavController = rememberNavController(),
-        buttonIsLoading = false,
-        onStartAuthentication = {},
-        onErrorButtonClick = {},
-        leiterbereich = {}
-    )
+private fun AccountViewPreview1() {
+    PfadiSeesturmTheme {
+        AccountContentView(
+            authState = SeesturmAuthState.SignedOut(ActionState.Idle),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onAuthenticate = {},
+            onResetAuthState = {},
+            leiterbereich = {}
+        )
+    }
+}
+@Preview("Loading")
+@Composable
+private fun AccountViewPreview2() {
+    PfadiSeesturmTheme {
+        AccountContentView(
+            authState = SeesturmAuthState.SignedOut(ActionState.Loading(Unit)),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onAuthenticate = {},
+            onResetAuthState = {},
+            leiterbereich = {}
+        )
+    }
+}
+@Preview("Error")
+@Composable
+private fun AccountViewPreview3() {
+    PfadiSeesturmTheme {
+        AccountContentView(
+            authState = SeesturmAuthState.SignedOut(ActionState.Error(Unit, "Hallo")),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onAuthenticate = {},
+            onResetAuthState = {},
+            leiterbereich = {}
+        )
+    }
 }

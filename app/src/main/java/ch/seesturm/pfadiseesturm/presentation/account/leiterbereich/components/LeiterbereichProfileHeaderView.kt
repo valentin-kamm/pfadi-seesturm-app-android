@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.PersonRemove
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,27 +18,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonIconType
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import java.time.ZonedDateTime
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.DummyData
 
 @Composable
 fun LeiterbereichProfileHeaderView(
     user: FirebaseHitobitoUser,
     isLoading: Boolean,
     onSignOut: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onDeleteAccount: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     var showAccountMenu by remember { mutableStateOf(false) }
@@ -48,32 +43,26 @@ fun LeiterbereichProfileHeaderView(
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
     ) {
         Box {
-            SeesturmButton(
-                type = SeesturmButtonType.IconButton(
-                    buttonColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = Color.SEESTURM_GREEN,
-                    icon = SeesturmButtonIconType.Custom(
-                        image = painterResource(R.drawable.logotabbar)
-                    )
-                ),
-                title = null,
-                onClick = {
-                    showAccountMenu = true
-                },
-                isLoading = isLoading
+            CircleProfilePictureView(
+                user = user,
+                size = 40.dp,
+                isLoading = isLoading,
+                showEditBadge = true,
+                onClick = { showAccountMenu = true },
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
             )
-            DropdownMenu(
+            ThemedDropdownMenu(
                 expanded = showAccountMenu,
                 onDismissRequest = {
                     showAccountMenu = false
                 }
             ) {
-                DropdownMenuItem(
+                ThemedDropdownMenuItem(
                     text = {
                         Text(text = "Abmelden")
                     },
@@ -88,7 +77,7 @@ fun LeiterbereichProfileHeaderView(
                         )
                     }
                 )
-                DropdownMenuItem(
+                ThemedDropdownMenuItem(
                     text = {
                         Text(text = "Account löschen")
                     },
@@ -130,23 +119,27 @@ fun LeiterbereichProfileHeaderView(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun LeiterbereichProfileHeaderViewPreview() {
-    LeiterbereichProfileHeaderView(
-        user = FirebaseHitobitoUser(
-            userId = "123",
-            vorname = "Sepp",
-            nachname = "Meier",
-            pfadiname = "Tarantula",
-            email = "sepp.meier@gmail.com",
-            created = ZonedDateTime.now(),
-            createdFormatted = "",
-            modified = ZonedDateTime.now(),
-            modifiedFormatted = ""
-        ),
-        isLoading = false,
-        onSignOut = {},
-        onDeleteAccount = {}
-    )
+private fun LeiterbereichProfileHeaderViewPreview1() {
+    PfadiSeesturmTheme {
+        LeiterbereichProfileHeaderView(
+            user = DummyData.user3,
+            isLoading = false,
+            onSignOut = {},
+            onDeleteAccount = {}
+        )
+    }
+}
+@Preview(showBackground = true)
+@Composable
+private fun LeiterbereichProfileHeaderViewPreview2() {
+    PfadiSeesturmTheme {
+        LeiterbereichProfileHeaderView(
+            user = DummyData.user1,
+            isLoading = true,
+            onSignOut = {},
+            onDeleteAccount = {}
+        )
+    }
 }

@@ -16,6 +16,7 @@ open class WordpressService {
         crossinline fetchAction: suspend () -> T,
         crossinline transform: (T) -> R
     ): SeesturmResult<R, DataError.Network> {
+
         try {
             val randomDelay = Random.nextLong(Constants.MIN_ARTIFICIAL_DELAY, Constants.MAX_ARTIFICIAL_DELAY)
             delay(randomDelay.milliseconds)
@@ -40,7 +41,7 @@ open class WordpressService {
                 when (e) {
                     is PfadiSeesturmAppError.DateError -> DataError.Network.INVALID_DATE
                     is PfadiSeesturmAppError.WeatherConditionError -> DataError.Network.INVALID_WEATHER_CONDITION
-                    is PfadiSeesturmAppError.MessagingPermissionError, is PfadiSeesturmAppError.InvalidFormInput, is PfadiSeesturmAppError.UnknownStufe, is PfadiSeesturmAppError.UnknownAktivitaetInteraction, is PfadiSeesturmAppError.AuthError, is PfadiSeesturmAppError.Cancelled -> {
+                    else -> {
                         DataError.Network.UNKNOWN
                     }
                 }

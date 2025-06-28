@@ -24,6 +24,7 @@ class LeitungsteamViewModel(
     }
 
     fun fetchLeitungsteam() {
+
         _state.update {
             UiState.Loading
         }

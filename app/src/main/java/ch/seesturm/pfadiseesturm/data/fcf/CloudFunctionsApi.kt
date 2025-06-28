@@ -9,9 +9,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
 interface CloudFunctionsApi {
-
-    val functions: FirebaseFunctions
-
     suspend fun <I: Any, O: Any>invokeCloudFunction(
         function: SeesturmCloudFunction,
         data: I? = null,
@@ -21,10 +18,8 @@ interface CloudFunctionsApi {
 }
 
 class CloudFunctionsApiImpl(
-    override val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions
 ): CloudFunctionsApi {
-
-    private val gson = Gson()
 
     override suspend fun <I : Any, O : Any> invokeCloudFunction(
         function: SeesturmCloudFunction,
@@ -33,8 +28,10 @@ class CloudFunctionsApiImpl(
         outputSerializer: KSerializer<O>
     ): O {
 
-        val inputData = data?.let {
-            val jsonString = Json.encodeToString(inputSerializer, it)
+        val gson = Gson()
+
+        val inputData = data?.let { dataNotNull ->
+            val jsonString = Json.encodeToString(inputSerializer, dataNotNull)
             gson.fromJson(jsonString, Any::class.java)
         }
 
@@ -52,5 +49,6 @@ enum class SeesturmCloudFunction(
 ) {
     GetFirebaseAuthToken(functionName = "getfirebaseauthtokenv2"),
     PublishGoogleCalendarEvent(functionName = "addcalendareventv2"),
-    UpdateGoogleCalendarEvent(functionName = "updatecalendareventv2")
+    UpdateGoogleCalendarEvent(functionName = "updatecalendareventv2"),
+    SendPushNotificationToTopic(functionName = "sendpushnotificationtotopicv2")
 }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class GalleriesViewModel(
     private val service: PhotosService,
-    private val pfadijahrId: String
+    private val type: PhotoGalleriesType
 ): ViewModel() {
 
     private val _state = MutableStateFlow<UiState<List<WordpressPhotoGallery>>>(
@@ -21,15 +21,25 @@ class GalleriesViewModel(
     val state = _state.asStateFlow()
 
     init {
-        fetchAlbums()
+        fetchGalleries()
     }
 
-    fun fetchAlbums() {
+    fun fetchGalleries() {
         _state.update {
             UiState.Loading
         }
         viewModelScope.launch {
-            when (val result = service.getAlbums(pfadijahrId)) {
+
+            val result = when (type) {
+                PhotoGalleriesType.Pfadijahre -> {
+                    service.getPfadijahre()
+                }
+                is PhotoGalleriesType.Albums -> {
+                    service.getAlbums(type.id)
+                }
+            }
+
+            when (result) {
                 is SeesturmResult.Error -> {
                     _state.update {
                         UiState.Error("Fotos konnten nicht geladen werden. ${result.error.defaultMessage}")

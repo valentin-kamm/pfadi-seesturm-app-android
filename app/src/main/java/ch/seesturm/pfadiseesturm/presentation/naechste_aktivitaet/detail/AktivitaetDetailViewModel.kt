@@ -8,14 +8,14 @@ import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.data_store.service.GespeichertePersonenService
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.NaechsteAktivitaetService
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -27,8 +27,8 @@ class AktivitaetDetailViewModel(
     private val service: NaechsteAktivitaetService,
     private val gespeichertePersonenService: GespeichertePersonenService,
     private val stufe: SeesturmStufe,
-    private val eventId: String?,
-    private val dismiss: () -> Unit,
+    private val type: AktivitaetDetailViewLocation,
+    private val dismissAnAbmeldenSheet: () -> Unit,
     private val userId: String?
 ): ViewModel() {
 
@@ -52,7 +52,7 @@ class AktivitaetDetailViewModel(
 
     private val newAnAbmeldung: AktivitaetAnAbmeldungDto
         get() = AktivitaetAnAbmeldungDto(
-            eventId = eventId ?: "",
+            eventId = type.eventId ?: "",
             uid = userId,
             vorname = state.value.vornameState.text.trim(),
             nachname = state.value.nachnameState.text.trim(),
@@ -74,40 +74,36 @@ class AktivitaetDetailViewModel(
     }
 
     fun getAktivitaet() {
-        when (eventId) {
-            null -> {
-                _state.update {
-                    it.copy(
-                        loadingState = UiState.Success(null)
-                    )
-                }
+
+        if (type.eventId == null || type.eventId?.isEmpty() == true) {
+            _state.update {
+                it.copy(
+                    loadingState = UiState.Success(null)
+                )
             }
-            else -> {
-                viewModelScope.launch {
+            return
+        }
+
+        _state.update {
+            it.copy(
+                loadingState = UiState.Loading
+            )
+        }
+
+        viewModelScope.launch {
+            when(val result = type.getAktivitaet()) {
+                is SeesturmResult.Error -> {
                     _state.update {
                         it.copy(
-                            loadingState = UiState.Loading
+                            loadingState = UiState.Error("Die ${stufe.aktivitaetDescription} konnte nicht geladen werden. ${result.error.defaultMessage}")
                         )
                     }
-                    val result = service.getOrFetchNaechsteAktivitaet(
-                        stufe = stufe,
-                        eventId = eventId
-                    )
-                    when (result) {
-                        is SeesturmResult.Error -> {
-                            _state.update {
-                                it.copy(
-                                    loadingState = UiState.Error("Die ${stufe.aktivitaetDescription} konnte nicht geladen werden. ${result.error.defaultMessage}")
-                                )
-                            }
-                        }
-                        is SeesturmResult.Success -> {
-                            _state.update {
-                                it.copy(
-                                    loadingState = UiState.Success(result.data)
-                                )
-                            }
-                        }
+                }
+                is SeesturmResult.Success -> {
+                    _state.update {
+                        it.copy(
+                            loadingState = UiState.Success(result.data)
+                        )
                     }
                 }
             }
@@ -115,14 +111,18 @@ class AktivitaetDetailViewModel(
     }
 
     fun sendAnAbmeldung() {
-        viewModelScope.launch {
-            validateAnAbmeldung()
-            if (isNewAnAbmeldungOk) {
+
+        validateAnAbmeldung()
+
+        if (isNewAnAbmeldungOk) {
+
+            viewModelScope.launch {
                 _state.update {
                     it.copy(
                         anAbmeldenState = ActionState.Loading(state.value.selectedSheetMode)
                     )
                 }
+
                 when (val result = service.sendAnAbmeldung(newAnAbmeldung)) {
                     is SeesturmResult.Error -> {
                         _state.update {
@@ -133,7 +133,7 @@ class AktivitaetDetailViewModel(
                         SnackbarController.sendEvent(
                             event = SeesturmSnackbarEvent(
                                 message = "${state.value.selectedSheetMode.nomen} konnte nicht gespeichert werden. ${result.error.defaultMessage}",
-                                type = SnackbarType.Error,
+                                type = SeesturmSnackbarType.Error,
                                 onDismiss = {
                                     _state.update {
                                         it.copy(
@@ -148,7 +148,7 @@ class AktivitaetDetailViewModel(
                         )
                     }
                     is SeesturmResult.Success -> {
-                        dismiss()
+                        dismissAnAbmeldenSheet()
                         _state.update {
                             it.copy(
                                 anAbmeldenState = ActionState.Success(action = state.value.selectedSheetMode, "${state.value.selectedSheetMode.nomen} erfolgreich gespeichert.")
@@ -157,7 +157,7 @@ class AktivitaetDetailViewModel(
                         SnackbarController.sendEvent(
                             event = SeesturmSnackbarEvent(
                                 message = "${state.value.selectedSheetMode.nomen} erfolgreich gespeichert.",
-                                type = SnackbarType.Success,
+                                type = SeesturmSnackbarType.Success,
                                 onDismiss = {
                                     _state.update {
                                         it.copy(
@@ -201,6 +201,7 @@ class AktivitaetDetailViewModel(
     }
 
     private fun startListeningToPersons() {
+
         _state.update {
             it.copy(
                 gespeichertePersonenState = UiState.Loading
@@ -267,7 +268,7 @@ class AktivitaetDetailViewModel(
         }
     }
 
-    fun changeSheetMode(interaction: AktivitaetInteraction) {
+    fun changeSheetMode(interaction: AktivitaetInteractionType) {
         _state.update {
             it.copy(
                 selectedSheetMode = interaction

@@ -21,21 +21,14 @@ data class HitobitoUserInfoDto(
     @SerializedName("kantonalverband_id") val kantonalverbandId: Int?,
     val roles: List<HitobitoUserRoleDto?>?
 )
-data class HitobitoUserRoleDto(
-    @SerializedName("group_id") val groupId: Int?,
-    @SerializedName("group_name") val groupName: String?,
-    val role: String?,
-    @SerializedName("role_class") val roleClass: String?,
-    @SerializedName("role_name") val roleName: String?,
-    val permissions: List<String?>?
-)
 
-fun HitobitoUserInfoDto.toFirebaseHitobitoUserDto(): FirebaseHitobitoUserDto {
+fun HitobitoUserInfoDto.toFirebaseHitobitoUserDto(role: String): FirebaseHitobitoUserDto {
     return FirebaseHitobitoUserDto(
         id = sub,
         email = email,
-        firstName = firstName,
-        lastName = lastName,
-        pfadiName = nickname
+        firstname = firstName,
+        lastname = lastName,
+        pfadiname = nickname,
+        role = role
     )
 }

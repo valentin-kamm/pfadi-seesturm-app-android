@@ -1,8 +1,8 @@
 package ch.seesturm.pfadiseesturm.presentation.aktuell.list
 
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,37 +30,60 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.state.SeesturmInfiniteScrollUiState
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.AktuellRepositoryImpl
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.groupedByYear
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.AktuellService
 import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellCardView
-import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCell
+import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCardView
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicLoadingStickHeader
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.forms.myStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicLoadingStickHeader
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.common.viewModelFactoryHelper
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
+import ch.seesturm.pfadiseesturm.util.state.InfiniteScrollUiState
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AktuellView(
-    bottomNavigationInnerPadding: PaddingValues,
-    aktuellNavController: NavController,
     viewModel: AktuellViewModel,
+    aktuellNavController: NavController,
+    bottomNavigationInnerPadding: PaddingValues
+) {
+
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    AktuellContentView(
+        uiState = uiState,
+        aktuellNavController = aktuellNavController,
+        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+        onGetInitialPosts = { isPullToRefresh ->
+            viewModel.getInitialPosts(isPullToRefresh)
+        },
+        hasMorePosts = viewModel.hasMorePosts,
+        onGetMorePosts = {
+            viewModel.getMorePosts()
+        }
+    )
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AktuellContentView(
+    uiState: AktuellListState,
+    aktuellNavController: NavController,
+    bottomNavigationInnerPadding: PaddingValues,
+    onGetInitialPosts: (Boolean) -> Unit,
+    hasMorePosts: Boolean,
+    onGetMorePosts: () -> Unit,
     columnState: LazyListState = rememberLazyListState(),
     refreshState: PullToRefreshState = rememberPullToRefreshState()
 ) {
@@ -84,8 +107,12 @@ fun AktuellView(
         }
     ) { topBarInnerPadding ->
 
-        val uiState by viewModel.state.collectAsStateWithLifecycle()
-        val combinedPadding = bottomNavigationInnerPadding.intersectWith(topBarInnerPadding, LayoutDirection.Ltr)
+
+        val combinedPadding = bottomNavigationInnerPadding.intersectWith(
+            other = topBarInnerPadding,
+            layoutDirection = LayoutDirection.Ltr,
+            additionalBottomPadding = 16.dp
+        )
 
         // Calculate sticky offsets for all sticky headers
         val stickyOffsets = rememberStickyHeaderOffsets(columnState, 0)
@@ -94,18 +121,19 @@ fun AktuellView(
             state = columnState,
             userScrollEnabled = !uiState.result.scrollingDisabled,
             contentPadding = combinedPadding,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .pullToRefresh(
                     isRefreshing = uiState.refreshing,
                     state = refreshState,
                     onRefresh = {
-                        viewModel.getInitialPosts(true)
+                        onGetInitialPosts(true)
                     }
                 )
         ) {
             when (val localState = uiState.result) {
-                SeesturmInfiniteScrollUiState.Loading -> {
+                InfiniteScrollUiState.Loading -> {
                     stickyHeader {
                         BasicLoadingStickHeader()
                     }
@@ -114,45 +142,38 @@ fun AktuellView(
                         key = { index ->
                             "Loading Cell $index"
                         }
-                    ) { index ->
-                        AktuellLoadingCell(
+                    ) { _ ->
+                        AktuellLoadingCardView(
                             modifier = Modifier
-                                .padding(
-                                    0.dp,
-                                    if (index == 0) 16.dp else {
-                                        0.dp
-                                    },
-                                    0.dp,
-                                    0.dp
-                                )
                                 .animateItem()
+                                .padding(horizontal = 16.dp)
                         )
                     }
                 }
-                is SeesturmInfiniteScrollUiState.Error -> {
+                is InfiniteScrollUiState.Error -> {
                     item(
                         key = "ErrorCell"
                     ) {
-                        CardErrorView(
+                        ErrorCardView(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .animateItem(),
+                                .animateItem()
+                                .padding(16.dp),
                             errorTitle = "Ein Fehler ist aufgetreten",
                             errorDescription = localState.message
                         ) {
-                            viewModel.getInitialPosts(false)
+                            onGetInitialPosts(false)
                         }
                     }
                 }
-                is SeesturmInfiniteScrollUiState.Success -> {
+                is InfiniteScrollUiState.Success -> {
                     localState.data.groupedByYear.forEachIndexed { _, (year, posts) ->
                         val headerTitle = "Pfadijahr $year"
-                        myStickyHeader(
+                        seesturmStickyHeader(
                             uniqueKey = headerTitle,
                             stickyOffsets = stickyOffsets
                         ) { _ ->
                             BasicListHeader(
-                                title = headerTitle,
+                                mode = BasicListHeaderMode.Normal(headerTitle),
                                 modifier = Modifier
                                     .background(MaterialTheme.colorScheme.background)
                             )
@@ -162,7 +183,7 @@ fun AktuellView(
                             key = { _, post ->
                                 post.id
                             }
-                        ) { index, item ->
+                        ) { _, item ->
                             AktuellCardView(
                                 post = item,
                                 onClick = {
@@ -171,52 +192,45 @@ fun AktuellView(
                                     )
                                 },
                                 modifier = Modifier
-                                    .padding(
-                                        0.dp,
-                                        if (index == 0) 16.dp else {
-                                            0.dp
-                                        },
-                                        0.dp,
-                                        0.dp
-                                    )
                                     .animateItem()
+                                    .padding(horizontal = 16.dp)
                             )
                         }
                     }
-                    if (viewModel.hasMorePosts) {
+                    if (hasMorePosts) {
                         when (val localSubState = localState.subState) {
-                            SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Success, SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Loading -> {
+                            InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Success, InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Loading -> {
                                 item(
                                     key = "LoadingMoreCell"
                                 ) {
-                                    AktuellLoadingCell(
+                                    AktuellLoadingCardView(
                                         onAppear = {
                                             if (localSubState.infiniteScrollTaskShouldRun) {
-                                                viewModel.getMorePosts()
+                                                onGetMorePosts()
                                             }
                                         },
                                         modifier = Modifier
                                             .padding(0.dp)
                                             .animateItem()
+                                            .padding(horizontal = 16.dp)
                                     )
                                 }
                             }
-                            is SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Error -> {
+                            is InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Error -> {
                                 item(
                                     key = "LoadingMoreErrorCell"
                                 ) {
-                                    CardErrorView(
+                                    ErrorCardView(
                                         modifier = Modifier
                                             .padding(
-                                                top = 0.dp,
-                                                bottom = 16.dp
+                                                top = 0.dp
                                             )
                                             .padding(horizontal = 16.dp)
                                             .animateItem(),
                                         errorTitle = "Ein Fehler ist aufgetreten",
                                         errorDescription = localSubState.message
                                     ) {
-                                        viewModel.getMorePosts()
+                                        onGetMorePosts()
                                     }
                                 }
                             }
@@ -241,26 +255,96 @@ fun AktuellView(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@Preview("Loading")
 @Composable
-fun AktuellViewPreview() {
-    AktuellView(
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        aktuellNavController = rememberNavController(),
-        viewModel = viewModel<AktuellViewModel>(
-            factory = viewModelFactoryHelper {
-                AktuellViewModel(
-                    service = AktuellService(
-                        AktuellRepositoryImpl(
-                            Retrofit.Builder()
-                                .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build()
-                                .create(WordpressApi::class.java)
-                        )
-                    )
-                )
-            }
+private fun AktuellViewPreview1() {
+    PfadiSeesturmTheme {
+        AktuellContentView(
+            uiState = AktuellListState(
+                result = InfiniteScrollUiState.Loading
+            ),
+            aktuellNavController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onGetInitialPosts = {},
+            hasMorePosts = true,
+            onGetMorePosts = {}
         )
-    )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Error")
+@Composable
+private fun AktuellViewPreview2() {
+    PfadiSeesturmTheme {
+        AktuellContentView(
+            uiState = AktuellListState(
+                result = InfiniteScrollUiState.Error("Schwerer Fehler")
+            ),
+            aktuellNavController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onGetInitialPosts = {},
+            hasMorePosts = true,
+            onGetMorePosts = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Success with more posts")
+@Composable
+private fun AktuellViewPreview3() {
+    PfadiSeesturmTheme {
+        AktuellContentView(
+            uiState = AktuellListState(
+                result = InfiniteScrollUiState.Success(
+                    data = listOf(DummyData.aktuellPost1, DummyData.aktuellPost2),
+                    subState = InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Loading
+                )
+            ),
+            aktuellNavController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onGetInitialPosts = {},
+            hasMorePosts = true,
+            onGetMorePosts = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Success with more posts error")
+@Composable
+private fun AktuellViewPreview4() {
+    PfadiSeesturmTheme {
+        AktuellContentView(
+            uiState = AktuellListState(
+                result = InfiniteScrollUiState.Success(
+                    data = listOf(DummyData.aktuellPost1, DummyData.aktuellPost2),
+                    subState = InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Error("Schwerer Fehler")
+                )
+            ),
+            aktuellNavController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onGetInitialPosts = {},
+            hasMorePosts = true,
+            onGetMorePosts = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Success without more posts")
+@Composable
+private fun AktuellViewPreview5() {
+    PfadiSeesturmTheme {
+        AktuellContentView(
+            uiState = AktuellListState(
+                result = InfiniteScrollUiState.Success(
+                    data = listOf(DummyData.aktuellPost1, DummyData.aktuellPost2),
+                    subState = InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Success
+                )
+            ),
+            aktuellNavController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onGetInitialPosts = {},
+            hasMorePosts = true,
+            onGetMorePosts = {}
+        )
+    }
 }

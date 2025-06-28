@@ -1,12 +1,10 @@
 package ch.seesturm.pfadiseesturm.presentation.home
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,14 +15,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -33,7 +27,6 @@ import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,74 +36,128 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.data.data_store.dao.SeesturmPreferencesDao
-import ch.seesturm.pfadiseesturm.data.data_store.repository.SelectedStufenRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApiImpl
-import ch.seesturm.pfadiseesturm.data.firestore.repository.FirestoreRepositoryImpl
-import ch.seesturm.pfadiseesturm.util.SeesturmCalendar
-import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.AktuellRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.AnlaesseRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.NaechsteAktivitaetRepositoryImpl
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.WeatherRepositoryImpl
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.AktuellService
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.AnlaesseService
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.NaechsteAktivitaetService
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.WeatherService
 import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellCardView
-import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCell
+import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeader
+import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeaderType
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.components.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.MainSectionHeader
-import ch.seesturm.pfadiseesturm.presentation.common.components.MainSectionHeaderType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.myStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.home.components.WeatherCell
-import ch.seesturm.pfadiseesturm.presentation.home.components.WeatherLoadingCell
-import ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen.FakeDataStore
+import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.home.weather.WeatherCardView
+import ch.seesturm.pfadiseesturm.presentation.home.weather.WeatherLoadingCell
 import ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.home.AktivitaetHomeHorizontalScrollView
 import ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.home.AktivitaetHomeLoadingView
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.intersectWith
+import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeView(
+    viewModel: HomeViewModel,
+    calendar: SeesturmCalendar,
     bottomNavigationInnerPadding: PaddingValues,
     tabNavController: NavController,
-    homeNavController: NavController,
+    homeNavController: NavController
+) {
+
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    HomeContentView(
+        uiState = uiState,
+        calendar = calendar,
+        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+        onRefresh = {
+            viewModel.refresh()
+        },
+        onToggleStufe = { stufe ->
+            viewModel.toggleStufe(stufe)
+        },
+        onChangeTab = { destination ->
+            tabNavController.navigate(destination) {
+                popUpTo(tabNavController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        },
+        onNavigate = { destination ->
+            homeNavController.navigate(destination)
+        },
+        onFetchAktivitaet = { stufe, isPullToRefresh ->
+            viewModel.viewModelScope.launch {
+                viewModel.fetchAktivitaet(
+                    stufe = stufe,
+                    isPullToRefresh = isPullToRefresh
+                )
+            }
+        },
+        onFetchPost = { isPullToRefresh ->
+            viewModel.viewModelScope.launch {
+                viewModel.fetchPost(isPullToRefresh)
+            }
+        },
+        onFetchEvents = { isPullToRefresh ->
+            viewModel.viewModelScope.launch {
+                viewModel.fetchEvents(isPullToRefresh)
+            }
+        },
+        onFetchWeather = { isPullToRefresh ->
+            viewModel.viewModelScope.launch {
+                viewModel.fetchWeather(isPullToRefresh)
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeContentView(
+    uiState: HomeListState,
     calendar: SeesturmCalendar,
-    viewModel: HomeViewModel,
+    bottomNavigationInnerPadding: PaddingValues,
+    onRefresh: () -> Unit,
+    onToggleStufe: (SeesturmStufe) -> Unit,
+    onChangeTab: (AppDestination.MainTabView.Destinations) -> Unit,
+    onNavigate: (AppDestination.MainTabView.Destinations.Home.Destinations) -> Unit,
+    onFetchAktivitaet: (SeesturmStufe, Boolean) -> Unit,
+    onFetchPost: (Boolean) -> Unit,
+    onFetchEvents: (Boolean) -> Unit,
+    onFetchWeather: (Boolean) -> Unit,
     columnState: LazyListState = rememberLazyListState(),
     refreshState: PullToRefreshState = rememberPullToRefreshState()
 ) {
+
+    val selectedStufen = when(val localState = uiState.selectedStufen) {
+        is UiState.Success -> localState.data.toList()
+        else -> emptyList()
+    }
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Large,
         title = "Pfadi Seesturm"
     ) { topBarInnerPadding ->
 
-        val uiState by viewModel.state.collectAsStateWithLifecycle()
-        val combinedPadding = bottomNavigationInnerPadding.intersectWith(topBarInnerPadding, LayoutDirection.Ltr)
-        val corountineScope = rememberCoroutineScope()
+        val combinedPadding = bottomNavigationInnerPadding.intersectWith(
+            other = topBarInnerPadding,
+            layoutDirection = LayoutDirection.Ltr,
+            additionalBottomPadding = 16.dp
+        )
 
-        // Calculate sticky offsets for all sticky headers
         val stickyOffsets = rememberStickyHeaderOffsets(columnState, 0)
 
         BoxWithConstraints(
@@ -119,76 +166,36 @@ fun HomeView(
         ) {
             LazyColumn(
                 state = columnState,
-                userScrollEnabled = true,
                 contentPadding = combinedPadding,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .pullToRefresh(
                         isRefreshing = uiState.refreshing,
                         state = refreshState,
-                        onRefresh = {
-                            viewModel.refresh()
-                        }
+                        onRefresh = onRefresh
                     )
                     .background(MaterialTheme.colorScheme.background)
             ) {
 
                 // nächste aktivität
-                myStickyHeader(
+                seesturmStickyHeader(
                     uniqueKey = "AktivitaetStickyHeader",
                     stickyOffsets = stickyOffsets
                 ) { _ ->
-                    Row (
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        MainSectionHeader(
-                            sectionTitle = "Nächste Aktivität",
-                            icon = Icons.Default.Group,
-                            type = MainSectionHeaderType.Custom(
-                                content = {
-                                    DropdownButton(
-                                        title = viewModel.stufenDropdownText,
-                                        enabled = uiState.selectedStufen.isSuccess,
-                                        dropdown = { isShown, dismiss ->
-                                            DropdownMenu(
-                                                expanded = isShown,
-                                                onDismissRequest = {
-                                                    dismiss()
-                                                }
-                                            ) {
-                                                SeesturmStufe.entries.sortedBy { it.id }.forEach { stufe ->
-                                                    DropdownMenuItem(
-                                                        text = { Text(text = stufe.stufenName) },
-                                                        onClick = {
-                                                            viewModel.toggleStufe(stufe)
-                                                        },
-                                                        trailingIcon = {
-                                                            when (val localState = uiState.selectedStufen) {
-                                                                is UiState.Success -> {
-                                                                    if (localState.data.contains(stufe)) {
-                                                                        Icon(
-                                                                            imageVector = Icons.Default.Check,
-                                                                            contentDescription = null
-                                                                        )
-                                                                    }
-                                                                }
-                                                                else -> {
-                                                                    // nothing
-                                                                }
-                                                            }
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            ),
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.background)
-                        )
-                    }
+                    MainSectionHeader(
+                        sectionTitle = "Nächste Aktivität",
+                        icon = Icons.Default.Group,
+                        type = MainSectionHeaderType.StufenButton(
+                            selectedStufen = selectedStufen,
+                            onToggle = {
+                                onToggleStufe(it)
+                            },
+                            enabled = uiState.selectedStufen.isSuccess
+                        ),
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                    )
                 }
                 when (val localState = uiState.selectedStufen) {
                     UiState.Loading -> {
@@ -198,8 +205,8 @@ fun HomeView(
                             AktivitaetHomeLoadingView(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
                                     .animateItem()
+                                    .padding(horizontal = 16.dp)
                             )
                         }
                     }
@@ -207,11 +214,10 @@ fun HomeView(
                         item(
                             key = "NaechsteAktivitaetHomeErrorCell"
                         ) {
-                            CardErrorView(
-                                errorTitle = "Ein Fehler ist aufgetreten.",
+                            ErrorCardView(
                                 errorDescription = localState.message,
                                 modifier = Modifier
-                                    .padding(16.dp)
+                                    .padding(horizontal = 16.dp)
                                     .animateItem()
                             )
                         }
@@ -226,7 +232,7 @@ fun HomeView(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 75.dp)
+                                        .padding(vertical = 60.dp)
                                         .padding(horizontal = 16.dp)
                                         .alpha(0.4f)
                                         .animateItem()
@@ -242,14 +248,9 @@ fun HomeView(
                                     naechsteAktivitaetState = uiState.naechsteAktivitaetState,
                                     screenWidth = maxWidth,
                                     onRetry = { stufe ->
-                                        corountineScope.launch {
-                                            viewModel.fetchAktivitaet(
-                                                stufe = stufe,
-                                                isPullToRefresh = false
-                                            )
-                                        }
+                                        onFetchAktivitaet(stufe, false)
                                     },
-                                    homeNavController = homeNavController,
+                                    onNavigate = onNavigate,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .animateItem()
@@ -260,7 +261,7 @@ fun HomeView(
                 }
 
                 // aktuell
-                myStickyHeader(
+                seesturmStickyHeader(
                     uniqueKey = "AktuellStickyHeader",
                     stickyOffsets = stickyOffsets
                 ) { _ ->
@@ -271,13 +272,7 @@ fun HomeView(
                             "Mehr",
                             Icons.AutoMirrored.Default.ArrowForwardIos
                         ) {
-                            tabNavController.navigate(AppDestination.MainTabView.Destinations.Aktuell) {
-                                popUpTo(tabNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            onChangeTab(AppDestination.MainTabView.Destinations.Aktuell)
                         },
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.background)
@@ -288,11 +283,10 @@ fun HomeView(
                         item(
                             key = "HomeAktuellLoadingCell"
                         ) {
-                            AktuellLoadingCell(
-                                null,
+                            AktuellLoadingCardView(
                                 modifier = Modifier
                                     .animateItem()
-                                    .padding(top = 16.dp)
+                                    .padding(horizontal = 16.dp)
                             )
                         }
                     }
@@ -300,17 +294,15 @@ fun HomeView(
                         item(
                             key = "HomeAktuellErrorCell"
                         ) {
-                            CardErrorView(
-                                "Ein Fehler ist aufgetreten",
-                                aktuellState.message,
+                            ErrorCardView(
+                                errorDescription = aktuellState.message,
                                 modifier = Modifier
-                                    .padding(16.dp)
-                                    .animateItem()
-                            ) {
-                                corountineScope.launch {
-                                    viewModel.fetchPost(false)
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem(),
+                                retryAction = {
+                                    onFetchPost(false)
                                 }
-                            }
+                            )
                         }
                     }
                     is UiState.Success -> {
@@ -320,14 +312,14 @@ fun HomeView(
                             AktuellCardView(
                                 post = aktuellState.data,
                                 onClick = {
-                                    homeNavController.navigate(
+                                    onNavigate(
                                         AppDestination.MainTabView.Destinations.Home.Destinations.AktuellDetail(
                                             aktuellState.data.id
                                         )
                                     )
                                 },
                                 modifier = Modifier
-                                    .padding(top = 16.dp)
+                                    .padding(horizontal = 16.dp)
                                     .animateItem()
                             )
                         }
@@ -335,7 +327,7 @@ fun HomeView(
                 }
 
                 // termine
-                myStickyHeader(
+                seesturmStickyHeader(
                     uniqueKey = "TermineStickyHeader",
                     stickyOffsets = stickyOffsets
                 ) { _ ->
@@ -346,13 +338,7 @@ fun HomeView(
                             "Mehr",
                             Icons.AutoMirrored.Default.ArrowForwardIos
                         ) {
-                            tabNavController.navigate(AppDestination.MainTabView.Destinations.Anlaesse) {
-                                popUpTo(tabNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            onChangeTab(AppDestination.MainTabView.Destinations.Anlaesse)
                         },
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.background)
@@ -365,11 +351,11 @@ fun HomeView(
                             key = { index ->
                                 "HomeTermineLoadingCell$index"
                             }
-                        ) { index ->
+                        ) {
                             AnlassLoadingCardView(
                                 onAppear = null,
                                 modifier = Modifier
-                                    .padding(top = if (index == 0) 16.dp else 0.dp)
+                                    .padding(horizontal = 16.dp)
                                     .animateItem()
                             )
                         }
@@ -378,17 +364,15 @@ fun HomeView(
                         item(
                             key = "HomeAnlaesseErrorCell"
                         ) {
-                            CardErrorView(
-                                "Ein Fehler ist aufgetreten",
-                                termineState.message,
+                            ErrorCardView(
+                                errorDescription = termineState.message,
                                 modifier = Modifier
-                                    .padding(16.dp)
-                                    .animateItem()
-                            ) {
-                                corountineScope.launch {
-                                    viewModel.fetchEvents(false)
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem(),
+                                retryAction = {
+                                    onFetchEvents(false)
                                 }
-                            }
+                            )
                         }
                     }
                     is UiState.Success -> {
@@ -398,12 +382,12 @@ fun HomeView(
                                 key = { _, event ->
                                     event.id
                                 }
-                            ) { index, item ->
+                            ) { _, item ->
                                 AnlassCardView(
                                     event = item,
                                     calendar = calendar,
                                     onClick = {
-                                        homeNavController.navigate(
+                                        onNavigate(
                                             AppDestination.MainTabView.Destinations.Home.Destinations.AnlaesseDetail(
                                                 calendar = calendar,
                                                 eventId = item.id
@@ -411,7 +395,7 @@ fun HomeView(
                                         )
                                     },
                                     modifier = Modifier
-                                        .padding(top = if (index == 0) 16.dp else 0.dp)
+                                        .padding(horizontal = 16.dp)
                                         .animateItem()
                                 )
                             }
@@ -425,7 +409,7 @@ fun HomeView(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 75.dp)
+                                        .padding(vertical = 60.dp)
                                         .padding(horizontal = 16.dp)
                                         .alpha(0.4f)
                                         .animateItem()
@@ -436,7 +420,7 @@ fun HomeView(
                 }
 
                 // Wetter
-                myStickyHeader(
+                seesturmStickyHeader(
                     uniqueKey = "WetterStickyHeader",
                     stickyOffsets = stickyOffsets
                 ) { _ ->
@@ -455,7 +439,8 @@ fun HomeView(
                         ) {
                             WeatherLoadingCell(
                                 modifier = Modifier
-                                    .padding(16.dp)
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem()
                             )
                         }
                     }
@@ -463,27 +448,26 @@ fun HomeView(
                         item(
                             key = "HomeWeatherErrorCell"
                         ) {
-                            CardErrorView(
-                                "Ein Fehler ist aufgetreten",
-                                weatherState.message,
+                            ErrorCardView(
+                                errorDescription = weatherState.message,
                                 modifier = Modifier
-                                    .padding(16.dp)
-                                    .animateItem()
-                            ) {
-                                corountineScope.launch {
-                                    viewModel.fetchWeather(false)
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem(),
+                                retryAction = {
+                                    onFetchWeather(false)
                                 }
-                            }
+                            )
                         }
                     }
                     is UiState.Success -> {
                         item(
                             key = "HomeWeatherCell"
                         ) {
-                            WeatherCell(
+                            WeatherCardView(
                                 weather = weatherState.data,
                                 modifier = Modifier
-                                    .padding(16.dp)
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem()
                             )
                         }
                     }
@@ -505,65 +489,194 @@ fun HomeView(
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+@Preview("Loading1")
 @Composable
-fun HomeViewPreview() {
-    HomeView(
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        tabNavController = rememberNavController(),
-        homeNavController = rememberNavController(),
-        calendar = SeesturmCalendar.TERMINE,
-        viewModel = HomeViewModel(
+private fun HomeViewPreview1() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(),
+                selectedStufen = UiState.Loading,
+                aktuellResult = UiState.Loading,
+                anlaesseResult = UiState.Loading,
+                weatherResult = UiState.Loading,
+            ),
             calendar = SeesturmCalendar.TERMINE,
-            anlaesseService = AnlaesseService(
-                AnlaesseRepositoryImpl(
-                    Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
-                )
-            ),
-            aktuellService = AktuellService(
-                AktuellRepositoryImpl(
-                    Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
-                )
-            ),
-            weatherService = WeatherService(
-                WeatherRepositoryImpl(
-                    Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
-                )
-            ),
-            naechsteAktivitaetService = NaechsteAktivitaetService(
-                NaechsteAktivitaetRepositoryImpl(
-                    Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
-                ),
-                firestoreRepository = FirestoreRepositoryImpl(
-                    api = FirestoreApiImpl(
-                        Firebase.firestore
-                    ),
-                    db = Firebase.firestore
-                ),
-                selectedStufenRepository = SelectedStufenRepositoryImpl(
-                    dataStore = FakeDataStore(
-                        initialValue = SeesturmPreferencesDao()
-                    )
-                )
-            )
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
         )
-    )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Loading2")
+@Composable
+private fun HomeViewPreview2() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(
+                    SeesturmStufe.Wolf to UiState.Loading,
+                    SeesturmStufe.Biber to UiState.Loading
+                ),
+                selectedStufen = UiState.Success(setOf(SeesturmStufe.Wolf, SeesturmStufe.Biber)),
+                aktuellResult = UiState.Loading,
+                anlaesseResult = UiState.Loading,
+                weatherResult = UiState.Loading,
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Error1")
+@Composable
+private fun HomeViewPreview3() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(),
+                selectedStufen = UiState.Error("Schwerer Fehler"),
+                aktuellResult = UiState.Error("Schwerer Fehler"),
+                anlaesseResult = UiState.Error("Schwerer Fehler"),
+                weatherResult = UiState.Error("Schwerer Fehler"),
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Error2")
+@Composable
+private fun HomeViewPreview4() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(
+                    SeesturmStufe.Wolf to UiState.Error("Schwerer Fehler")
+                ),
+                selectedStufen = UiState.Success(setOf(SeesturmStufe.Wolf)),
+                aktuellResult = UiState.Error("Schwerer Fehler"),
+                anlaesseResult = UiState.Error("Schwerer Fehler"),
+                weatherResult = UiState.Error("Schwerer Fehler"),
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Empty anlässe and no event")
+@Composable
+private fun HomeViewPreview5() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(
+                    SeesturmStufe.Wolf to UiState.Success(null)
+                ),
+                selectedStufen = UiState.Success(setOf(SeesturmStufe.Wolf)),
+                aktuellResult = UiState.Success(DummyData.aktuellPost3),
+                anlaesseResult = UiState.Success(emptyList()),
+                weatherResult = UiState.Success(DummyData.weather)
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("No stufe selected")
+@Composable
+private fun HomeViewPreview6() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(),
+                selectedStufen = UiState.Success(setOf()),
+                aktuellResult = UiState.Success(DummyData.aktuellPost3),
+                anlaesseResult = UiState.Success(emptyList()),
+                weatherResult = UiState.Success(DummyData.weather)
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Success")
+@Composable
+private fun HomeViewPreview7() {
+    PfadiSeesturmTheme {
+        HomeContentView(
+            uiState = HomeListState(
+                naechsteAktivitaetState = mapOf(
+                    SeesturmStufe.Wolf to UiState.Success(DummyData.aktivitaet1)
+                ),
+                selectedStufen = UiState.Success(setOf(SeesturmStufe.Wolf)),
+                aktuellResult = UiState.Success(DummyData.aktuellPost3),
+                anlaesseResult = UiState.Success(listOf(DummyData.oneDayEvent, DummyData.multiDayEvent)),
+                weatherResult = UiState.Success(DummyData.weather)
+            ),
+            calendar = SeesturmCalendar.TERMINE,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRefresh = {  },
+            onToggleStufe = {  },
+            onChangeTab = {  },
+            onNavigate = {  },
+            onFetchAktivitaet = { _, _ -> },
+            onFetchPost = {  },
+            onFetchEvents = {  },
+            onFetchWeather = {  }
+        )
+    }
 }

@@ -1,23 +1,29 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.parcelize)
+    id("com.google.firebase.crashlytics")
 }
 
 android {
     namespace = "ch.seesturm.pfadiseesturm"
-    compileSdk = 35
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     defaultConfig {
         applicationId = "ch.seesturm.pfadiseesturm"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 20
         versionName = "2.0.0"
 
@@ -27,9 +33,31 @@ android {
 
     }
 
+    signingConfigs {
+        create("release") {
+
+            val localProperties = Properties()
+            val localPropertiesFile = rootProject.file("local.properties")
+
+            if (localPropertiesFile.exists()) {
+
+                localProperties.load(FileInputStream(localPropertiesFile))
+
+                storeFile = file(localProperties.getProperty("release.storeFile", ""))
+                storePassword = localProperties.getProperty("release.storePassword", "")
+                keyAlias = localProperties.getProperty("release.keyAlias", "")
+                keyPassword = localProperties.getProperty("release.keyPassword", "")
+
+            } else {
+                println("WARNING: local.properties file not found. Release build might fail if signing details are missing.")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
@@ -41,9 +69,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 
@@ -58,6 +83,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.core.ktx)
+    implementation(libs.androidx.core.i18n)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,6 +101,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
+    implementation(libs.firebase.appcheck)
+    implementation(libs.firebase.appcheck.playintegrity)
+    implementation(libs.firebase.appcheck.debug)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
     // my dependencies
     implementation(libs.ui)
@@ -116,6 +147,11 @@ dependencies {
     implementation(libs.richeditor.compose)
 
     // html utils
-    implementation("org.jsoup:jsoup:1.17.2")
+    implementation(libs.jsoup)
 
+    // location
+    implementation(libs.play.services.location)
+
+    // splash screen
+    implementation(libs.androidx.core.splashscreen)
 }

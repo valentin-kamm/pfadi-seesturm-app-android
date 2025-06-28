@@ -13,6 +13,10 @@ class LeitungsteamService(
     suspend fun fetchLeitungsteam(): SeesturmResult<List<Leitungsteam>, DataError.Network> =
         fetchFromWordpress(
             fetchAction = { repository.getLeitungsteam() },
-            transform = { it.map { it.toLeitungsteam() } }
+            transform = { list ->
+                list.map { leitungsteamDto ->
+                    leitungsteamDto.toLeitungsteam()
+                }
+            }
         )
 }

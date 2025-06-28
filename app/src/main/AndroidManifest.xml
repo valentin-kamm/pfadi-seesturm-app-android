@@ -10,8 +10,13 @@
         </intent>
     </queries>
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
-        android:name=".presentation.main.SeesturmApplication"
+        android:name=".main.SeesturmApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,26 +24,82 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PfadiSeesturm"
-        tools:targetApi="31">
+        android:theme="@style/Theme.App.Starting"
+        tools:targetApi="36">
+
+        <service
+            android:name=".domain.fcm.service.FirebaseNotificationHandler"
+            android:exported="false"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
-            android:name=".presentation.main.MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.PfadiSeesturm">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <action android:name="android.intent.action.VIEW" />
 
-                <data android:scheme="https" />
-                <data android:host="seesturm.ch" />
-                <data android:host="www.seesturm.ch" />
-                <data android:path="/aktuell" />
+                <!-- Photos -->
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:path="/medien/fotos/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:path="/medien/fotos/" />
+
+                <!-- Aktuell posts -->
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:pathPattern="/aktuell/.*/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:pathPattern="/aktuell/.*/" />
+
+                <!-- Aktuell -->
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:path="/aktuell/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:path="/aktuell/" />
+
+                <!-- Dokumente -->
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:path="/medien/downloads/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:path="/medien/downloads/" />
+
+                <!-- Lüüchtturm -->
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:path="/medien/luuchtturm/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:path="/medien/luuchtturm/" />
             </intent-filter>
         </activity>
 
@@ -47,14 +108,18 @@
             android:exported="true">
 
             <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <action android:name="android.intent.action.VIEW" />
 
-                <data android:scheme="https" />
-                <data android:host="seesturm.ch" />
-                <data android:host="www.seesturm.ch" />
-                <data android:path="/oauth/app/callback" />
+                <data
+                    android:scheme="https"
+                    android:host="seesturm.ch"
+                    android:path="/oauth/app/callback" />
+                <data
+                    android:scheme="https"
+                    android:host="www.seesturm.ch"
+                    android:path="/oauth/app/callback" />
             </intent-filter>
         </activity>
 
@@ -67,9 +132,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
+
+        <receiver android:name=".domain.fcm.service.SchoepflialarmNotificationActionReceiver" />
     </application>
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
 </manifest>

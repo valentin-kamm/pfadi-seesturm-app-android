@@ -16,7 +16,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,29 +33,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventDto
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventStartEndDto
-import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.HtmlText
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonIconType
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+
 
 @Composable
 fun AktivitaetDetailCardView(
-    stufe: SeesturmStufe,
     aktivitaet: GoogleCalendarEvent?,
-    type: AktivitaetDetailCardViewType,
+    stufe: SeesturmStufe,
+    mode: AktivitaetDetailViewMode,
     modifier: Modifier = Modifier
 ) {
+
     CustomCardView(
         modifier = modifier
     ) {
@@ -84,29 +81,9 @@ fun AktivitaetDetailCardView(
                             style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                             textAlign = TextAlign.Start
                         )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.EventAvailable,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier
-                                    .size(
-                                        with(LocalDensity.current) {
-                                            MaterialTheme.typography.labelSmall.lineHeight
-                                                .toPx()
-                                                .toDp()
-                                        }
-                                    )
-                                    .alpha(0.4f)
-                                    .wrapContentSize()
-                            )
-                            Text(
-                                text = buildAnnotatedString {
+                        TextWithIcon(
+                            type = TextWithIconType.AnnotatedString(
+                                annotatedString = buildAnnotatedString {
                                     withStyle(
                                         style = SpanStyle(
                                             fontSize = MaterialTheme.typography.labelSmall.fontSize,
@@ -129,37 +106,22 @@ fun AktivitaetDetailCardView(
                                         append(aktivitaet.createdFormatted)
                                     }
                                 },
-                                maxLines = 1,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            )
-                        }
+                                iconSize = with(LocalDensity.current) {
+                                    MaterialTheme.typography.labelSmall.lineHeight.toDp()
+                                }
+                            ),
+                            imageVector = Icons.Outlined.EventAvailable,
+                            textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                            iconTint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                            maxLines = 1,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
                         if (aktivitaet.showUpdated) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Refresh,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier
-                                        .size(
-                                            with(LocalDensity.current) {
-                                                MaterialTheme.typography.labelSmall.lineHeight
-                                                    .toPx()
-                                                    .toDp()
-                                            }
-                                        )
-                                        .alpha(0.4f)
-                                        .wrapContentSize()
-                                )
-                                Text(
-                                    text = buildAnnotatedString {
+                            TextWithIcon(
+                                type = TextWithIconType.AnnotatedString(
+                                    annotatedString = buildAnnotatedString {
                                         withStyle(
                                             style = SpanStyle(
                                                 fontSize = MaterialTheme.typography.labelSmall.fontSize,
@@ -179,16 +141,21 @@ fun AktivitaetDetailCardView(
                                                 )
                                             )
                                         ) {
-                                            append(aktivitaet.updatedFormatted)
+                                            append(aktivitaet.modifiedFormatted)
                                         }
                                     },
-                                    maxLines = 1,
-                                    textAlign = TextAlign.Start,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                )
-                            }
+                                    iconSize = with(LocalDensity.current) {
+                                        MaterialTheme.typography.labelSmall.lineHeight.toDp()
+                                    }
+                                ),
+                                imageVector = Icons.Outlined.Refresh,
+                                textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                                iconTint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                                maxLines = 1,
+                                horizontalAlignment = Alignment.Start,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
                         }
                     }
                     Image(
@@ -200,28 +167,9 @@ fun AktivitaetDetailCardView(
                     )
                 }
                 HorizontalDivider()
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccessTime,
-                        contentDescription = null,
-                        tint = stufe.highContrastColor(),
-                        modifier = Modifier
-                            .size(
-                                with(LocalDensity.current) {
-                                    MaterialTheme.typography.bodyMedium.lineHeight
-                                        .toPx()
-                                        .toDp()
-                                }
-                            )
-                            .wrapContentSize()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
+                TextWithIcon(
+                    type = TextWithIconType.AnnotatedString(
+                        annotatedString = buildAnnotatedString {
                             withStyle(
                                 style = SpanStyle(
                                     fontSize = MaterialTheme.typography.bodyMedium.fontSize,
@@ -242,35 +190,20 @@ fun AktivitaetDetailCardView(
                                 append(aktivitaet.fullDateTimeFormatted)
                             }
                         },
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    )
-                }
+                        iconSize = with(LocalDensity.current) {
+                            MaterialTheme.typography.bodyMedium.lineHeight.toDp()
+                        }
+                    ),
+                    imageVector = Icons.Outlined.AccessTime,
+                    iconTint = stufe.highContrastColor(),
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
                 if (aktivitaet.location != null) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.LocationOn,
-                            contentDescription = null,
-                            tint = stufe.highContrastColor(),
-                            modifier = Modifier
-                                .size(
-                                    with(LocalDensity.current) {
-                                        MaterialTheme.typography.bodyMedium.lineHeight
-                                            .toPx()
-                                            .toDp()
-                                    }
-                                )
-                                .wrapContentSize()
-                        )
-                        Text(
-                            text = buildAnnotatedString {
+                    TextWithIcon(
+                        type = TextWithIconType.AnnotatedString(
+                            annotatedString = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
                                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
@@ -291,49 +224,35 @@ fun AktivitaetDetailCardView(
                                     append(aktivitaet.location)
                                 }
                             },
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        )
-                    }
+                            iconSize = with(LocalDensity.current) {
+                                MaterialTheme.typography.bodyMedium.lineHeight.toDp()
+                            }
+                        ),
+                        imageVector = Icons.Outlined.LocationOn,
+                        iconTint = stufe.highContrastColor(),
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
                 }
                 if (aktivitaet.description != null) {
                     HorizontalDivider()
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                    TextWithIcon(
+                        type = TextWithIconType.Text(
+                            text = "Infos",
+                            textStyle = { MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold) }
+                        ),
+                        imageVector = Icons.Outlined.Info,
+                        textColor = stufe.highContrastColor(),
+                        iconTint = stufe.highContrastColor(),
+                        horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = null,
-                            tint = stufe.highContrastColor(),
-                            modifier = Modifier
-                                .size(
-                                    with(LocalDensity.current) {
-                                        MaterialTheme.typography.bodyMedium.lineHeight
-                                            .toPx()
-                                            .toDp()
-                                    }
-                                )
-                                .wrapContentSize()
-                        )
-                        Text(
-                            text = "Infos",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            textAlign = TextAlign.Start,
-                            color = stufe.highContrastColor(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        )
-                    }
-                    HtmlText(
+                    )
+                    HtmlTextView(
                         html = aktivitaet.description,
                         textColor = MaterialTheme.colorScheme.onBackground,
-                        fontStyle = MaterialTheme.typography.bodyMedium
+                        textStyle = MaterialTheme.typography.bodyMedium
                     )
                 }
                 HorizontalDivider()
@@ -351,13 +270,14 @@ fun AktivitaetDetailCardView(
                                     icon = interaction.icon
                                 )
                             ),
-                            enabled = type is AktivitaetDetailCardViewType.Normal,
+                            enabled = mode is AktivitaetDetailViewMode.Interactive,
                             title = interaction.verb.capitalize(Locale("de-CH")),
                             onClick = {
-                                if (type is AktivitaetDetailCardViewType.Normal) {
-                                    type.openSheet(interaction)
+                                if (mode is AktivitaetDetailViewMode.Interactive) {
+                                    mode.onOpenSheet(interaction)
                                 }
-                            }
+                            },
+                            isLoading = false
                         )
                     }
                 }
@@ -419,13 +339,13 @@ fun AktivitaetDetailCardView(
                     SeesturmButton(
                         type = SeesturmButtonType.Primary(),
                         title = "Push-Nachrichten aktivieren",
+                        enabled = mode is AktivitaetDetailViewMode.Interactive,
                         onClick = {
-                            if (type is AktivitaetDetailCardViewType.Normal) {
-                                type.navController.navigate(
-                                    AppDestination.MainTabView.Destinations.Home.Destinations.PushNotifications
-                                )
+                            if (mode is AktivitaetDetailViewMode.Interactive) {
+                                mode.onNavigateToPushNotifications()
                             }
-                        }
+                        },
+                        isLoading = false
                     )
                 }
             }
@@ -433,55 +353,48 @@ fun AktivitaetDetailCardView(
     }
 }
 
-sealed class AktivitaetDetailCardViewType {
-    data object Preview: AktivitaetDetailCardViewType()
-    data class Normal(
-        val navController: NavController,
-        val openSheet: (AktivitaetInteraction) -> Unit,
-    ): AktivitaetDetailCardViewType()
-}
-
-@Preview
+@Preview("Noch in Planung")
 @Composable
 private fun AktivitaetDetailCardViewPreview1() {
-    val na = GoogleCalendarEventDto(
-        id = "17v15laf167s75oq47elh17a3t",
-        summary = "Biberstufen-Aktivität",
-        description = "Ob uns wohl der Pfadi-Chlaus dieses Jahr wieder viele Nüssli und Schöggeli bringt? Die genauen Zeiten werden später kommuniziert.",
-        location = "Geiserparkplatz",
-        created = "2022-08-28T15:25:45.701Z",
-        updated = "2022-08-28T15:19:45.726Z",
-        start = GoogleCalendarEventStartEndDto(
-            dateTime = "2022-12-10T13:00:00Z",
-            date = null
-        ),
-        end = GoogleCalendarEventStartEndDto(
-            dateTime = "2022-12-10T15:00:00Z",
-            date = null
+    PfadiSeesturmTheme {
+        AktivitaetDetailCardView(
+            aktivitaet = null,
+            stufe = SeesturmStufe.Pfadi,
+            mode = AktivitaetDetailViewMode.Interactive(
+                onNavigateToPushNotifications = {},
+                onOpenSheet = { _ -> }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
         )
-    ).toGoogleCalendarEvent()
-    AktivitaetDetailCardView(
-        stufe = SeesturmStufe.Pio,
-        aktivitaet = na,
-        type = AktivitaetDetailCardViewType.Normal(
-            navController = rememberNavController(),
-            openSheet = {}
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    )
+    }
 }
-@Preview
+@Preview("With interaction")
 @Composable
 private fun AktivitaetDetailCardViewPreview2() {
-    AktivitaetDetailCardView(
-        stufe = SeesturmStufe.Biber,
-        aktivitaet = null,
-        type = AktivitaetDetailCardViewType.Normal(
-            navController = rememberNavController(),
-            openSheet = {}
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    )
+    PfadiSeesturmTheme {
+        AktivitaetDetailCardView(
+            aktivitaet = DummyData.aktivitaet1,
+            stufe = SeesturmStufe.Pfadi,
+            mode = AktivitaetDetailViewMode.Interactive(
+                onNavigateToPushNotifications = {},
+                onOpenSheet = { _ -> }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+@Preview("View only")
+@Composable
+private fun AktivitaetDetailCardViewPreview3() {
+    PfadiSeesturmTheme {
+        AktivitaetDetailCardView(
+            aktivitaet = DummyData.aktivitaet1,
+            stufe = SeesturmStufe.Pfadi,
+            mode = AktivitaetDetailViewMode.ViewOnly,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
 }

@@ -3,6 +3,8 @@ package ch.seesturm.pfadiseesturm.data.firestore.repository
 import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApi
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FirestoreDto
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
+import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository.SeesturmFirestoreCollection
+import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository.SeesturmFirestoreDocument
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import com.google.firebase.firestore.CollectionReference
@@ -16,20 +18,8 @@ class FirestoreRepositoryImpl(
     private val db: FirebaseFirestore
 ): FirestoreRepository {
 
-    override suspend fun <T : FirestoreDto> performTransaction(
-        document: FirestoreRepository.SeesturmFirestoreDocument,
-        type: Class<T>,
-        update: (T) -> T
-    ) {
-        api.performTransaction(
-            document = documentReference(document),
-            type = type,
-            update = update
-        )
-    }
-
-    override suspend fun <T : FirestoreDto> observeDocument(
-        document: FirestoreRepository.SeesturmFirestoreDocument,
+    override fun <T : FirestoreDto> observeDocument(
+        document: SeesturmFirestoreDocument,
         type: Class<T>
     ): Flow<SeesturmResult<T, DataError.RemoteDatabase>> =
         api.observeDocument(
@@ -38,7 +28,7 @@ class FirestoreRepositoryImpl(
         )
 
     override fun <T : FirestoreDto> observeCollection(
-        collection: FirestoreRepository.SeesturmFirestoreCollection,
+        collection: SeesturmFirestoreCollection,
         type: Class<T>,
         filter: ((Query) -> Query)?
     ): Flow<SeesturmResult<List<T>, DataError.RemoteDatabase>> =
@@ -48,9 +38,23 @@ class FirestoreRepositoryImpl(
             filter = filter
         )
 
+    override suspend fun <T : FirestoreDto> performTransaction(
+        document: SeesturmFirestoreDocument,
+        type: Class<T>,
+        forceNewCreatedDate: Boolean,
+        update: (T) -> T
+    ) {
+        api.performTransaction(
+            document = documentReference(document),
+            type = type,
+            forceNewCreatedDate = forceNewCreatedDate,
+            update = update
+        )
+    }
+
     override suspend fun <T : FirestoreDto> insertDocument(
         item: T,
-        collection: FirestoreRepository.SeesturmFirestoreCollection
+        collection: SeesturmFirestoreCollection
     ) {
         api.insertDocument(
             item = item,
@@ -60,7 +64,7 @@ class FirestoreRepositoryImpl(
 
     override suspend fun <T : FirestoreDto> upsertDocument(
         item: T,
-        document: FirestoreRepository.SeesturmFirestoreDocument,
+        document: SeesturmFirestoreDocument,
         type: Class<T>
     ) {
         api.upsertDocument(
@@ -70,53 +74,41 @@ class FirestoreRepositoryImpl(
         )
     }
 
-    override suspend fun <T : FirestoreDto> readDocument(document: FirestoreRepository.SeesturmFirestoreDocument, type: Class<T>): T =
+    override suspend fun <T : FirestoreDto> readDocument(document: SeesturmFirestoreDocument, type: Class<T>): T =
         api.readDocument(
             document = documentReference(document),
             type = type
         )
 
-    override suspend fun deleteDocument(document: FirestoreRepository.SeesturmFirestoreDocument) {
+    override suspend fun deleteDocument(document: SeesturmFirestoreDocument) {
         api.deleteDocument(documentReference(document))
     }
 
-    override suspend fun deleteDocuments(documents: List<FirestoreRepository.SeesturmFirestoreDocument>) {
+    override suspend fun deleteDocuments(documents: List<SeesturmFirestoreDocument>) {
         api.deleteDocuments(documents.map { documentReference(it) })
     }
 
-    private fun collectionReference(collection: FirestoreRepository.SeesturmFirestoreCollection): CollectionReference {
+    override suspend fun deleteAllDocumentsInCollection(collection: SeesturmFirestoreCollection) {
+        api.deleteAllDocumentsInCollection(collectionReference(collection))
+    }
+
+    private fun collectionReference(collection: SeesturmFirestoreCollection): CollectionReference {
         return when (collection) {
-            FirestoreRepository.SeesturmFirestoreCollection.Users -> {
-                db.collection("users")
-            }
-            FirestoreRepository.SeesturmFirestoreCollection.Leiterbereich -> {
-                db.collection("leiterbereich")
-            }
-            FirestoreRepository.SeesturmFirestoreCollection.Abmeldungen -> {
-                db.collection("abmeldungen")
-            }
-            FirestoreRepository.SeesturmFirestoreCollection.FoodOrders -> {
-                db.collection("leiterbereich").document("food").collection("orders")
-            }
+            SeesturmFirestoreCollection.Abmeldungen -> db.collection("abmeldungen")
+            SeesturmFirestoreCollection.FoodOrders -> db.collection("leiterbereichFoodOrders").document("food").collection("orders")
+            SeesturmFirestoreCollection.Schoepflialarm -> db.collection("schopflialarm")
+            SeesturmFirestoreCollection.SchoepflialarmReactions -> documentReference(SeesturmFirestoreDocument.Schoepflialarm).collection("reactions")
+            SeesturmFirestoreCollection.Users -> db.collection("users")
+            SeesturmFirestoreCollection.AktivitaetTemplates -> db.collection("aktivitaetTemplates")
         }
     }
-    private fun documentReference(document: FirestoreRepository.SeesturmFirestoreDocument): DocumentReference {
+    private fun documentReference(document: SeesturmFirestoreDocument): DocumentReference {
         return when (document) {
-            FirestoreRepository.SeesturmFirestoreDocument.Food -> {
-                collectionReference(FirestoreRepository.SeesturmFirestoreCollection.Leiterbereich).document("food")
-            }
-            is FirestoreRepository.SeesturmFirestoreDocument.Order -> {
-                collectionReference(FirestoreRepository.SeesturmFirestoreCollection.FoodOrders).document(document.id)
-            }
-            FirestoreRepository.SeesturmFirestoreDocument.Schoepflialarm -> {
-                collectionReference(FirestoreRepository.SeesturmFirestoreCollection.Leiterbereich).document("schopflialarm")
-            }
-            is FirestoreRepository.SeesturmFirestoreDocument.User -> {
-                collectionReference(FirestoreRepository.SeesturmFirestoreCollection.Users).document(document.id)
-            }
-            is FirestoreRepository.SeesturmFirestoreDocument.Abmeldung -> {
-                collectionReference(FirestoreRepository.SeesturmFirestoreCollection.Abmeldungen).document(document.id)
-            }
+            is SeesturmFirestoreDocument.Abmeldung -> collectionReference(SeesturmFirestoreCollection.Abmeldungen).document(document.id)
+            is SeesturmFirestoreDocument.Order -> collectionReference(SeesturmFirestoreCollection.FoodOrders).document(document.id)
+            SeesturmFirestoreDocument.Schoepflialarm -> collectionReference(SeesturmFirestoreCollection.Schoepflialarm).document("schopflialarm")
+            is SeesturmFirestoreDocument.User -> collectionReference(SeesturmFirestoreCollection.Users).document(document.id)
+            is SeesturmFirestoreDocument.AktivitaetTemplate -> collectionReference(SeesturmFirestoreCollection.AktivitaetTemplates).document(document.id)
         }
     }
 }

@@ -1,7 +1,7 @@
 package ch.seesturm.pfadiseesturm.domain.auth.model
 
+import ch.seesturm.pfadiseesturm.util.types.FirebaseHitobitoUserRole
 import ch.seesturm.pfadiseesturm.util.ZonedDateTimeSerializer
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.ZonedDateTime
 
@@ -12,35 +12,17 @@ data class FirebaseHitobitoUser(
     val nachname: String?,
     val pfadiname: String?,
     val email: String?,
+    val role: FirebaseHitobitoUserRole,
+    val profilePictureUrl: String?,
     @Serializable(with = ZonedDateTimeSerializer::class) val created: ZonedDateTime,
     val createdFormatted: String,
     @Serializable(with = ZonedDateTimeSerializer::class) val modified: ZonedDateTime,
-    val modifiedFormatted: String
+    val modifiedFormatted: String,
+    val fcmToken: String?
 ) {
-    val displayNameShort: String
-        get() = pfadiname ?: (vorname ?: "Unbekannter Benutzer")
 
-    val displayNameFull: String
-        get() = when (pfadiname) {
-            null -> {
-                if (vorname != null && nachname != null) {
-                    "$vorname $nachname"
-                }
-                else vorname
-                    ?: "Unbekannter Benutzer"
-            }
-            else -> {
-                if (vorname != null && nachname != null) {
-                    "$vorname $nachname / $pfadiname"
-                }
-                else if (vorname != null) {
-                    "$vorname / $pfadiname"
-                }
-                else {
-                    pfadiname
-                }
-            }
-        }
+    val displayNameShort: String
+        get() = pfadiname ?: vorname ?: "Unbekannter Benutzer"
 }
 
 fun List<FirebaseHitobitoUser>.getUserById(uid: String): FirebaseHitobitoUser? {

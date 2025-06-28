@@ -1,43 +1,44 @@
 package ch.seesturm.pfadiseesturm.di
 
 import android.content.Context
-import androidx.activity.ComponentActivity
+import androidx.datastore.core.DataStore
+import ch.seesturm.pfadiseesturm.data.data_store.dao.SeesturmPreferencesDao
 import ch.seesturm.pfadiseesturm.data.fcm.FCMApi
 import ch.seesturm.pfadiseesturm.data.fcm.FCMApiImpl
 import ch.seesturm.pfadiseesturm.data.fcm.repository.FCMRepositoryImpl
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
-import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMSubscriptionService
+import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
+import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.messaging
 
 interface FCMModule {
 
-    val messaging: FirebaseMessaging
-
     val fcmApi: FCMApi
-
     val fcmRepository: FCMRepository
-    val fcmSubscriptionService: FCMSubscriptionService
+    val fcmService: FCMService
 }
 
 class FCMModuleImpl(
     private val appContext: Context,
-    private val dataStoreModule: DataStoreModule
+    private val dataStore: DataStore<SeesturmPreferencesDao>,
+    private val firestoreRepository: FirestoreRepository,
+    private val messaging: FirebaseMessaging = Firebase.messaging
 ): FCMModule {
-
-    override val messaging: FirebaseMessaging by lazy {
-        Firebase.messaging
-    }
 
     override val fcmApi: FCMApi by lazy {
         FCMApiImpl(messaging)
     }
 
     override val fcmRepository: FCMRepository by lazy {
-        FCMRepositoryImpl(fcmApi, dataStoreModule.dataStore)
+        FCMRepositoryImpl(fcmApi, dataStore)
     }
-    override val fcmSubscriptionService: FCMSubscriptionService by lazy {
-        FCMSubscriptionService(fcmRepository, appContext)
+    override val fcmService: FCMService by lazy {
+        FCMService(
+            fcmRepository = fcmRepository,
+            firestoreRepository = firestoreRepository,
+            context = appContext
+        )
     }
 }

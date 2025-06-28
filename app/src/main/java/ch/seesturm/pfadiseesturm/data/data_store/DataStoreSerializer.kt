@@ -11,12 +11,12 @@ object DataStoreSerializer: Serializer<SeesturmPreferencesDao> {
     override val defaultValue: SeesturmPreferencesDao
         get() = SeesturmPreferencesDao()
 
-    override suspend fun readFrom(input: InputStream): SeesturmPreferencesDao {
-        return Json.decodeFromString(
+    override suspend fun readFrom(input: InputStream): SeesturmPreferencesDao =
+        Json.decodeFromString(
             deserializer = SeesturmPreferencesDao.serializer(),
             string = input.readBytes().decodeToString()
         )
-    }
+
     override suspend fun writeTo(t: SeesturmPreferencesDao, output: OutputStream) {
         output.run {
             write(

@@ -32,6 +32,7 @@ class PhotosGridViewModel(
         get() = state.value.imagesForSharing[state.value.selectedImageIndex]
 
     fun fetchPhotos() {
+
         _state.update {
             it.copy(
                 result = UiState.Loading

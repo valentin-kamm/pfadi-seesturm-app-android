@@ -1,17 +1,15 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.House
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,26 +20,33 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTertiaryElementType
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.util.SeesturmFCMNotificationTopic
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 
 @Composable
-fun PushNotificationToggle(
-    items: List<SeesturmFCMNotificationTopic>,
+fun <T>PushNotificationToggle(
+    items: List<T>,
     topic: SeesturmFCMNotificationTopic,
+    index: Int,
     state: UiState<Set<SeesturmFCMNotificationTopic>>,
     actionState: ActionState<SeesturmFCMNotificationTopic>,
-    isOn: Boolean,
+    onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    onToggle: (Boolean) -> Unit
+    isOn: Boolean = if (state is UiState.Success) {
+        state.data.contains(topic)
+    }
+    else {
+        false
+    }
 ) {
 
-    var isPushNotificationToggleLoading: Boolean = when (actionState) {
+    val isPushNotificationToggleLoading = when (actionState) {
         is ActionState.Loading -> {
             actionState.action == topic
         }
@@ -52,7 +57,7 @@ fun PushNotificationToggle(
 
     FormItem(
         items = items,
-        index = items.indexOf(topic),
+        index = index,
         modifier = modifier,
         mainContent = FormItemContentType.Custom(
             contentPadding = PaddingValues(
@@ -86,12 +91,12 @@ fun PushNotificationToggle(
                 }
             }
         ),
-        trailingElement = FormItemTertiaryElementType.Custom(
+        trailingElement = FormItemTrailingElementType.Custom(
             content = {
                 Checkbox(
                     checked = isOn,
                     onCheckedChange = onToggle,
-                    enabled = !actionState.isLoading && !state.isLoading,
+                    enabled = !actionState.isLoading && state.isSuccess,
                     colors = CheckboxColors(
 
                         // enabled
@@ -120,14 +125,30 @@ fun PushNotificationToggle(
     )
 }
 
-@Preview(showBackground = false)
+@Preview(showBackground = true)
 @Composable
 private fun PushNotificationTogglePreview() {
-    PushNotificationToggle(
-        items = listOf(SeesturmFCMNotificationTopic.Aktuell),
-        topic = SeesturmFCMNotificationTopic.Aktuell,
-        state = UiState.Loading,
-        actionState = ActionState.Loading(SeesturmFCMNotificationTopic.Aktuell),
-        isOn = true
-    ) { }
+    val list = listOf(SeesturmFCMNotificationTopic.BiberAktivitaeten, SeesturmFCMNotificationTopic.WolfAktivitaeten, SeesturmFCMNotificationTopic.PfadiAktivitaeten, SeesturmFCMNotificationTopic.PioAktivitaeten)
+    PfadiSeesturmTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            list.forEach { topic ->
+                PushNotificationToggle(
+                    items = list,
+                    topic = topic,
+                    index = list.indexOf(topic),
+                    state = UiState.Success(
+                        setOf(
+                            SeesturmFCMNotificationTopic.BiberAktivitaeten,
+                            SeesturmFCMNotificationTopic.PioAktivitaeten
+                        )
+                    ),
+                    actionState = ActionState.Loading(SeesturmFCMNotificationTopic.WolfAktivitaeten),
+                    onToggle = {}
+                )
+            }
+        }
+    }
 }

@@ -1,9 +1,8 @@
 package ch.seesturm.pfadiseesturm.presentation.common
 
-import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,32 +22,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.ObserveAsEvents
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
-import ch.seesturm.pfadiseesturm.presentation.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import kotlinx.coroutines.launch
@@ -67,6 +60,10 @@ fun BottomNavigationScaffold(
 
     val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
+    val coroutineScope = rememberCoroutineScope()
+
+    val hazeState = remember { HazeState() }
+
     val snackbarHostState = remember {
         SnackbarHostState()
     }
@@ -75,7 +72,6 @@ fun BottomNavigationScaffold(
     }
 
     // show snackbars
-    val coroutineScope = rememberCoroutineScope()
     ObserveAsEvents(
         flow = SnackbarController.events,
         key1 = snackbarHostState
@@ -101,9 +97,6 @@ fun BottomNavigationScaffold(
         }
     }
 
-    // to blur the bottom bar
-    val hazeState = remember { HazeState() }
-
     Box(
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -111,7 +104,15 @@ fun BottomNavigationScaffold(
             bottomBar = {
                 Box(
                     modifier = Modifier
-                        .hazeChild(hazeState, style = CupertinoMaterials.thin())
+                        .then(
+                            if (Build.VERSION.SDK_INT >= 30) {
+                                Modifier
+                                    .hazeEffect(hazeState, style = CupertinoMaterials.thin())
+                            }
+                            else {
+                                Modifier
+                            }
+                        )
                 ) {
                     MainBottomNavigationBar(
                         tabNavController = tabNavController
@@ -140,11 +141,20 @@ fun BottomNavigationScaffold(
         ) { innerPadding ->
             Box(
                 modifier = Modifier
-                    .haze(hazeState)
+                    .then(
+                        if (Build.VERSION.SDK_INT >= 30) {
+                            Modifier
+                                .hazeSource(hazeState)
+                        }
+                        else {
+                            Modifier
+                        }
+                    )
             ) {
                 content(innerPadding)
             }
         }
+
         appState.sheetContent?.let { sheetContent ->
             ModalBottomSheet(
                 sheetState = sheetState,
@@ -154,27 +164,24 @@ fun BottomNavigationScaffold(
             ) {
                 when (sheetContent) {
                     is BottomSheetContent.Custom -> {
-                        sheetContent.content(
-                            {
-                                SnackbarHost(
-                                    hostState = sheetSnackbarHostState
-                                ) { snackbarData ->
-                                    val snackbarEvent = snackbarData.visuals as? SeesturmSnackbarEvent
-                                    if (snackbarEvent != null) {
-                                        SeesturmSnackbarView(
-                                            snackbarData = snackbarData,
-                                            event = snackbarEvent
-                                        )
-                                    }
-                                    else {
-                                        Snackbar(
-                                            snackbarData = snackbarData,
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
-                                    }
+                        sheetContent.content {
+                            SnackbarHost(
+                                hostState = sheetSnackbarHostState
+                            ) { snackbarData ->
+                                val snackbarEvent = snackbarData.visuals as? SeesturmSnackbarEvent
+                                if (snackbarEvent != null) {
+                                    SeesturmSnackbarView(
+                                        snackbarData = snackbarData,
+                                        event = snackbarEvent
+                                    )
+                                } else {
+                                    Snackbar(
+                                        snackbarData = snackbarData,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
                                 }
                             }
-                        )
+                        }
                     }
                     is BottomSheetContent.Scaffold -> {
                         Scaffold(
@@ -240,18 +247,4 @@ fun BottomNavigationScaffold(
             }
         }
     }
-}
-
-private typealias snackbarHost = @Composable () -> Unit
-
-sealed class BottomSheetContent {
-    data class Scaffold(
-        val title: String?,
-        val content: @Composable () -> Unit,
-        val sheetHeightPercentage: Float = 0.95f,
-        val actions: (@Composable RowScope.() -> Unit)? = null
-    ): BottomSheetContent()
-    data class Custom(
-        val content: @Composable (snackbarHost) -> Unit
-    ): BottomSheetContent()
 }

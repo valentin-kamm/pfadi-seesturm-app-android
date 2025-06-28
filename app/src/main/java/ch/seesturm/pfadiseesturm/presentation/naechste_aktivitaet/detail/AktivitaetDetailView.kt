@@ -12,8 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PersonAddAlt
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,140 +21,202 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.CalendarSubscriptionAlert
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.SeesturmTextFieldState
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
-import ch.seesturm.pfadiseesturm.util.state.ActionState
-import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.subscribeToCalendar
 
 @Composable
 fun AktivitaetDetailView(
-    stufe: SeesturmStufe,
-    bottomNavigationInnerPadding: PaddingValues,
-    homeNavController: NavController,
     viewModel: AktivitaetDetailViewModel,
-    appStateViewModel: AppStateViewModel
+    stufe: SeesturmStufe,
+    location: AktivitaetDetailViewLocation,
+    bottomNavigationInnerPadding: PaddingValues,
+    onNavigateBack: () -> Unit,
+    appStateViewModel: AppStateViewModel,
+    modifier: Modifier = Modifier
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    AktivitaetDetailContentView(
-        uiState = uiState,
-        stufe = stufe,
-        homeNavController = homeNavController,
-        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-        onUpdateAlertVisibility = { isVisible ->
-            viewModel.updateCalendarSubscriptionAlertVisibility(isVisible)
-        },
-        onChangeSheetMode = { interaction ->
-            viewModel.changeSheetMode(interaction)
-        },
-        onRetry = {
-            viewModel.getAktivitaet()
-        },
-        onSetGespeichertePerson = { person ->
-            viewModel.setGespeichertePerson(person)
-        },
-        sheetContent = { aktivitaet ->
-            AktivitaetAnAbmeldenView(
-                viewModel = viewModel,
-                aktivitaet = aktivitaet,
-                stufe = stufe,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        },
-        onUpdateSheetContent = { content ->
-            appStateViewModel.updateSheetContent(content)
-        }
-    )
-}
-
-@Composable
-private fun AktivitaetDetailContentView(
-    uiState: AktivitaetDetailState,
-    stufe: SeesturmStufe,
-    homeNavController: NavController,
-    bottomNavigationInnerPadding: PaddingValues,
-    onUpdateAlertVisibility: (Boolean) -> Unit,
-    onChangeSheetMode: (AktivitaetInteraction) -> Unit,
-    onRetry: () -> Unit,
-    onSetGespeichertePerson: (GespeichertePerson) -> Unit,
-    sheetContent: @Composable (GoogleCalendarEvent) -> Unit,
-    onUpdateSheetContent: (BottomSheetContent?) -> Unit,
-    columnState: LazyListState = rememberLazyListState()
-) {
-
+    val showGespeichertePersonenDropdown = rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
-    var showMenu by remember { mutableStateOf(false) }
 
     CalendarSubscriptionAlert (
         isShown = uiState.showCalendarSubscriptionAlert,
         title = "Kalender der ${stufe.stufenName} kann nicht abonniert werden",
         calendar = stufe.calendar,
         onDismiss = {
-            onUpdateAlertVisibility(false)
+            viewModel.updateCalendarSubscriptionAlertVisibility(false)
         }
     )
 
-    TopBarScaffold(
-        title = stufe.aktivitaetDescription,
-        topBarStyle = TopBarStyle.Small,
-        backNavigationAction = {
-            homeNavController.popBackStack()
-        },
-        actions = {
-            IconButton(
-                onClick = {
-                    when(subscribeToCalendar(subscriptionUrl = stufe.calendar.subscriptionUrl, context = context)) {
-                        is SeesturmResult.Error -> {
-                            onUpdateAlertVisibility(true)
-                        }
-                        is SeesturmResult.Success -> {
-                            // do nothing
+    fun showSheet(interaction: AktivitaetInteractionType) {
+
+        viewModel.changeSheetMode(interaction)
+        appStateViewModel.updateSheetContent(
+            content = BottomSheetContent.Scaffold(
+                title = stufe.aktivitaetDescription,
+                content = {
+                    AktivitaetAnAbmeldenView(
+                        viewModel = viewModel,
+                        stufe = stufe,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                },
+                actions = {
+                    if (location is AktivitaetDetailViewLocation.Home) {
+                        Box {
+                            IconButton(
+                                onClick = {
+                                    showGespeichertePersonenDropdown.value = true
+                                },
+                                enabled = uiState.gespeichertePersonenState.isSuccess
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonAddAlt,
+                                    contentDescription = null
+                                )
+                            }
+
+                            val personenState = uiState.gespeichertePersonenState
+
+                            if (personenState is UiState.Success) {
+
+                                ThemedDropdownMenu(
+                                    expanded = showGespeichertePersonenDropdown.value,
+                                    onDismissRequest = {
+                                        showGespeichertePersonenDropdown.value = false
+                                    }
+                                ) {
+                                    if (personenState.data.isNotEmpty()) {
+
+                                        personenState.data.forEach { person ->
+                                            ThemedDropdownMenuItem(
+                                                text = {
+                                                    Text(text = person.displayName)
+                                                },
+                                                onClick = {
+                                                    viewModel.setGespeichertePerson(person)
+                                                    showGespeichertePersonenDropdown.value = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                    HorizontalDivider()
+                                    ThemedDropdownMenuItem(
+                                        text = {
+                                            Text("Person hinzufügen")
+                                        },
+                                        onClick = {
+                                            showGespeichertePersonenDropdown.value = false
+                                            appStateViewModel.updateSheetContent(null)
+                                            location.onNavigateToGespeichertePersonen()
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Outlined.PersonAddAlt,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
+            )
+        )
+    }
+    
+    AktivitaetDetailContentView(
+        loadingState = uiState.loadingState,
+        stufe = stufe,
+        type = location,
+        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+        onNavigateBack = onNavigateBack,
+        onRetry = {
+            viewModel.getAktivitaet()
+        },
+        onOpenSheet = { interaction ->
+            showSheet(interaction)
+        },
+        onSubscribeToCalendar = {
+            val result = subscribeToCalendar(
+                subscriptionUrl = stufe.calendar.subscriptionUrl,
+                context = context
+            )
+            if (result is SeesturmResult.Error) {
+                viewModel.updateCalendarSubscriptionAlertVisibility(true)
+            }
+        },
+        modifier = modifier
+    )
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AktivitaetDetailContentView(
+    loadingState: UiState<GoogleCalendarEvent?>,
+    stufe: SeesturmStufe,
+    type: AktivitaetDetailViewLocation,
+    bottomNavigationInnerPadding: PaddingValues,
+    onNavigateBack: () -> Unit,
+    onRetry: () -> Unit,
+    onOpenSheet: (AktivitaetInteractionType) -> Unit,
+    onSubscribeToCalendar: () -> Unit,
+    modifier: Modifier,
+    columnState: LazyListState = rememberLazyListState()
+) {
+    
+    TopBarScaffold(
+        title = stufe.aktivitaetDescription,
+        topBarStyle = TopBarStyle.Small,
+        onNavigateBack = {
+            onNavigateBack()
+        },
+        modifier = modifier,
+        actions = {
+            IconButton(
+                onClick = onSubscribeToCalendar
             ) {
                 Icon(
                     imageVector = Icons.Outlined.CalendarMonth,
                     contentDescription = null
                 )
             }
-            IconButton(
-                onClick = {
-                    homeNavController.navigate(
-                        AppDestination.MainTabView.Destinations.Home.Destinations.PushNotifications
+            if (type is AktivitaetDetailViewLocation.Home) {
+                IconButton(
+                    onClick = {
+                        type.onNavigateToPushNotifications()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = null
                     )
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = null
-                )
             }
         }
     ) { topBarInnerPadding ->
@@ -176,7 +237,7 @@ private fun AktivitaetDetailContentView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            when (val localState = uiState.loadingState) {
+            when (loadingState) {
                 UiState.Loading -> {
                     item(
                         key = "NächsteAktivitätDetailLoadingCard"
@@ -192,8 +253,8 @@ private fun AktivitaetDetailContentView(
                     item(
                         key = "NächsteAktivitätDetailErrorCard"
                     ) {
-                        CardErrorView(
-                            errorDescription = localState.message,
+                        ErrorCardView(
+                            errorDescription = loadingState.message,
                             retryAction = {
                                 onRetry()
                             },
@@ -207,78 +268,15 @@ private fun AktivitaetDetailContentView(
                         key = "NächsteAktivitätDetailCard"
                     ) {
                         AktivitaetDetailCardView(
+                            aktivitaet = loadingState.data,
                             stufe = stufe,
-                            aktivitaet = localState.data,
-                            type = AktivitaetDetailCardViewType.Normal(
-                                navController = homeNavController,
-                                openSheet = { interaction ->
-                                    if (localState.data != null) {
-                                        onChangeSheetMode(interaction)
-                                        onUpdateSheetContent(
-                                            BottomSheetContent.Scaffold(
-                                                title = stufe.aktivitaetDescription,
-                                                content = { sheetContent(localState.data) },
-                                                actions = {
-                                                    Box {
-                                                        IconButton(
-                                                            onClick = {
-                                                                showMenu = true
-                                                            },
-                                                            enabled = uiState.gespeichertePersonenState.isSuccess
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = Icons.Outlined.PersonAddAlt,
-                                                                contentDescription = null
-                                                            )
-                                                        }
-                                                        if (uiState.gespeichertePersonenState is UiState.Success) {
-                                                            DropdownMenu(
-                                                                expanded = showMenu,
-                                                                onDismissRequest = {
-                                                                    showMenu = false
-                                                                }
-                                                            ) {
-                                                                if (uiState.gespeichertePersonenState.data.isNotEmpty()) {
-                                                                    uiState.gespeichertePersonenState.data.forEach { person ->
-                                                                        DropdownMenuItem(
-                                                                            text = {
-                                                                                Text(text = person.displayName)
-                                                                            },
-                                                                            onClick = {
-                                                                                onSetGespeichertePerson(person)
-                                                                                showMenu = false
-                                                                            }
-                                                                        )
-                                                                    }
-                                                                    HorizontalDivider()
-                                                                }
-                                                                DropdownMenuItem(
-                                                                    text = {
-                                                                        Text("Person hinzufügen")
-                                                                    },
-                                                                    onClick = {
-                                                                        showMenu = false
-                                                                        onUpdateSheetContent(null)
-                                                                        homeNavController.navigate(
-                                                                            AppDestination.MainTabView.Destinations.Home.Destinations.GespeichertePersonen
-                                                                        )
-                                                                    },
-                                                                    trailingIcon = {
-                                                                        Icon(
-                                                                            imageVector = Icons.Outlined.PersonAddAlt,
-                                                                            contentDescription = null
-                                                                        )
-                                                                    }
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        )
-                                    }
-                                }
-                            ),
+                            mode = when (type) {
+                                is AktivitaetDetailViewLocation.Stufenbereich -> AktivitaetDetailViewMode.ViewOnly
+                                is AktivitaetDetailViewLocation.Home -> AktivitaetDetailViewMode.Interactive(
+                                    onNavigateToPushNotifications = type.onNavigateToPushNotifications,
+                                    onOpenSheet = onOpenSheet
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem()
@@ -290,52 +288,69 @@ private fun AktivitaetDetailContentView(
     }
 }
 
-@Preview
+@Preview("Loading")
 @Composable
-private fun AktivitaetDetailViewPreview() {
-    AktivitaetDetailContentView(
-        uiState = AktivitaetDetailState(
-            loadingState = UiState.Success(
-                data = null
+private fun AktivitaetDetailViewPreview1() {
+    PfadiSeesturmTheme {
+        AktivitaetDetailContentView(
+            loadingState = UiState.Loading,
+            stufe = SeesturmStufe.Wolf,
+            type = AktivitaetDetailViewLocation.Home(
+                getAktivitaet = { SeesturmResult.Success(DummyData.aktivitaet1) },
+                eventId = null,
+                onNavigateToPushNotifications = {},
+                onNavigateToGespeichertePersonen = {}
             ),
-            anAbmeldenState = ActionState.Idle,
-            showSheet = false,
-            selectedSheetMode = AktivitaetInteraction.ABMELDEN,
-            vornameState = SeesturmTextFieldState(
-                text = "",
-                label = "",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onNavigateBack = {},
+            onRetry = {},
+            onOpenSheet = {},
+            onSubscribeToCalendar = {},
+            modifier = Modifier
+        )
+    }
+}
+@Preview("Error")
+@Composable
+private fun AktivitaetDetailViewPreview2() {
+    PfadiSeesturmTheme {
+        AktivitaetDetailContentView(
+            loadingState = UiState.Error("Schwerer Fehler"),
+            stufe = SeesturmStufe.Biber,
+            type = AktivitaetDetailViewLocation.Home(
+                getAktivitaet = { SeesturmResult.Success(DummyData.aktivitaet1) },
+                eventId = null,
+                onNavigateToPushNotifications = {},
+                onNavigateToGespeichertePersonen = {}
             ),
-            nachnameState = SeesturmTextFieldState(
-                text = "",
-                label = "",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onNavigateBack = {},
+            onRetry = {},
+            onOpenSheet = {},
+            onSubscribeToCalendar = {},
+            modifier = Modifier
+        )
+    }
+}
+@Preview("Success")
+@Composable
+private fun AktivitaetDetailViewPreview3() {
+    PfadiSeesturmTheme {
+        AktivitaetDetailContentView(
+            loadingState = UiState.Success(DummyData.aktivitaet1),
+            stufe = SeesturmStufe.Pio,
+            type = AktivitaetDetailViewLocation.Home(
+                getAktivitaet = { SeesturmResult.Success(DummyData.aktivitaet1) },
+                eventId = null,
+                onNavigateToPushNotifications = {},
+                onNavigateToGespeichertePersonen = {}
             ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "",
-                label = "",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            bemerkungState = SeesturmTextFieldState(
-                text = "",
-                label = "",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            showCalendarSubscriptionAlert = false,
-            gespeichertePersonenState = UiState.Loading
-        ),
-        stufe = SeesturmStufe.Biber,
-        homeNavController = rememberNavController(),
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        onUpdateAlertVisibility = {},
-        onChangeSheetMode = {},
-        onRetry = {},
-        onSetGespeichertePerson = {},
-        sheetContent = {},
-        onUpdateSheetContent = {}
-    )
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onNavigateBack = {},
+            onRetry = {},
+            onOpenSheet = {},
+            onSubscribeToCalendar = {},
+            modifier = Modifier
+        )
+    }
 }

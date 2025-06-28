@@ -12,8 +12,8 @@ data class WordpressPhotoDto(
 
 fun WordpressPhotoDto.toWordpressPhoto(): WordpressPhoto {
     return WordpressPhoto(
-        thumbnail = thumbnail,
-        original = original,
+        thumbnailUrl = thumbnail,
+        originalUrl = original,
         orientation = orientation,
         height = height,
         width = width

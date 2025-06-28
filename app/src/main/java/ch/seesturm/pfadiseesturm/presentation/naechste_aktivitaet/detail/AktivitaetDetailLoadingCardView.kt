@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -20,9 +18,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.common.components.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 
 @Composable
 fun AktivitaetDetailLoadingCardView(
@@ -70,5 +69,7 @@ fun AktivitaetDetailLoadingCardView(
 @Preview
 @Composable
 private fun AktivitaetDetailLoadingCardViewPreview() {
-    AktivitaetDetailLoadingCardView()
+    PfadiSeesturmTheme {
+        AktivitaetDetailLoadingCardView()
+    }
 }

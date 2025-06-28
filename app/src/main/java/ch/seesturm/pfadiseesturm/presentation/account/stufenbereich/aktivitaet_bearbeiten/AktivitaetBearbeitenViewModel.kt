@@ -1,8 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten
 
-import android.text.Html
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Publish
 import androidx.compose.material3.CalendarLocale
@@ -11,21 +9,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.TimePickerState
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.capitalize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.account.service.StufenbereichService
 import ch.seesturm.pfadiseesturm.domain.fcf.model.CloudFunctionEventPayload
 import ch.seesturm.pfadiseesturm.domain.fcf.model.toGoogleCalendarEvent
+import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.StufenbereichSheetMode
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.StufenbereichState
-import ch.seesturm.pfadiseesturm.presentation.common.rich_text_editor.getHTMLForGoogleCalendar
+import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
+import ch.seesturm.pfadiseesturm.presentation.common.rich_text.getUnescapedHtml
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
-import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
@@ -33,6 +30,8 @@ import ch.seesturm.pfadiseesturm.util.state.UiState
 import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -40,51 +39,57 @@ import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 class AktivitaetBearbeitenViewModel(
-    private val selectedSheetMode: StufenbereichSheetMode,
+    private val mode: AktivitaetBearbeitenMode,
     private val service: StufenbereichService,
     private val stufe: SeesturmStufe,
-    private val onDismiss: () -> Unit
 ): ViewModel() {
 
     private val _state = MutableStateFlow(
         AktivitaetBearbeitenState.create(
-            initialAktivitaetState = when (selectedSheetMode) {
-                StufenbereichSheetMode.Insert -> {
+            initialAktivitaetState = when (mode) {
+                AktivitaetBearbeitenMode.Insert -> {
                     UiState.Success(Unit)
                 }
-
-                is StufenbereichSheetMode.Update -> {
+                is AktivitaetBearbeitenMode.Update -> {
                     UiState.Loading
                 }
             },
             onTitleChanged = { newTitle ->
                 updateTitleString(newTitle)
             },
-            initialStartDate = DateTimeUtil.shared.nextSaturdayInCHTime(14),
-            initialEndDate = DateTimeUtil.shared.nextSaturdayInCHTime(16),
+            stufe = stufe,
+            onDescriptionChanged = {
+                updateDescriptionState()
+            }
         )
     )
     val state = _state.asStateFlow()
 
     init {
         fetchAktivitaetIfNecessary()
+        observeTemplates()
     }
 
     private val aktivitaetForPublishing: CloudFunctionEventPayload
-        get() = CloudFunctionEventPayload(
-            summary = state.value.title.text.trim(),
-            description = state.value.description.getHTMLForGoogleCalendar(),
-            location = state.value.location.trim(),
-            isAllDay = false,
-            start = state.value.start,
-            end = state.value.end
-        )
-    val aktivitaetForPreview: GoogleCalendarEvent?
-        get() = try {
-            aktivitaetForPublishing.toGoogleCalendarEvent()
-        } catch (e: Exception) {
-            null
+        get() {
+            return CloudFunctionEventPayload(
+                summary = _state.value.title.text.trim(),
+                description = state.value.description.state.getUnescapedHtml(),
+                location = state.value.location.trim(),
+                start = state.value.start,
+                end = state.value.end
+            )
         }
+    val aktivitaetForPreview: GoogleCalendarEvent?
+        get() {
+            return try {
+                aktivitaetForPublishing.toGoogleCalendarEvent()
+            }
+            catch (e: Exception) {
+                null
+            }
+        }
+
     private val publishingValidationStatus: AktivitaetValidationStatus
         get() {
 
@@ -110,31 +115,31 @@ class AktivitaetBearbeitenViewModel(
             if (Duration.between(aktivitaet.start, aktivitaet.end).abs().toHours() < 2) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Aktivität kürzer als 2h",
-                    description = "Die Aktivität ist kürzer als 2 Stunden. Möchtest du die Aktivität trotzdem ${selectedSheetMode.verb}?"
+                    description = "Die Aktivität ist kürzer als 2 Stunden. Möchtest du die Aktivität trotzdem ${mode.verb}?"
                 )
             }
             if (ZonedDateTime.now().isAfter(aktivitaet.start)) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Startdatum in der Vergangenheit",
-                    description = "Das Startdatum ist in der Vergangenheit. Möchtest du die Aktivität trotzdem ${selectedSheetMode.verb}?"
+                    description = "Das Startdatum ist in der Vergangenheit. Möchtest du die Aktivität trotzdem ${mode.verb}?"
                 )
             }
             if (ZonedDateTime.now().isAfter(aktivitaet.end)) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Enddatum in der Vergangenheit",
-                    description = "Das Enddatum ist in der Vergangenheit. Möchtest du die Aktivität trotzdem ${selectedSheetMode.verb}?"
+                    description = "Das Enddatum ist in der Vergangenheit. Möchtest du die Aktivität trotzdem ${mode.verb}?"
                 )
             }
             if (aktivitaet.description.isEmpty()) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Beschreibung leer",
-                    description = "Die Beschreibung ist leer. Möchtest du die Aktivität trotzdem ${selectedSheetMode.verb}?"
+                    description = "Die Beschreibung ist leer. Möchtest du die Aktivität trotzdem ${mode.verb}?"
                 )
             }
             if (aktivitaet.location.isEmpty()) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Kein Treffpunkt",
-                    description = "Der Treffpunkt ist leer. Möchtest du die Aktivität trotzdem ${selectedSheetMode.verb}?"
+                    description = "Der Treffpunkt ist leer. Möchtest du die Aktivität trotzdem ${mode.verb}?"
                 )
             }
 
@@ -143,7 +148,7 @@ class AktivitaetBearbeitenViewModel(
     val confirmationDialogTitle: String
         get() = when (val localState = publishingValidationStatus) {
             AktivitaetValidationStatus.Valid -> {
-                "Aktivität ${selectedSheetMode.verb}"
+                "Aktivität ${mode.verb}"
             }
             is AktivitaetValidationStatus.Error -> {
                 "Fehlerhafte Aktivität"
@@ -156,10 +161,10 @@ class AktivitaetBearbeitenViewModel(
         get() = when (val localState = publishingValidationStatus) {
             AktivitaetValidationStatus.Valid -> {
                 if (state.value.sendPushNotification) {
-                    "Die Aktivität wird mit Push-Nachricht ${selectedSheetMode.verbPassiv}."
+                    "Die Aktivität wird mit Push-Nachricht ${mode.verbPassiv}."
                 }
                 else {
-                    "Die Aktivität wird ohne Push-Nachricht ${selectedSheetMode.verbPassiv}."
+                    "Die Aktivität wird ohne Push-Nachricht ${mode.verbPassiv}."
                 }
             }
             is AktivitaetValidationStatus.Error -> {
@@ -184,45 +189,19 @@ class AktivitaetBearbeitenViewModel(
     val confirmationDialogConfirmButtonText: String
         get() = when (publishingValidationStatus) {
             AktivitaetValidationStatus.Valid -> {
-                buttonTitle
+                mode.buttonTitle
             }
             else -> {
-                "Trotzdem ${selectedSheetMode.verb}"
+                "Trotzdem ${mode.verb}"
             }
         }
-
-    val buttonTitle: String
-        get() = selectedSheetMode.verb.replaceFirstChar { it.uppercase() }
-    val startDateDateFormatted: String
-        get() = DateTimeUtil.shared.formatDate(
-            date = state.value.start,
-            format = "dd.MM.yyyy",
-            withRelativeDateFormatting = false
-        )
-    val startDateTimeFormatted: String
-        get() = DateTimeUtil.shared.formatDate(
-            date = state.value.start,
-            format = "HH:mm",
-            withRelativeDateFormatting = false
-        )
-    val endDateDateFormatted: String
-        get() = DateTimeUtil.shared.formatDate(
-            date = state.value.end,
-            format = "dd.MM.yyyy",
-            withRelativeDateFormatting = false
-        )
-    val endDateTimeFormatted: String
-        get() = DateTimeUtil.shared.formatDate(
-            date = state.value.end,
-            format = "HH:mm",
-            withRelativeDateFormatting = false
-        )
 
     fun fetchAktivitaetIfNecessary() {
 
-        if (selectedSheetMode !is StufenbereichSheetMode.Update) {
+        if (mode !is AktivitaetBearbeitenMode.Update) {
             return
         }
+
         _state.update {
             it.copy(
                 aktivitaetState = UiState.Loading
@@ -230,9 +209,16 @@ class AktivitaetBearbeitenViewModel(
         }
 
         viewModelScope.launch {
-            when (val result = service.fetchEvent(stufe = stufe, eventId = selectedSheetMode.id)) {
+
+            when (
+                val result = service.fetchEvent(
+                    stufe = stufe,
+                    eventId = mode.id,
+                    cacheIdentifier = MemoryCacheIdentifier.ForceReload
+                )
+            ) {
                 is SeesturmResult.Error -> {
-                    _state.update { 
+                    _state.update {
                         it.copy(
                             aktivitaetState = UiState.Error("Aktivität konnte nicht geladen werden. ${result.error.defaultMessage}")
                         )
@@ -245,26 +231,31 @@ class AktivitaetBearbeitenViewModel(
                                 text = result.data.title
                             ),
                             location = result.data.location ?: "",
-                            start = result.data.startDate,
-                            end = result.data.endDate,
-                            description = RichTextState().setHtml(result.data.description ?: ""),
+                            start = result.data.start,
+                            end = result.data.end,
+                            description = SeesturmRichTextState(
+                                state = RichTextState().setHtml(result.data.description ?: ""),
+                                onValueChanged = {
+                                    updateDescriptionState()
+                                }
+                            ),
                             aktivitaetState = UiState.Success(Unit),
                             startDatePickerState = DatePickerState(
-                                initialSelectedDateMillis = result.data.startDate.toInstant().toEpochMilli(),
+                                initialSelectedDateMillis = result.data.start.toInstant().toEpochMilli(),
                                 locale = CalendarLocale.getDefault()
                             ),
                             startTimePickerState = TimePickerState(
-                                initialHour = result.data.startDate.hour,
-                                initialMinute = result.data.startDate.minute,
+                                initialHour = result.data.start.hour,
+                                initialMinute = result.data.start.minute,
                                 is24Hour = true
                             ),
                             endDatePickerState = DatePickerState(
-                                initialSelectedDateMillis = result.data.endDate.toInstant().toEpochMilli(),
+                                initialSelectedDateMillis = result.data.end.toInstant().toEpochMilli(),
                                 locale = CalendarLocale.getDefault()
                             ),
                             endTimePickerState = TimePickerState(
-                                initialHour = result.data.endDate.hour,
-                                initialMinute = result.data.endDate.minute,
+                                initialHour = result.data.end.hour,
+                                initialMinute = result.data.end.minute,
                                 is24Hour = true
                             )
                         )
@@ -285,10 +276,10 @@ class AktivitaetBearbeitenViewModel(
                                 event = SeesturmSnackbarEvent(
                                     message = errorType.message,
                                     duration = SnackbarDuration.Long,
-                                    type = SnackbarType.Error,
+                                    type = SeesturmSnackbarType.Error,
                                     allowManualDismiss = true,
                                     onDismiss = {},
-                                    showInSheetIfPossible = true
+                                    showInSheetIfPossible = false
                                 )
                             )
                         }
@@ -314,17 +305,17 @@ class AktivitaetBearbeitenViewModel(
 
         updatePublishAktivitaetState(ActionState.Loading(Unit))
 
-        when (selectedSheetMode) {
-            StufenbereichSheetMode.Insert -> {
-                addNewAktivitaet()
+        when (mode) {
+            AktivitaetBearbeitenMode.Insert -> {
+                addAktivitaet()
             }
-            is StufenbereichSheetMode.Update -> {
-                updateExistingAktivitaet(selectedSheetMode.id)
+            is AktivitaetBearbeitenMode.Update -> {
+                updateAktivitaet(mode.id)
             }
         }
     }
 
-    private fun addNewAktivitaet() {
+    private fun addAktivitaet() {
 
         val withNotification = state.value.sendPushNotification
         viewModelScope.launch {
@@ -335,7 +326,7 @@ class AktivitaetBearbeitenViewModel(
             )) {
                 is SeesturmResult.Error -> {
                     val message = if (withNotification) {
-                        "Beim Veröffentlichen oder Senden der Push-Nachricht ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
+                        "Beim Veröffentlichen der Aktivität oder beim Senden der Push-Nachricht ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
                     }
                     else {
                         "Beim Veröffentlichen der Aktivität ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
@@ -345,17 +336,18 @@ class AktivitaetBearbeitenViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
                             allowManualDismiss = true,
-                            onDismiss = {},
-                            showInSheetIfPossible = true
+                            onDismiss = {
+                                updatePublishAktivitaetState(ActionState.Idle)
+                            },
+                            showInSheetIfPossible = false
                         )
                     )
                 }
                 is SeesturmResult.Success -> {
-                    onDismiss()
                     val message = if (withNotification) {
-                        "Aktivität erfolgreich veröffentlicht. Push-Nachricht versendet."
+                        "Aktivität erfolgreich veröffentlicht. Push-Nachricht gesendet."
                     }
                     else {
                         "Aktivität erfolgreich veröffentlicht."
@@ -365,9 +357,11 @@ class AktivitaetBearbeitenViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Success,
+                            type = SeesturmSnackbarType.Success,
                             allowManualDismiss = true,
-                            onDismiss = {},
+                            onDismiss = {
+                                updatePublishAktivitaetState(ActionState.Idle)
+                            },
                             showInSheetIfPossible = false
                         )
                     )
@@ -376,7 +370,7 @@ class AktivitaetBearbeitenViewModel(
         }
     }
 
-    private fun updateExistingAktivitaet(eventId: String) {
+    private fun updateAktivitaet(eventId: String) {
 
         val withNotification = state.value.sendPushNotification
         viewModelScope.launch {
@@ -388,7 +382,7 @@ class AktivitaetBearbeitenViewModel(
             )) {
                 is SeesturmResult.Error -> {
                     val message = if (withNotification) {
-                        "Beim Aktualisieren oder Senden der Push-Nachricht ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
+                        "Beim Aktualisieren der Aktivität oder beim Senden der Push-Nachricht ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
                     }
                     else {
                         "Beim Aktualisieren der Aktivität ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
@@ -398,17 +392,18 @@ class AktivitaetBearbeitenViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
                             allowManualDismiss = true,
-                            onDismiss = {},
-                            showInSheetIfPossible = true
+                            onDismiss = {
+                                updatePublishAktivitaetState(ActionState.Idle)
+                            },
+                            showInSheetIfPossible = false
                         )
                     )
                 }
                 is SeesturmResult.Success -> {
-                    onDismiss()
                     val message = if (withNotification) {
-                        "Aktivität erfolgreich aktualisiert. Push-Nachricht versendet."
+                        "Aktivität erfolgreich aktualisiert. Push-Nachricht gesendet."
                     }
                     else {
                         "Aktivität erfolgreich aktualisiert."
@@ -418,9 +413,11 @@ class AktivitaetBearbeitenViewModel(
                         event = SeesturmSnackbarEvent(
                             message = message,
                             duration = SnackbarDuration.Long,
-                            type = SnackbarType.Success,
+                            type = SeesturmSnackbarType.Success,
                             allowManualDismiss = true,
-                            onDismiss = {},
+                            onDismiss = {
+                                updatePublishAktivitaetState(ActionState.Idle)
+                            },
                             showInSheetIfPossible = false
                         )
                     )
@@ -495,23 +492,54 @@ class AktivitaetBearbeitenViewModel(
             )
         }
     }
-}
+    private fun updateDescriptionState() {
+        _state.update {
+            it.copy(
+                description = SeesturmRichTextState(
+                    state = it.description.state,
+                    onValueChanged = it.description.onValueChanged
+                )
+            )
+        }
+    }
 
-sealed class AktivitaetValidationStatus {
-    data object Valid: AktivitaetValidationStatus()
-    data class Warning(
-        val title: String,
-        val description: String
-    ): AktivitaetValidationStatus()
-    data class Error(
-        val type: AktivitaetValidationStatusErrorType
-    ): AktivitaetValidationStatus()
-}
-sealed class AktivitaetValidationStatusErrorType {
-    data class TitleTextField(
-        val message: String
-    ): AktivitaetValidationStatusErrorType()
-    data class Snackbar(
-        val message: String
-    ): AktivitaetValidationStatusErrorType()
+    private fun observeTemplates() {
+
+        _state.update {
+            it.copy(
+                templatesState = UiState.Loading
+            )
+        }
+        service.observeAktivitaetTemplates(stufe).onEach { result ->
+            when (result) {
+                is SeesturmResult.Error -> {
+                    _state.update {
+                        it.copy(
+                            templatesState = UiState.Error("Die Vorlagen für die ${stufe.stufenName} konnten nicht geladen werden. ${result.error.defaultMessage}")
+                        )
+                    }
+                }
+                is SeesturmResult.Success -> {
+                    _state.update {
+                        it.copy(
+                            templatesState = UiState.Success(result.data)
+                        )
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun useTemplate(template: AktivitaetTemplate) {
+        _state.update {
+            it.copy(
+                description = SeesturmRichTextState(
+                    state = RichTextState().setHtml(template.description),
+                    onValueChanged = {
+                        updateDescriptionState()
+                    }
+                )
+            )
+        }
+    }
 }

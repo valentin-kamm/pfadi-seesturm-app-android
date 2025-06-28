@@ -1,6 +1,6 @@
 package ch.seesturm.pfadiseesturm.data.wordpress.repository
 
-import ch.seesturm.pfadiseesturm.util.MemoryCacheIdentifier
+import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WordpressPostDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WordpressPostsDto
@@ -18,26 +18,29 @@ class AktuellRepositoryImpl (
         postListMemoryCache = response.posts
         return response
     }
+
     override suspend fun getMorePosts(start: Int, length: Int): WordpressPostsDto {
         val response = api.getPosts(start, length)
         postListMemoryCache = postListMemoryCache + response.posts
         return response
     }
+
     override suspend fun getPost(postId: Int, cacheIdentifier: MemoryCacheIdentifier): WordpressPostDto {
         return when (cacheIdentifier) {
-            MemoryCacheIdentifier.Push -> {
+            MemoryCacheIdentifier.ForceReload -> {
                 api.getPost(postId)
             }
-            MemoryCacheIdentifier.List -> {
+            MemoryCacheIdentifier.TryGetFromListCache -> {
                 postListMemoryCache.find { it.id == postId }
                     ?: api.getPost(postId)
             }
-            MemoryCacheIdentifier.Home -> {
+            MemoryCacheIdentifier.TryGetFromHomeCache -> {
                 latestPostMemoryCache?.takeIf { it.id == postId }
                     ?: api.getPost(postId)
             }
         }
     }
+
     override suspend fun getLatestPost(): WordpressPostDto {
         val post = api.getPosts(0, 1).posts.first()
         latestPostMemoryCache = post

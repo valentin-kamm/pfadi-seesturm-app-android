@@ -1,14 +1,14 @@
 package ch.seesturm.pfadiseesturm.domain.wordpress.service
 
-import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.MemoryCacheIdentifier
-import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvents
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvents
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
-import ch.seesturm.pfadiseesturm.util.SeesturmCalendar
+import ch.seesturm.pfadiseesturm.util.DataError
+import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
+import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
+import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 
 class AnlaesseService(
     private val repository: AnlaesseRepository
@@ -32,9 +32,9 @@ class AnlaesseService(
             transform = { it.toGoogleCalendarEvent() }
         )
 
-    suspend fun fetchNext3Events(calendar: SeesturmCalendar): SeesturmResult<List<GoogleCalendarEvent>, DataError.Network> =
+    suspend fun fetchNextThreeEvents(calendar: SeesturmCalendar): SeesturmResult<List<GoogleCalendarEvent>, DataError.Network> =
         fetchFromWordpress(
-            fetchAction = { repository.getNext3Events(calendar) },
+            fetchAction = { repository.getNextThreeEvents(calendar) },
             transform = { it.toGoogleCalendarEvents().items }
         )
 }

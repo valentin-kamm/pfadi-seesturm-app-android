@@ -1,5 +1,7 @@
 package ch.seesturm.pfadiseesturm.util
 
+import android.os.Build
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import com.google.firebase.Timestamp
 import java.time.DayOfWeek
 import java.time.Instant
@@ -7,7 +9,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
@@ -17,10 +18,12 @@ class DateTimeUtil {
         val shared: DateTimeUtil by lazy { DateTimeUtil() }
     }
 
-    fun nextSaturdayInCHTime(atHour: Int): ZonedDateTime {
+    fun nextSaturday(
+        atHour: Int,
+        timeZone: ZoneId = ZoneId.of("Europe/Zurich")
+    ): ZonedDateTime {
 
-        val zoneId = ZoneId.of("Europe/Zurich")
-        val now = ZonedDateTime.now(zoneId)
+        val now = ZonedDateTime.now(timeZone)
 
         var nextSaturday = now.with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
         nextSaturday = nextSaturday.withHour(atHour).withMinute(0).withSecond(0).withNano(0)
@@ -29,6 +32,7 @@ class DateTimeUtil {
     }
 
     fun getIso8601DateString(date: ZonedDateTime, timeZone: ZoneId?): String {
+
         return timeZone?.let {
             val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
             date.withZoneSameInstant(it).format(formatter)
@@ -36,16 +40,16 @@ class DateTimeUtil {
     }
 
     fun convertFirestoreTimestampToDate(timestamp: Timestamp?): ZonedDateTime {
+
         if (timestamp != null) {
-            return timestamp.toDate().toInstant().atZone(ZoneId.of("UTC"))
+            return timestamp.toDate().toInstant().atZone(ZoneId.systemDefault())
         }
-        else {
-            throw PfadiSeesturmAppError.DateError("Datum nicht vorhanden.")
-        }
+        throw PfadiSeesturmAppError.DateError("Datum nicht vorhanden.")
     }
 
     // function to get the start of the month of the provided date
     fun getFirstDayOfMonthOfADate(date: ZonedDateTime): ZonedDateTime {
+
         return try {
             date.withDayOfMonth(1).toLocalDate().atStartOfDay(date.zone)
         }
@@ -56,6 +60,7 @@ class DateTimeUtil {
 
     // used to parse start and end dates of all day events of google calendar
     fun parseFloatingDateString(floatingDateString: String, floatingDateTimeZone: ZoneId): Instant {
+
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         return try {
             val localDate = LocalDate.parse(floatingDateString, formatter)
@@ -67,10 +72,11 @@ class DateTimeUtil {
     }
 
     // function to parse a iso date
-    fun parseIsoDateWithOffset(dateString: String): Instant {
+    fun parseIsoDateWithOffset(iso8601DateString: String): Instant {
+
         val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
         try {
-            return Instant.from(formatter.parse(dateString))
+            return Instant.from(formatter.parse(iso8601DateString))
         }
         catch (e: Exception) {
             throw PfadiSeesturmAppError.DateError("Datum ungültig.")
@@ -110,13 +116,13 @@ class DateTimeUtil {
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + ", ganztägig"
         }
-        else if (isAllDay && !isSingleDay) {
+        else if (isAllDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("dd. MMMM yyyy")
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + " bis "
         }
-        else if (!isAllDay && isSingleDay) {
+        else if (isSingleDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("dd. MMMM yyyy, HH:mm")
                 .withLocale(Locale("de", "CH"))
@@ -132,13 +138,13 @@ class DateTimeUtil {
         val secondPart = if (isAllDay && isSingleDay) {
             ""
         }
-        else if (isAllDay && !isSingleDay) {
+        else if (isAllDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("dd. MMMM yyyy")
                 .withLocale(Locale("de", "CH"))
             formatter.format(endDate) + ", ganztägig"
         }
-        else if (!isAllDay && isSingleDay) {
+        else if (isSingleDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("HH:mm")
                 .withLocale(Locale("de", "CH"))
@@ -155,85 +161,107 @@ class DateTimeUtil {
 
     }
 
-    // function to format a date into the desired string
-    fun formatDate(date: ZonedDateTime, format: String, withRelativeDateFormatting: Boolean, includeTimeInRelativeFormatting: Boolean = true): String {
-        val candidateForRelativeFormatting = (
-                isTheDayBeforeYesterday(date) ||
-                isYesterday(date) ||
-                isToday(date) ||
-                isTomorrow(date) ||
-                isTheDayAfterTomorrow(date)
-                )
-        if (withRelativeDateFormatting && candidateForRelativeFormatting) {
+    fun formatDate(
+        date: ZonedDateTime,
+        format: String,
+        type: DateFormattingType
+    ): String {
+
+        val isCandidateForRelativeFormatting = (
+                date.isTheDayBeforeYesterday ||
+                date.isYesterday ||
+                date.isToday ||
+                date.isTomorrow ||
+                date.isTheDayAfterTomorrow
+            )
+
+        val locale = if (Build.VERSION.SDK_INT >= 36) {
+            Locale.of("de", "CH")
+        }
+        else {
+            Locale("de", "CH")
+        }
+
+        if (type is DateFormattingType.Relative && isCandidateForRelativeFormatting) {
+
             val dateString =
-                if (isTheDayBeforeYesterday(date)) {
+                if (date.isTheDayBeforeYesterday) {
                     "Vorgestern"
                 }
-                else if (isYesterday(date)) {
+                else if (date.isYesterday) {
                     "Gestern"
                 }
-                else if (isToday(date)) {
+                else if (date.isToday) {
                     "Heute"
                 }
-                else if (isTomorrow(date)) {
+                else if (date.isTomorrow) {
                     "Morgen"
                 }
-                else if (isTheDayAfterTomorrow(date)) {
+                else if (date.isTheDayAfterTomorrow) {
                     "Übermorgen"
                 }
                 else {
                 ""
                 }
-            if (!includeTimeInRelativeFormatting) {
+
+            if (!type.withTime) {
                 return dateString
             }
+
             val timeFormatter = DateTimeFormatter
                 .ofPattern("HH:mm")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(locale)
             val timeString = timeFormatter.format(date)
+
             return "$dateString um $timeString Uhr"
         }
+
         val formatter = DateTimeFormatter
             .ofPattern(format)
-            .withLocale(Locale("de", "CH"))
+            .withLocale(locale)
         return formatter.format(date)
     }
 
-    private fun isTheDayBeforeYesterday(date: ZonedDateTime): Boolean {
-        val now = ZonedDateTime.now(date.zone).toLocalDate()
-        val referenceDate = date.toLocalDate()
-        return referenceDate.isEqual(now.minusDays(2))
-    }
-    private fun isYesterday(date: ZonedDateTime): Boolean {
-        val now = ZonedDateTime.now(date.zone).toLocalDate()
-        val referenceDate = date.toLocalDate()
-        return referenceDate.isEqual(now.minusDays(1))
-    }
-    private fun isToday(date: ZonedDateTime): Boolean {
-        val now = ZonedDateTime.now(date.zone).toLocalDate()
-        val referenceDate = date.toLocalDate()
-        return referenceDate.isEqual(now)
-    }
-    private fun isTomorrow(date: ZonedDateTime): Boolean {
-        val now = ZonedDateTime.now(date.zone).toLocalDate()
-        val referenceDate = date.toLocalDate()
-        return referenceDate.isEqual(now.plusDays(1))
-    }
-    private fun isTheDayAfterTomorrow(date: ZonedDateTime): Boolean {
-        val now = ZonedDateTime.now(date.zone).toLocalDate()
-        val referenceDate = date.toLocalDate()
-        return referenceDate.isEqual(now.plusDays(2))
-    }
+    private val ZonedDateTime.isTheDayBeforeYesterday: Boolean
+        get() {
+            val now = ZonedDateTime.now(this.zone).toLocalDate()
+            val referenceDate = this.toLocalDate()
+            return referenceDate.isEqual(now.minusDays(2))
+        }
+    private val ZonedDateTime.isYesterday: Boolean
+        get() {
+            val now = ZonedDateTime.now(this.zone).toLocalDate()
+            val referenceDate = this.toLocalDate()
+            return referenceDate.isEqual(now.minusDays(1))
+        }
+    private val ZonedDateTime.isToday: Boolean
+        get() {
+            val now = ZonedDateTime.now(this.zone).toLocalDate()
+            val referenceDate = this.toLocalDate()
+            return referenceDate.isEqual(now)
+        }
+    private val ZonedDateTime.isTomorrow: Boolean
+        get() {
+            val now = ZonedDateTime.now(this.zone).toLocalDate()
+            val referenceDate = this.toLocalDate()
+            return referenceDate.isEqual(now.plusDays(1))
+        }
+    private val ZonedDateTime.isTheDayAfterTomorrow: Boolean
+        get() {
+            val now = ZonedDateTime.now(this.zone).toLocalDate()
+            val referenceDate = this.toLocalDate()
+            return referenceDate.isEqual(now.plusDays(2))
+        }
 
     fun getEventTimeString(isAllDay: Boolean, startDate: ZonedDateTime, endDate: ZonedDateTime): String {
+
         if (isAllDay) {
             return "Ganztägig"
         }
-        else {
-            val startTimeString = formatDate(startDate, "HH:mm", false)
-            val endTimeString = formatDate(endDate, "HH:mm", false)
-            return "$startTimeString bis $endTimeString Uhr"
-        }
+
+        val startTimeString = formatDate(startDate, "HH:mm", DateFormattingType.Absolute)
+        val endTimeString = formatDate(endDate, "HH:mm", DateFormattingType.Absolute)
+        return "$startTimeString bis $endTimeString Uhr"
     }
 
     fun getEventEndDateString(startDate: ZonedDateTime, endDate: ZonedDateTime): String? {
@@ -241,10 +269,10 @@ class DateTimeUtil {
             null
         }
         else {
-            DateTimeUtil.shared.formatDate(
+            shared.formatDate(
                 endDate,
                 "dd. MMM",
-                false
+                DateFormattingType.Absolute
             )
         }
     }

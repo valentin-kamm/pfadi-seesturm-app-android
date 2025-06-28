@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.common
 
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -29,16 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import kotlinx.coroutines.launch
@@ -47,16 +47,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun TopBarScaffold(
     topBarStyle: TopBarStyle,
+    modifier: Modifier = Modifier,
     hideTopBar: Boolean = false,
     title: String? = null,
-    backNavigationAction: (() -> Unit)? = null,
+    onNavigateBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     staticSnackbar: TopBarScaffoldStaticSnackbarType = TopBarScaffoldStaticSnackbarType.None,
     floatingActionButton: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier,
-    content: @Composable (PaddingValues) -> Unit
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
+    content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     val hazeState = remember { HazeState() }
 
     val snackbarHostState = remember {
@@ -95,11 +96,11 @@ fun TopBarScaffold(
                                 }
                             },
                             navigationIcon = {
-                                if (backNavigationAction != null) {
+                                if (onNavigateBack != null) {
                                     IconButton(
-                                        onClick = { backNavigationAction() }
+                                        onClick = onNavigateBack
                                     ) {
-                                        androidx.compose.material3.Icon(
+                                        Icon(
                                             Icons.AutoMirrored.Outlined.ArrowBack,
                                             contentDescription = "Zurück",
                                             tint = Color.SEESTURM_GREEN
@@ -108,18 +109,30 @@ fun TopBarScaffold(
                                 }
                             },
                             colors = TopAppBarColors(
-                                containerColor = Color.Transparent,
-                                scrolledContainerColor = Color.Transparent,
+                                containerColor = MaterialTheme.colorScheme.background,
+                                scrolledContainerColor = if (Build.VERSION.SDK_INT >= 30) {
+                                    Color.Transparent
+                                }
+                                else {
+                                    MaterialTheme.colorScheme.background
+                                },
                                 navigationIconContentColor = Color.SEESTURM_GREEN,
                                 titleContentColor = MaterialTheme.colorScheme.onBackground,
-                                actionIconContentColor = Color.SEESTURM_GREEN
+                                actionIconContentColor = Color.SEESTURM_GREEN,
+                                subtitleContentColor = MaterialTheme.colorScheme.onBackground
                             ),
                             scrollBehavior = scrollBehavior,
-                            actions = {
-                                actions()
-                            },
+                            actions = actions,
                             modifier = Modifier
-                                .hazeChild(hazeState, style = CupertinoMaterials.thin())
+                                .then(
+                                    if (Build.VERSION.SDK_INT >= 30) {
+                                        Modifier
+                                            .hazeEffect(hazeState, style = CupertinoMaterials.thin())
+                                    }
+                                    else {
+                                        Modifier
+                                    }
+                                )
                         )
                     }
                     TopBarStyle.Small -> {
@@ -133,11 +146,11 @@ fun TopBarScaffold(
                                 }
                             },
                             navigationIcon = {
-                                if (backNavigationAction != null) {
+                                if (onNavigateBack != null) {
                                     IconButton(
-                                        onClick = { backNavigationAction() },
+                                        onClick = onNavigateBack,
                                     ) {
-                                        androidx.compose.material3.Icon(
+                                        Icon(
                                             Icons.AutoMirrored.Outlined.ArrowBack,
                                             contentDescription = "Zurück",
                                             tint = Color.SEESTURM_GREEN
@@ -146,18 +159,30 @@ fun TopBarScaffold(
                                 }
                             },
                             colors = TopAppBarColors(
-                                containerColor = Color.Transparent,
-                                scrolledContainerColor = Color.Transparent,
+                                containerColor = MaterialTheme.colorScheme.background,
+                                scrolledContainerColor = if (Build.VERSION.SDK_INT >= 30) {
+                                    Color.Transparent
+                                }
+                                else {
+                                    MaterialTheme.colorScheme.background
+                                },
                                 navigationIconContentColor = Color.SEESTURM_GREEN,
                                 titleContentColor = MaterialTheme.colorScheme.onBackground,
-                                actionIconContentColor = Color.SEESTURM_GREEN
+                                actionIconContentColor = Color.SEESTURM_GREEN,
+                                subtitleContentColor = MaterialTheme.colorScheme.onBackground
                             ),
                             scrollBehavior = scrollBehavior,
-                            actions = {
-                                actions()
-                            },
+                            actions = actions,
                             modifier = Modifier
-                                .hazeChild(hazeState, style = CupertinoMaterials.thin())
+                                .then(
+                                    if (Build.VERSION.SDK_INT >= 30) {
+                                        Modifier
+                                            .hazeEffect(hazeState, style = CupertinoMaterials.thin())
+                                    }
+                                    else {
+                                        Modifier
+                                    }
+                                )
                         )
                     }
                 }
@@ -197,17 +222,17 @@ fun TopBarScaffold(
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .haze(hazeState)
+                .then(
+                    if (Build.VERSION.SDK_INT >= 30) {
+                        Modifier
+                            .hazeSource(hazeState)
+                    }
+                    else {
+                        Modifier
+                    }
+                )
         ) {
             content(innerPadding)
         }
     }
-}
-
-sealed class TopBarScaffoldStaticSnackbarType {
-    data object None: TopBarScaffoldStaticSnackbarType()
-    data class Show(
-        val snackbarEvent: SeesturmSnackbarEvent,
-        val additionalBottomPadding: Dp = 0.dp
-    ): TopBarScaffoldStaticSnackbarType()
 }

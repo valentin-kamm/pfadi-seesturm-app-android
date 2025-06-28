@@ -1,14 +1,13 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,12 +27,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonIconType
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
 fun LeiterbereichStufeCardView(
@@ -81,8 +79,9 @@ fun LeiterbereichStufeCardView(
                         .fillMaxWidth()
                 )
                 SeesturmButton(
-                    type = SeesturmButtonType.Tertiary(
-                        contentColor = stufe.highContrastColor(),
+                    type = SeesturmButtonType.Secondary(
+                        buttonColor = stufe.highContrastColor(),
+                        contentColor = stufe.onHighContrastColor(),
                         icon = SeesturmButtonIconType.Predefined(
                             icon = Icons.Default.Add
                         )
@@ -92,7 +91,8 @@ fun LeiterbereichStufeCardView(
                         onButtonClick()
                     },
                     modifier = Modifier
-                        .padding(top = 8.dp)
+                        .padding(top = 8.dp),
+                    isLoading = false
                 )
             }
             Icon(
@@ -107,13 +107,43 @@ fun LeiterbereichStufeCardView(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun LeiterbereichStufeCardViewPreview() {
-    LeiterbereichStufeCardView(
-        cardWidth = 120.dp,
-        stufe = SeesturmStufe.Pfadi,
-        onButtonClick = {},
-        onNavigate = {}
-    )
+private fun LeiterbereichStufeCardViewPreview1() {
+    PfadiSeesturmTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SeesturmStufe.entries.forEach { stufe ->
+                LeiterbereichStufeCardView(
+                    cardWidth = 120.dp,
+                    stufe = stufe,
+                    onButtonClick = {},
+                    onNavigate = {}
+                )
+            }
+        }
+    }
+}
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+private fun LeiterbereichStufeCardViewPreview2() {
+    PfadiSeesturmTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SeesturmStufe.entries.forEach { stufe ->
+                LeiterbereichStufeCardView(
+                    cardWidth = 120.dp,
+                    stufe = stufe,
+                    onButtonClick = {},
+                    onNavigate = {}
+                )
+            }
+        }
+    }
 }

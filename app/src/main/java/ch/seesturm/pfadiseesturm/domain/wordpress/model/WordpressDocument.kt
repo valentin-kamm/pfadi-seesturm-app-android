@@ -6,6 +6,6 @@ data class WordpressDocument(
     val thumbnailWidth: Int,
     val thumbnailHeight: Int,
     val title: String,
-    val url: String,
+    val documentUrl: String,
     val published: String
 )

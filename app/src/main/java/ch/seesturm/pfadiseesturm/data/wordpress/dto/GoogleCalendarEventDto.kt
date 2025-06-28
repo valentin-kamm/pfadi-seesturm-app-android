@@ -1,13 +1,11 @@
 package ch.seesturm.pfadiseesturm.data.wordpress.dto
 
+import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import kotlinx.serialization.Serializable
-import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import kotlin.math.abs
 
 data class GoogleCalendarEventDto(
     val id: String,
@@ -23,12 +21,6 @@ data class GoogleCalendarEventDto(
         get() = start.dateTime == null
 }
 
-@Serializable
-data class GoogleCalendarEventStartEndDto(
-    val dateTime: String?,
-    val date: String?
-)
-
 fun GoogleCalendarEventDto.toGoogleCalendarEvent(calendarTimeZone: ZoneId = ZoneId.of("Europe/Zurich")): GoogleCalendarEvent {
 
     val targetDisplayTimezone = ZoneId.of("Europe/Zurich")
@@ -43,29 +35,30 @@ fun GoogleCalendarEventDto.toGoogleCalendarEvent(calendarTimeZone: ZoneId = Zone
         description = description,
         location = location,
         created = localCreatedDate,
-        updated = localUpdatedDate,
+        modified = localUpdatedDate,
         createdFormatted = DateTimeUtil.shared.formatDate(
             date = localCreatedDate,
-            format = "d. MMMM, HH:mm 'Uhr'",
-            withRelativeDateFormatting = true
+            format = "dd. MMM, HH:mm 'Uhr'",
+            type = DateFormattingType.Relative(true)
         ),
-        updatedFormatted = DateTimeUtil.shared.formatDate(
+        modifiedFormatted = DateTimeUtil.shared.formatDate(
             date = localUpdatedDate,
-            format = "d. MMMM, HH:mm 'Uhr'",
-            withRelativeDateFormatting = true
+            format = "dd. MMM, HH:mm 'Uhr'",
+            type = DateFormattingType.Relative(true)
         ),
+        isAllDay = isAllDay,
         firstDayOfMonthOfStartDate = DateTimeUtil.shared.getFirstDayOfMonthOfADate(localStartDate),
-        startDate = localStartDate,
-        endDate = localEndDate,
+        start = localStartDate,
+        end = localEndDate,
         startDayFormatted = DateTimeUtil.shared.formatDate(
             date = localStartDate,
             format = "dd.",
-            withRelativeDateFormatting = false
+            type = DateFormattingType.Absolute
         ),
         startMonthFormatted = DateTimeUtil.shared.formatDate(
             date = localStartDate,
             format = "MMM",
-            withRelativeDateFormatting = false
+            type = DateFormattingType.Absolute
         ),
         endDateFormatted = DateTimeUtil.shared.getEventEndDateString(startDate = localStartDate, endDate = localEndDate),
         timeFormatted = DateTimeUtil.shared.getEventTimeString(isAllDay = isAllDay, startDate = localStartDate, endDate = localEndDate),
@@ -73,8 +66,7 @@ fun GoogleCalendarEventDto.toGoogleCalendarEvent(calendarTimeZone: ZoneId = Zone
             localStartDate,
             localEndDate,
             isAllDay
-        ),
-        isAllDay = isAllDay
+        )
     )
 }
 

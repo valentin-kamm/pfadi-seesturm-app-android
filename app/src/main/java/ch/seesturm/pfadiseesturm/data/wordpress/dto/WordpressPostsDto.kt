@@ -10,7 +10,7 @@ data class WordpressPostsDto(
 
 fun WordpressPostsDto.toWordpressPosts(): WordpressPosts {
     return WordpressPosts(
-        totalPosts = totalPosts,
+        postCount = totalPosts,
         posts = posts.map { it.toWordpressPost() }
     )
 }

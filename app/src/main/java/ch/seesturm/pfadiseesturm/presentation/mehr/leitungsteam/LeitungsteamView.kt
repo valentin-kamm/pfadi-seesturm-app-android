@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,8 +15,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,61 +34,84 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.LeitungsteamRepositoryImpl
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.LeitungsteamService
+import ch.seesturm.pfadiseesturm.domain.wordpress.model.Leitungsteam
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.components.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.common.forms.myStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
+import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam.components.LeitungsteamCell
 import ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam.components.LeitungsteamLoadingCell
-import ch.seesturm.pfadiseesturm.util.Constants
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeitungsteamView(
     viewModel: LeitungsteamViewModel,
     bottomNavigationInnerPadding: PaddingValues,
-    navController: NavController,
-    selectedStufe: String = "Abteilungsleitung",
-    columnState: LazyListState = rememberLazyListState()
+    navController: NavController
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    LeitungsteamContentView(
+        uiState = uiState,
+        navController = navController,
+        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+        onRetry = {
+            viewModel.fetchLeitungsteam()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LeitungsteamContentView(
+    uiState: UiState<List<Leitungsteam>>,
+    navController: NavController,
+    bottomNavigationInnerPadding: PaddingValues,
+    onRetry: () -> Unit,
+    columnState: LazyListState = rememberLazyListState()
+) {
+
     val stickyOffsets = rememberStickyHeaderOffsets(columnState, 0)
-    var selectedStufe by remember { mutableStateOf(selectedStufe) }
+    var selectedStufe by remember { mutableStateOf("Abteilungsleitung") }
     val loadingCellCount = 7
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = "Leitungsteam",
-        backNavigationAction = {
-            navController.popBackStack()
+        onNavigateBack = {
+            navController.navigateUp()
         }
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(
             other = topBarInnerPadding,
-            layoutDirection = LayoutDirection.Ltr
+            layoutDirection = LayoutDirection.Ltr,
+            additionalBottomPadding = 16.dp,
+            additionalEndPadding = 16.dp,
+            additionalStartPadding = 16.dp,
+            additionalTopPadding = 16.dp
         )
+
         LazyColumn(
             state = columnState,
             userScrollEnabled = !uiState.scrollingDisabled,
             contentPadding = combinedPadding,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            when (val localState = uiState) {
+            when (uiState) {
                 UiState.Loading -> {
-                    myStickyHeader(
+                    seesturmStickyHeader(
                         uniqueKey = "LeitungsteamLoadingStickyHeader",
                         stickyOffsets = stickyOffsets
                     ) { _ ->
@@ -101,8 +121,8 @@ fun LeitungsteamView(
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.background)
                                 .fillMaxWidth()
-                                .padding(16.dp)
                                 .animateItem()
+                                .padding(vertical = 16.dp)
                         ) {
                             RedactedText(
                                 numberOfLines = 1,
@@ -120,8 +140,6 @@ fun LeitungsteamView(
                         LeitungsteamLoadingCell(
                             modifier = Modifier
                                 .animateItem()
-                                .padding(horizontal = 16.dp)
-                                .padding(top = if (index == 0) 16.dp else 0.dp)
                         )
                     }
                 }
@@ -129,19 +147,18 @@ fun LeitungsteamView(
                     item(
                         key = "LeitungsteamErroCell"
                     ) {
-                        CardErrorView(
+                        ErrorCardView(
                             errorTitle = "Ein Fehler ist aufgetreten",
-                            errorDescription = localState.message,
+                            errorDescription = uiState.message,
                             modifier = Modifier
-                                .padding(16.dp)
                                 .animateItem()
                         ) {
-                            viewModel.fetchLeitungsteam()
+                            onRetry()
                         }
                     }
                 }
                 is UiState.Success -> {
-                    myStickyHeader(
+                    seesturmStickyHeader(
                         uniqueKey = "LeitungsteamStickyHeader",
                         stickyOffsets = stickyOffsets
                     ) { _ ->
@@ -151,7 +168,7 @@ fun LeitungsteamView(
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.background)
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .padding(vertical = 16.dp)
                                 .animateItem()
                         ) {
                             Text(
@@ -168,14 +185,14 @@ fun LeitungsteamView(
                                 DropdownButton(
                                     title = "Stufe",
                                     dropdown = { isShown, dismiss ->
-                                        DropdownMenu(
+                                        ThemedDropdownMenu(
                                             expanded = isShown,
                                             onDismissRequest = {
                                                 dismiss()
                                             }
                                         ) {
-                                            localState.data.reversed().forEach { stufe ->
-                                                DropdownMenuItem(
+                                            uiState.data.reversed().forEach { stufe ->
+                                                ThemedDropdownMenuItem(
                                                     text = {
                                                         Text(
                                                             text = stufe.teamName
@@ -201,9 +218,9 @@ fun LeitungsteamView(
                             }
                         }
                     }
-                    if (localState.data.map { it.teamName }.contains(selectedStufe)) {
+                    if (uiState.data.map { it.teamName }.contains(selectedStufe)) {
                         itemsIndexed(
-                            items = localState.data.first { it.teamName == selectedStufe }.members,
+                            items = uiState.data.first { it.teamName == selectedStufe }.members,
                             key = { index, _ ->
                                 "LeitungsteamCell$index"
                             }
@@ -212,8 +229,6 @@ fun LeitungsteamView(
                                 member = item,
                                 modifier = Modifier
                                     .animateItem()
-                                    .padding(horizontal = 16.dp)
-                                    .padding(top = if (index == 0) 16.dp else 0.dp)
                                     .animateItem()
                             )
                         }
@@ -224,23 +239,50 @@ fun LeitungsteamView(
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview
+@Preview("Loading")
 @Composable
-fun LeitungsteamViewPreview() {
-    LeitungsteamView(
-        viewModel = LeitungsteamViewModel(
-            service = LeitungsteamService(
-                repository = LeitungsteamRepositoryImpl(
-                    api = Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
+private fun LeitungsteamViewPreview1() {
+    PfadiSeesturmTheme {
+        LeitungsteamContentView(
+            uiState = UiState.Loading,
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRetry = {}
+        )
+    }
+}
+@Preview("Error")
+@Composable
+private fun LeitungsteamViewPreview2() {
+    PfadiSeesturmTheme {
+        LeitungsteamContentView(
+            uiState = UiState.Error("Schwerer Fehler"),
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRetry = {}
+        )
+    }
+}
+@Preview("Success")
+@Composable
+private fun LeitungsteamViewPreview3() {
+    PfadiSeesturmTheme {
+        LeitungsteamContentView(
+            uiState = UiState.Success(
+                listOf(
+                    Leitungsteam(
+                        id = 123,
+                        teamName = "Abteilungsleitung",
+                        members = listOf(
+                            DummyData.leitungsteamMember,
+                            DummyData.leitungsteamMember
+                        )
+                    )
                 )
-            )
-        ),
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        navController = rememberNavController()
-    )
+            ),
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onRetry = {}
+        )
+    }
 }

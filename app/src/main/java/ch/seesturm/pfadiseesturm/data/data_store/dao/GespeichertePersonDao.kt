@@ -16,8 +16,7 @@ fun GespeichertePersonDao.toGespeichertePerson(): GespeichertePerson {
         id = id,
         vorname = vorname,
         nachname = nachname,
-        pfadiname = pfadiname,
-        swipeActionsRevealed = false
+        pfadiname = pfadiname
     )
 }
 fun GespeichertePerson.toGespeichertePersonDao(): GespeichertePersonDao {

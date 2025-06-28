@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.data_store.service.GespeichertePersonenService
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -25,7 +25,6 @@ class GespeichertePersonenViewModel(
     private val updateSheetContent: (BottomSheetContent?) -> Unit
 ): ViewModel() {
 
-    // ui state
     private val _state = MutableStateFlow(
         GespeichertePersonenState.create(
             onVornameValueChanged = { newValue ->
@@ -45,7 +44,6 @@ class GespeichertePersonenViewModel(
         startListeningToPersons()
     }
 
-    // computed properties
     private val newPerson: GespeichertePerson
         get() = GespeichertePerson(
             id = UUID.randomUUID().toString(),
@@ -64,8 +62,8 @@ class GespeichertePersonenViewModel(
             else -> { false }
         }
 
-    // function to read the stored persons and update the ui
     private fun startListeningToPersons() {
+
         _state.update {
             it.copy(
                 readingResult = UiState.Loading
@@ -91,17 +89,18 @@ class GespeichertePersonenViewModel(
         }.launchIn(viewModelScope)
     }
 
-    // functions to modify the stored persons
-    fun addPerson() {
+    fun insertPerson() {
+
+        validateNewPerson()
+
         viewModelScope.launch {
-            validateNewPerson()
             if (newPersonCanBeSaved) {
-                when (val result = service.addPerson(newPerson)) {
+                when (val result = service.insertPerson(newPerson)) {
                     is SeesturmResult.Error -> {
                         SnackbarController.sendEvent(
                             event = SeesturmSnackbarEvent(
                                 message = "Person kann nicht gespeichert werden. ${result.error.defaultMessage}",
-                                type = SnackbarType.Error,
+                                type = SeesturmSnackbarType.Error,
                                 onDismiss = {},
                                 duration = SnackbarDuration.Long,
                                 allowManualDismiss = true,
@@ -114,7 +113,7 @@ class GespeichertePersonenViewModel(
                         SnackbarController.sendEvent(
                             event = SeesturmSnackbarEvent(
                                 message = "Person erfolgreich gespeichert.",
-                                type = SnackbarType.Success,
+                                type = SeesturmSnackbarType.Success,
                                 onDismiss = {},
                                 duration = SnackbarDuration.Short,
                                 allowManualDismiss = true,
@@ -136,7 +135,7 @@ class GespeichertePersonenViewModel(
                     SnackbarController.sendEvent(
                         event = SeesturmSnackbarEvent(
                             message = "Person kann nicht gelöscht werden.",
-                            type = SnackbarType.Error,
+                            type = SeesturmSnackbarType.Error,
                             onDismiss = {},
                             duration = SnackbarDuration.Long,
                             allowManualDismiss = true,
@@ -157,7 +156,6 @@ class GespeichertePersonenViewModel(
         }
     }
 
-    // functions to validate the input before saving a new person
     private fun validateNewPerson() {
         if (newPerson.vorname.isEmpty()) {
             _state.update {
@@ -179,7 +177,6 @@ class GespeichertePersonenViewModel(
         }
     }
 
-    // functions to process the text field inputs
     private fun updateVorname(newVorname: String) {
         _state.update {
             it.copy(
@@ -210,7 +207,6 @@ class GespeichertePersonenViewModel(
         }
     }
 
-    // functions to control the swipe to delete actions
     fun toggleEditingMode() {
         val currentIsInEditingMode = state.value.isInEditingMode
         if (currentIsInEditingMode) {
@@ -223,69 +219,41 @@ class GespeichertePersonenViewModel(
         }
     }
     private fun resetSwipeActions() {
-        when (val localState = state.value.readingResult) {
-            is UiState.Success -> {
-                _state.update {
-                    it.copy(
-                        readingResult = localState.copy(
-                            data = localState.data.map { listElement ->
-                                listElement.copy(swipeActionsRevealed = false) }
-                        )
+
+        val localState = state.value.readingResult
+
+        if (localState is UiState.Success) {
+            _state.update {
+                it.copy(
+                    readingResult = localState.copy(
+                        data = localState.data.map { listElement ->
+                            listElement.copy(swipeActionsRevealed = false) }
                     )
-                }
-            }
-            else -> {}
-        }
-    }
-    fun disableSwipeActions(id: String) {
-        when (val localState = state.value.readingResult) {
-            is UiState.Success -> {
-                val updatePersonList = localState.data.map { item ->
-                    if (item.id == id) {
-                        item.copy(
-                            swipeActionsRevealed = false
-                        )
-                    }
-                    else {
-                        item
-                    }
-                }
-                _state.update {
-                    it.copy(
-                        readingResult = localState.copy(
-                            data = updatePersonList
-                        )
-                    )
-                }
-            }
-            else -> {
-                // do nothing
+                )
             }
         }
     }
-    fun toggleSwipeActionsEnabled(id: String) {
-        when (val localState = state.value.readingResult) {
-            is UiState.Success -> {
-                val updatePersonList = localState.data.map { item ->
-                    if (item.id == id) {
-                        item.copy(
-                            swipeActionsRevealed = !item.swipeActionsRevealed
-                        )
-                    }
-                    else {
-                        item
-                    }
-                }
-                _state.update {
-                    it.copy(
-                        readingResult = localState.copy(
-                            data = updatePersonList
-                        )
+    fun toggleSwipeActions(id: String) {
+
+        val localState = state.value.readingResult
+
+        if (localState is UiState.Success) {
+            val updatePersonList = localState.data.map { item ->
+                if (item.id == id) {
+                    item.copy(
+                        swipeActionsRevealed = !item.swipeActionsRevealed
                     )
                 }
+                else {
+                    item
+                }
             }
-            else -> {
-                // do nothing
+            _state.update {
+                it.copy(
+                    readingResult = localState.copy(
+                        data = updatePersonList
+                    )
+                )
             }
         }
     }

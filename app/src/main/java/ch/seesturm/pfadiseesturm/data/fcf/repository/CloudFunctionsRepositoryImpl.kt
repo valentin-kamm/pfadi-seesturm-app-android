@@ -5,19 +5,25 @@ import ch.seesturm.pfadiseesturm.data.fcf.SeesturmCloudFunction
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionAddEventRequestDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionAddEventResponseDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionEventPayloadDto
+import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionPushNotificationRequestDto
+import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionPushNotificationResponseDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionTokenRequestDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionTokenResponseDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionUpdateEventRequestDto
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionUpdateEventResponseDto
+import ch.seesturm.pfadiseesturm.domain.auth.repository.FirebaseAuthToken
+import ch.seesturm.pfadiseesturm.domain.auth.repository.HitobitoAccessToken
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationType
 import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
-import ch.seesturm.pfadiseesturm.util.SeesturmCalendar
+import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 
 class CloudFunctionsRepositoryImpl(
     private val api: CloudFunctionsApi
 ): CloudFunctionsRepository {
 
-    override suspend fun getFirebaseAuthToken(userId: String, hitobitoAccessToken: String): String {
+    override suspend fun getFirebaseAuthToken(userId: String, hitobitoAccessToken: HitobitoAccessToken): FirebaseAuthToken {
+
         val payload = CloudFunctionTokenRequestDto(
             userId = userId,
             hitobitoAccessToken = hitobitoAccessToken
@@ -31,10 +37,10 @@ class CloudFunctionsRepositoryImpl(
         if (response.userId != userId) {
             throw PfadiSeesturmAppError.AuthError("Ungültige Benutzer-ID im Authentifizierungs-Token.")
         }
-        if (response.firebaseToken.trim().isEmpty()) {
+        if (response.firebaseAuthToken.trim().isEmpty()) {
             throw PfadiSeesturmAppError.AuthError("Authentifizierungs-Token ist leer.")
         }
-        return response.firebaseToken
+        return response.firebaseAuthToken
     }
 
     override suspend fun addEvent(
@@ -73,7 +79,19 @@ class CloudFunctionsRepositoryImpl(
         )
     }
 
-    override suspend fun sendPushNotification() {
-        TODO("Not yet implemented")
+    override suspend fun sendPushNotification(type: SeesturmFCMNotificationType): CloudFunctionPushNotificationResponseDto {
+
+        val payload = CloudFunctionPushNotificationRequestDto(
+            topic = type.topic.topic,
+            title = type.content.title,
+            body = type.content.body,
+            customKey = type.content.customKey
+        )
+        return api.invokeCloudFunction(
+            function = SeesturmCloudFunction.SendPushNotificationToTopic,
+            data = payload,
+            inputSerializer = CloudFunctionPushNotificationRequestDto.serializer(),
+            outputSerializer = CloudFunctionPushNotificationResponseDto.serializer()
+        )
     }
 }

@@ -24,7 +24,7 @@ class WeatherService(
                     result
                 }
             }
-            else -> {
+            is SeesturmResult.Error -> {
                 result
             }
         }

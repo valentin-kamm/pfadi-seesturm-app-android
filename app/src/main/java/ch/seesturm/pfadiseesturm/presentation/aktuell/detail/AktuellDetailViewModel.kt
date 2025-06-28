@@ -2,7 +2,7 @@ package ch.seesturm.pfadiseesturm.presentation.aktuell.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ch.seesturm.pfadiseesturm.util.MemoryCacheIdentifier
+import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPost

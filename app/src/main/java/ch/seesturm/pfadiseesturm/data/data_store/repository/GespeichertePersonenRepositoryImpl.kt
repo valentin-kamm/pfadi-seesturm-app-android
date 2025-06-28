@@ -14,7 +14,8 @@ class GespeichertePersonenRepositoryImpl(
     override fun readPersons(): Flow<List<GespeichertePersonDao>> =
         dataStore.data.map { it.savedPersons }
 
-    override suspend fun addPerson(newPerson: GespeichertePersonDao) {
+    override suspend fun insertPerson(newPerson: GespeichertePersonDao) {
+
         dataStore.updateData { oldData ->
             val newPersonList = oldData.savedPersons + newPerson
             oldData.copy(
@@ -24,6 +25,7 @@ class GespeichertePersonenRepositoryImpl(
     }
 
     override suspend fun deletePerson(id: String) {
+
         dataStore.updateData { oldData ->
             val newPersonList = oldData.savedPersons.filter { it.id != id }
             oldData.copy(

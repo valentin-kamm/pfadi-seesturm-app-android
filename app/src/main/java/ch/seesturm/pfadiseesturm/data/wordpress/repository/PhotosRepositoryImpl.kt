@@ -9,13 +9,12 @@ class PhotosRepositoryImpl(
     private val api: WordpressApi
 ): PhotosRepository {
 
-    override suspend fun getPfadijahre(): List<WordpressPhotoGalleryDto> {
-        return api.getPhotosPfadijahre()
-    }
-    override suspend fun getAlbums(id: String): List<WordpressPhotoGalleryDto> {
-        return api.getPhotosAlbums(id)
-    }
-    override suspend fun getPhotos(id: String): List<WordpressPhotoDto> {
-        return api.getPhotos(id)
-    }
+    override suspend fun getPfadijahre(): List<WordpressPhotoGalleryDto> =
+        api.getPhotosPfadijahre()
+
+    override suspend fun getAlbums(pfadijahrId: String): List<WordpressPhotoGalleryDto> =
+        api.getPhotosAlbums(pfadijahrId)
+
+    override suspend fun getPhotos(albumId: String): List<WordpressPhotoDto> =
+        api.getPhotos(albumId)
 }

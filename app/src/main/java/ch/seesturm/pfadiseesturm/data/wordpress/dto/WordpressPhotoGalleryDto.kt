@@ -12,6 +12,6 @@ fun WordpressPhotoGalleryDto.toWordpressPhotoGallery(): WordpressPhotoGallery {
     return WordpressPhotoGallery(
         title = title,
         id = id,
-        thumbnail = thumbnail
+        thumbnailUrl = thumbnail
     )
 }

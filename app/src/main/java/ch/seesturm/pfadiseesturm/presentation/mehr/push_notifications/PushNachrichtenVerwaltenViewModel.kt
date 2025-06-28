@@ -1,16 +1,14 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMSubscriptionService
-import ch.seesturm.pfadiseesturm.presentation.aktuell.list.AktuellListState
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
+import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarType
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -24,7 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PushNachrichtenVerwaltenViewModel(
-    private val service: FCMSubscriptionService
+    private val service: FCMService
 ): ViewModel() {
 
     private val _state = MutableStateFlow(PushNachrichtenVerwaltenState())
@@ -38,7 +36,7 @@ class PushNachrichtenVerwaltenViewModel(
     private fun getSubscribedTopics() {
         _state.update {
             it.copy(
-                readingState = UiState.Loading
+                subscribedTopicsState = UiState.Loading
             )
         }
         service.readSubscribedTopics().onEach { result ->
@@ -46,14 +44,14 @@ class PushNachrichtenVerwaltenViewModel(
                 is SeesturmResult.Error -> {
                     _state.update {
                         it.copy(
-                            readingState = UiState.Error(result.error.defaultMessage)
+                            subscribedTopicsState = UiState.Error(result.error.defaultMessage)
                         )
                     }
                 }
                 is SeesturmResult.Success -> {
                     _state.update {
                         it.copy(
-                            readingState = UiState.Success(result.data)
+                            subscribedTopicsState = UiState.Success(result.data)
                         )
                     }
                 }
@@ -73,51 +71,64 @@ class PushNachrichtenVerwaltenViewModel(
         }
         viewModelScope.launch {
             if (isSwitchingOn) {
-                when (val result = service.subscribe(topic, requestPermission)) {
-                    is SeesturmResult.Error -> {
-                        when (result.error) {
-                            DataError.Messaging.PERMISSION_ERROR -> {
-                                _state.update {
-                                    it.copy(
-                                        actionState = ActionState.Idle
-                                    )
-                                }
-                                updateAlertVisibility(true)
-                            }
-                            else -> {
-                                _state.update {
-                                    it.copy(
-                                        actionState = ActionState.Error(topic, result.error.defaultMessage)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    is SeesturmResult.Success -> {
-                        _state.update { 
-                            it.copy(
-                                actionState = ActionState.Success(topic, "Anmeldung für ${topic.topicName} erfolgreich.")
-                            )
-                        }
-                    }
-                }
+                subscribeTo(topic = topic, requestPermission = requestPermission)
             }
             else {
-                when (val result = service.unsubscribe(topic)) {
-                    is SeesturmResult.Error -> {
+                unsubscribeFrom(topic = topic)
+            }
+        }
+    }
+
+    private suspend fun subscribeTo(
+        topic: SeesturmFCMNotificationTopic,
+        requestPermission: suspend () -> Boolean
+    ) {
+        when (val result = service.subscribe(topic, requestPermission)) {
+            is SeesturmResult.Error -> {
+                when (result.error) {
+                    DataError.Messaging.PERMISSION_ERROR -> {
+                        _state.update {
+                            it.copy(
+                                actionState = ActionState.Idle
+                            )
+                        }
+                        updateAlertVisibility(true)
+                    }
+                    else -> {
                         _state.update {
                             it.copy(
                                 actionState = ActionState.Error(topic, result.error.defaultMessage)
                             )
                         }
                     }
-                    is SeesturmResult.Success -> {
-                        _state.update {
-                            it.copy(
-                                actionState = ActionState.Success(topic, "Abmeldung von ${topic.topicName} erfolgreich.")
-                            )
-                        }
-                    }
+                }
+            }
+            is SeesturmResult.Success -> {
+                _state.update {
+                    it.copy(
+                        actionState = ActionState.Success(topic, "Anmeldung für ${topic.topicName} erfolgreich.")
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun unsubscribeFrom(
+        topic: SeesturmFCMNotificationTopic,
+    ) {
+        when (val result = service.unsubscribe(topic)) {
+            is SeesturmResult.Error -> {
+                _state.update {
+                    it.copy(
+                        actionState = ActionState.Error(topic, result.error.defaultMessage)
+                    )
+                }
+            }
+            is SeesturmResult.Success -> {
+                _state.update {
+                    it.copy(
+                        actionState = ActionState.Success(topic, "Abmeldung von ${topic.topicName} erfolgreich.")
+                    )
                 }
             }
         }
@@ -134,7 +145,7 @@ class PushNachrichtenVerwaltenViewModel(
                                 event = SeesturmSnackbarEvent(
                                     message = newActionState.message,
                                     duration = SnackbarDuration.Short,
-                                    type = SnackbarType.Error,
+                                    type = SeesturmSnackbarType.Error,
                                     allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {
@@ -152,7 +163,7 @@ class PushNachrichtenVerwaltenViewModel(
                                 event = SeesturmSnackbarEvent(
                                     message = newActionState.message,
                                     duration = SnackbarDuration.Short,
-                                    type = SnackbarType.Success,
+                                    type = SeesturmSnackbarType.Success,
                                     allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {

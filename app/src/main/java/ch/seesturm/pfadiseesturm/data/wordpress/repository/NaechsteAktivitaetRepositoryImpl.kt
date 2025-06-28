@@ -1,19 +1,12 @@
 package ch.seesturm.pfadiseesturm.data.wordpress.repository
 
-import androidx.datastore.core.DataStore
-import ch.seesturm.pfadiseesturm.data.data_store.dao.SeesturmPreferencesDao
-import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApi
+
 import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventsDto
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.NaechsteAktivitaetRepository
-import ch.seesturm.pfadiseesturm.util.MemoryCacheIdentifier
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 class NaechsteAktivitaetRepositoryImpl(
     private val api: WordpressApi
@@ -31,30 +24,40 @@ class NaechsteAktivitaetRepositoryImpl(
         return response
     }
 
-    override suspend fun getOrFetchAktivitaetById(
-        eventId: String,
+    override suspend fun getAktivitaetById(
         stufe: SeesturmStufe,
-        tryFetchingFromCache: Boolean
+        eventId: String,
+        cacheIdentifier: MemoryCacheIdentifier
     ): GoogleCalendarEventDto {
-        return if (tryFetchingFromCache) {
-            getFromMemoryCache(stufe)?.items?.firstOrNull()
-                ?: api.getEvent(
+
+        return when (cacheIdentifier) {
+            MemoryCacheIdentifier.ForceReload -> {
+                api.getEvent(
                     calendarId = stufe.calendar.calendarId,
                     eventId = eventId
                 )
-        }
-        else {
-            api.getEvent(
-                calendarId = stufe.calendar.calendarId,
-                eventId = eventId
-            )
+            }
+            MemoryCacheIdentifier.TryGetFromListCache, MemoryCacheIdentifier.TryGetFromHomeCache -> {
+                getFromMemoryCache(stufe, eventId)
+                    ?: api.getEvent(
+                        calendarId = stufe.calendar.calendarId,
+                        eventId = eventId
+                    )
+            }
         }
     }
 
     private fun saveToMemoryCache(stufe: SeesturmStufe, response: GoogleCalendarEventsDto) {
         aktivitaetenMemoryCache = aktivitaetenMemoryCache + (stufe to response)
     }
-    private fun getFromMemoryCache(stufe: SeesturmStufe): GoogleCalendarEventsDto? {
-        return aktivitaetenMemoryCache[stufe]
+
+    private fun getFromMemoryCache(stufe: SeesturmStufe, eventId: String): GoogleCalendarEventDto? {
+        val cachedEvent = aktivitaetenMemoryCache[stufe]?.items?.firstOrNull()
+        return if (cachedEvent?.id == eventId) {
+            cachedEvent
+        }
+        else {
+            null
+        }
     }
 }

@@ -16,8 +16,8 @@ class GespeichertePersonenService(
     private val repository: GespeichertePersonenRepository
 ) {
 
-    fun readPersons(): Flow<SeesturmResult<List<GespeichertePerson>, DataError.Local>> {
-        return repository.readPersons()
+    fun readPersons(): Flow<SeesturmResult<List<GespeichertePerson>, DataError.Local>> =
+        repository.readPersons()
             .map<_, SeesturmResult<List<GespeichertePerson>, DataError.Local>> { list ->
                 SeesturmResult.Success(list.map { it.toGespeichertePerson() })
             }
@@ -32,7 +32,7 @@ class GespeichertePersonenService(
                                 when (e) {
                                     is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
                                     is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
-                                    is PfadiSeesturmAppError.WeatherConditionError, is PfadiSeesturmAppError.MessagingPermissionError, is PfadiSeesturmAppError.UnknownStufe, is PfadiSeesturmAppError.UnknownAktivitaetInteraction, is PfadiSeesturmAppError.AuthError, is PfadiSeesturmAppError.Cancelled -> {
+                                    else -> {
                                         DataError.Local.UNKNOWN
                                     }
                                 }
@@ -44,10 +44,36 @@ class GespeichertePersonenService(
                     )
                 )
             }
-    }
 
-    suspend fun deletePerson(id: String): SeesturmResult<Unit, DataError.Local> {
-        return try {
+    suspend fun insertPerson(newPerson: GespeichertePerson): SeesturmResult<Unit, DataError.Local> =
+        try {
+            repository.insertPerson(newPerson.toGespeichertePersonDao())
+            SeesturmResult.Success(Unit)
+        }
+        catch (e: Exception) {
+            SeesturmResult.Error(
+                when (e) {
+                    is SerializationException -> {
+                        DataError.Local.SAVING_ERROR
+                    }
+                    is PfadiSeesturmAppError -> {
+                        when (e) {
+                            is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
+                            is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
+                            else -> {
+                                DataError.Local.UNKNOWN
+                            }
+                        }
+                    }
+                    else -> {
+                        DataError.Local.UNKNOWN
+                    }
+                }
+            )
+        }
+
+    suspend fun deletePerson(id: String): SeesturmResult<Unit, DataError.Local> =
+        try {
             repository.deletePerson(id)
             SeesturmResult.Success(Unit)
         }
@@ -61,7 +87,7 @@ class GespeichertePersonenService(
                         when (e) {
                             is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
                             is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
-                            is PfadiSeesturmAppError.WeatherConditionError, is PfadiSeesturmAppError.MessagingPermissionError, is PfadiSeesturmAppError.UnknownStufe, is PfadiSeesturmAppError.UnknownAktivitaetInteraction, is PfadiSeesturmAppError.AuthError, is PfadiSeesturmAppError.Cancelled -> {
+                            else -> {
                                 DataError.Local.UNKNOWN
                             }
                         }
@@ -72,33 +98,4 @@ class GespeichertePersonenService(
                 }
             )
         }
-    }
-
-    suspend fun addPerson(newPerson: GespeichertePerson): SeesturmResult<Unit, DataError.Local> {
-        return try {
-            repository.addPerson(newPerson.toGespeichertePersonDao())
-            SeesturmResult.Success(Unit)
-        }
-        catch (e: Exception) {
-            SeesturmResult.Error(
-                when (e) {
-                    is SerializationException -> {
-                        DataError.Local.SAVING_ERROR
-                    }
-                    is PfadiSeesturmAppError -> {
-                        when (e) {
-                            is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
-                            is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
-                            is PfadiSeesturmAppError.WeatherConditionError, is PfadiSeesturmAppError.MessagingPermissionError, is PfadiSeesturmAppError.UnknownStufe, is PfadiSeesturmAppError.UnknownAktivitaetInteraction, is PfadiSeesturmAppError.AuthError, is PfadiSeesturmAppError.Cancelled -> {
-                                DataError.Local.UNKNOWN
-                            }
-                        }
-                    }
-                    else -> {
-                        DataError.Local.UNKNOWN
-                    }
-                }
-            )
-        }
-    }
 }

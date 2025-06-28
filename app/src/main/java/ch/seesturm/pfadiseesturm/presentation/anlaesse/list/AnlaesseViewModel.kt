@@ -2,13 +2,12 @@ package ch.seesturm.pfadiseesturm.presentation.anlaesse.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ch.seesturm.pfadiseesturm.util.SeesturmCalendar
-import ch.seesturm.pfadiseesturm.util.state.SeesturmInfiniteScrollUiState
+import ch.seesturm.pfadiseesturm.domain.wordpress.service.AnlaesseService
+import ch.seesturm.pfadiseesturm.util.state.InfiniteScrollUiState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.updateDataAndSubState
 import ch.seesturm.pfadiseesturm.util.state.updateSubState
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPost
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.AnlaesseService
+import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,10 +19,8 @@ class AnlaesseViewModel(
     private val calendar: SeesturmCalendar
 ): ViewModel() {
 
-    // number of events per page loaded
     private val numberOfEventsPerPage: Int = 10
 
-    // ui state
     private val _state = MutableStateFlow(AnlaesseListState())
     val state = _state.asStateFlow()
 
@@ -31,19 +28,22 @@ class AnlaesseViewModel(
         getInitialEvents(false)
     }
 
-    // function to load the initial set of events
+    val hasMoreEvents: Boolean
+        get() = state.value.nextPageToken != null
+
     fun getInitialEvents(isPullToRefresh: Boolean) {
 
         if (!isPullToRefresh) {
             _state.update {
                 it.copy(
-                    result = SeesturmInfiniteScrollUiState.Loading
+                    result = InfiniteScrollUiState.Loading
                 )
             }
         }
         else {
             changeRefreshStatus(true)
         }
+
         viewModelScope.launch {
             val result = service.fetchEvents(
                 calendar = calendar,
@@ -54,16 +54,16 @@ class AnlaesseViewModel(
                 is SeesturmResult.Error -> {
                     _state.update {
                         it.copy(
-                            result = SeesturmInfiniteScrollUiState.Error("Anlässe konnten nicht geladen werden. ${result.error.defaultMessage}")
+                            result = InfiniteScrollUiState.Error("Anlässe konnten nicht geladen werden. ${result.error.defaultMessage}")
                         )
                     }
                 }
                 is SeesturmResult.Success -> {
                     _state.update {
                         it.copy(
-                            result = SeesturmInfiniteScrollUiState.Success(
+                            result = InfiniteScrollUiState.Success(
                                 result.data.items,
-                                subState = SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Success
+                                subState = InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Success
                             ),
                             nextPageToken = result.data.nextPageToken,
                             lastUpdated = result.data.updatedFormatted
@@ -72,25 +72,29 @@ class AnlaesseViewModel(
                 }
             }
         }.invokeOnCompletion {
-            changeRefreshStatus(false)
+            if (isPullToRefresh) {
+                changeRefreshStatus(false)
+            }
         }
     }
 
-    // function to load more events when scrolling to the bottom
     fun getMoreEvents() {
+
         val currentNextPageToken = state.value.nextPageToken
+
         if (currentNextPageToken == null) {
             _state.update {
                 it.copy(
-                    result = SeesturmInfiniteScrollUiState.Error("Es konnten keine weiteren Anlässe geladen werden, da die nächste Seite unbekannt ist.")
+                    result = InfiniteScrollUiState.Error("Es konnten keine weiteren Anlässe geladen werden, da die nächste Seite unbekannt ist.")
                 )
             }
             return
         }
+
         _state.update {
             it.copy(
                 result = it.result.updateSubState(
-                    SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Loading
+                    InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Loading
                 )
             )
         }
@@ -105,8 +109,8 @@ class AnlaesseViewModel(
                     _state.update {
                         it.copy(
                             result = it.result.updateSubState(
-                                SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Error(
-                                    "Es konnten nicht mehr Anlässe geladen werden. ${result.error.defaultMessage}"
+                                InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Error(
+                                    "Es konnten keine weiteren Anlässe geladen werden. ${result.error.defaultMessage}"
                                 )
                             )
                         )
@@ -119,7 +123,7 @@ class AnlaesseViewModel(
                                 { oldData ->
                                     oldData + result.data.items
                                 },
-                                newSubState = SeesturmInfiniteScrollUiState.Success.SeesturmInfiniteScrollUiSubState.Success
+                                newSubState = InfiniteScrollUiState.Success.InfiniteScrollUiSubState.Success
                             ),
                             nextPageToken = result.data.nextPageToken,
                             lastUpdated = result.data.updatedFormatted
@@ -130,19 +134,6 @@ class AnlaesseViewModel(
         }
     }
 
-    // computed property that tells me if there is a next page
-    val hasMoreEvents: Boolean
-        get() = state.value.nextPageToken != null
-
-    // function to group events by year and month
-    fun groupEventsByYearAndMonth(posts: List<WordpressPost>): List<Pair<String, List<WordpressPost>>> {
-        return posts
-            .groupBy { it.publishedYear }
-            .toSortedMap(compareByDescending { it })
-            .map { (year, posts) -> year to posts }
-    }
-
-    // function to update the pull to refresh status
     private fun changeRefreshStatus(newStatus: Boolean) {
         _state.update {
             it.copy(

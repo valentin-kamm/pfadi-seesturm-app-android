@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.di
 
-import android.content.Context
 import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApi
 import ch.seesturm.pfadiseesturm.data.firestore.FirestoreApiImpl
 import ch.seesturm.pfadiseesturm.data.firestore.repository.FirestoreRepositoryImpl
@@ -10,20 +9,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 
 interface FirestoreModule {
-    val db: FirebaseFirestore
 
     val firestoreApi: FirestoreApi
-
     val firestoreRepository: FirestoreRepository
 }
 
 class FirestoreModuleImpl(
-    private val appContext: Context
+    private val db: FirebaseFirestore = Firebase.firestore
 ): FirestoreModule {
-
-    override val db: FirebaseFirestore by lazy {
-        Firebase.firestore
-    }
 
     override val firestoreApi: FirestoreApi by lazy {
         FirestoreApiImpl(db)

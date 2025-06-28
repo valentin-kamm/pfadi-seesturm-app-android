@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,29 +22,19 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -55,49 +44,46 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenView
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenViewModel
+import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenMode
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components.StufenbereichAnAbmeldungCell
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components.StufenbereichAnAbmeldungLoadingCell
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.GenericAlert
-import ch.seesturm.pfadiseesturm.presentation.common.SeesturmDatePicker
-import ch.seesturm.pfadiseesturm.presentation.common.SimpleAlert
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.components.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonIconType
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.myStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.alert.GenericAlert
+import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.common.viewModelFactoryHelper
-import ch.seesturm.pfadiseesturm.presentation.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.main.SeesturmApplication.Companion.accountModule
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
+import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmDatePicker
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
+import ch.seesturm.pfadiseesturm.util.DateTimeUtil
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StufenbereichView(
     stufe: SeesturmStufe,
     viewModel: StufenbereichViewModel,
-    appStateViewModel: AppStateViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,
-    openSheetUponNavigation: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -115,7 +101,8 @@ fun StufenbereichView(
         },
         onDismiss = {
             viewModel.updateShowDeleteAllAbmeldungenAlert(false)
-        }
+        },
+        isConfirmButtonCritical = true
     )
     GenericAlert(
         action = uiState.showDeleteAbmeldungenAlert,
@@ -128,7 +115,8 @@ fun StufenbereichView(
         },
         onDismiss = { 
             viewModel.updateShowDeleteAbmeldungenAlert(null)
-        }
+        },
+        isConfirmButtonCritical = true
     )
     GenericAlert(
         action = uiState.showSendPushNotificationAlert,
@@ -141,7 +129,8 @@ fun StufenbereichView(
         },
         onDismiss = {
             viewModel.updateShowSendPushNotificationAlert(null)
-        }
+        },
+        isConfirmButtonCritical = true
     )
 
     SeesturmDatePicker(
@@ -154,7 +143,7 @@ fun StufenbereichView(
         dismissOnClickOutside = true,
         dismissOnBackPress = true
     )
-
+    
     StufenbereichContentView(
         stufe = stufe,
         uiState = uiState,
@@ -186,10 +175,32 @@ fun StufenbereichView(
         isEditButtonLoading = { aktivitaet ->
             viewModel.isEditButtonLoading(aktivitaet)
         },
-        selectedDateString = viewModel.selectedDateFormatted,
-        openSheetUponNavigation = openSheetUponNavigation,
-        onUpdateSheetContent = { content ->
-            appStateViewModel.updateSheetContent(content)
+        onEditAktivitaet = { mode ->
+            when (mode) {
+                AktivitaetBearbeitenMode.Insert -> {
+                    accountNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet(
+                            stufe = stufe
+                        )
+                    )
+                }
+                is AktivitaetBearbeitenMode.Update -> {
+                    accountNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Account.Destinations.UpdateAktivitaet(
+                            stufe = stufe,
+                            id = mode.id
+                        )
+                    )
+                }
+            }
+        },
+        onDisplayAktivitaet = { event ->
+            accountNavController.navigate(
+                AppDestination.MainTabView.Destinations.Account.Destinations.DisplayAktivitaet(
+                    stufe = stufe,
+                    id = event.event.id
+                )
+            )
         }
     )
 }
@@ -200,65 +211,34 @@ private fun StufenbereichContentView(
     stufe: SeesturmStufe,
     uiState: StufenbereichState,
     abmeldungenState: UiState<List<GoogleCalendarEventWithAnAbmeldungen>>,
-    selectedDateString: String,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,
     onRefresh: () -> Unit,
     onDeleteAllAbmeldungen: () -> Unit,
     onErrorRetry: () -> Unit,
     onChangeDatePickerVisibility: (Boolean) -> Unit,
-    onUpdateSelectedAktivitaetInteraction: (AktivitaetInteraction) -> Unit,
+    onUpdateSelectedAktivitaetInteraction: (AktivitaetInteractionType) -> Unit,
     isEditButtonLoading: (GoogleCalendarEventWithAnAbmeldungen) -> Boolean,
     onDeleteAnAbmeldungen: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
     onSendPushNotification: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
-    onUpdateSheetContent: (BottomSheetContent?) -> Unit,
-    openSheetUponNavigation: Boolean,
+    onEditAktivitaet: (AktivitaetBearbeitenMode) -> Unit,
+    onDisplayAktivitaet: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
     modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState(),
     refreshState: PullToRefreshState = rememberPullToRefreshState()
 ) {
 
-    val sheetKey = rememberSaveable { mutableStateOf("") }
-    val hasSheetOpenedUponNavigation = rememberSaveable { mutableStateOf(false) }
-
-    fun openSheet(mode: StufenbereichSheetMode) {
-        sheetKey.value = UUID.randomUUID().toString()
-        onUpdateSheetContent(
-            BottomSheetContent.Custom(
-                content = { snackbarHost ->
-                    AktivitaetBearbeitenView(
-                        viewModel = viewModel<AktivitaetBearbeitenViewModel>(
-                            key = sheetKey.value,
-                            factory = viewModelFactoryHelper {
-                                AktivitaetBearbeitenViewModel(
-                                    selectedSheetMode = mode,
-                                    service = accountModule.stufenbereichService,
-                                    stufe = stufe,
-                                    onDismiss = { onUpdateSheetContent(null) }
-                                )
-                            }
-                        ),
-                        stufe = stufe,
-                        selectedSheetMode = mode,
-                        snackbarHost = snackbarHost
-                    )
-                }
-            )
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        if (openSheetUponNavigation && !hasSheetOpenedUponNavigation.value) {
-            hasSheetOpenedUponNavigation.value = true
-            openSheet(StufenbereichSheetMode.Insert)
-        }
-    }
+    val selectedDateFormatted = DateTimeUtil.shared.formatDate(
+        date = uiState.selectedDate,
+        format = "dd.MM.yyyy",
+        type = DateFormattingType.Absolute
+    )
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Large,
         title = stufe.stufenName,
-        backNavigationAction = {
-            accountNavController.popBackStack()
+        onNavigateBack = {
+            accountNavController.navigateUp()
         },
         actions = {
             if (abmeldungenState.isSuccess) {
@@ -284,7 +264,7 @@ private fun StufenbereichContentView(
             }
             IconButton(
                 onClick = {
-                    openSheet(mode = StufenbereichSheetMode.Insert)
+                    onEditAktivitaet(AktivitaetBearbeitenMode.Insert)
                 }
             ) {
                 Icon(
@@ -298,7 +278,8 @@ private fun StufenbereichContentView(
         val combinedPadding =
             bottomNavigationInnerPadding.intersectWith(
                 other = topBarInnerPadding,
-                layoutDirection = LayoutDirection.Ltr
+                layoutDirection = LayoutDirection.Ltr,
+                additionalBottomPadding = 16.dp
             )
 
         val stickyOffsets = rememberStickyHeaderOffsets(columnState, 0)
@@ -307,19 +288,18 @@ private fun StufenbereichContentView(
             state = columnState,
             userScrollEnabled = !abmeldungenState.scrollingDisabled,
             contentPadding = combinedPadding,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = modifier
                 .fillMaxSize()
                 .pullToRefresh(
                     isRefreshing = uiState.refreshing,
                     state = refreshState,
-                    onRefresh = {
-                        onRefresh()
-                    }
+                    onRefresh = onRefresh
                 )
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            myStickyHeader(
+            seesturmStickyHeader(
                 uniqueKey = "StufenbereichFilterHeader",
                 stickyOffsets = stickyOffsets
             ) { _ ->
@@ -355,45 +335,49 @@ private fun StufenbereichContentView(
                                     icon = Icons.Outlined.CalendarMonth
                                 )
                             ),
-                            title = selectedDateString,
+                            title = selectedDateFormatted,
                             onClick = {
                                 onChangeDatePickerVisibility(true)
                             },
                             enabled = abmeldungenState.isSuccess,
                             modifier = Modifier
-                                .wrapContentWidth()
+                                .wrapContentWidth(),
+                            isLoading = false
                         )
                     }
-                    DropdownButton(
-                        title = uiState.selectedAktivitaetInteraction.nomenMehrzahl,
-                        contentColor = uiState.selectedAktivitaetInteraction.color,
-                        dropdown = { isShown, dismiss ->
-                            DropdownMenu(
-                                expanded = isShown,
-                                onDismissRequest = {
-                                    dismiss()
-                                }
-                            ) {
-                                stufe.allowedAktivitaetInteractions.forEach { interaction ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(interaction.nomenMehrzahl)
-                                        },
-                                        onClick = {
-                                            dismiss()
-                                            onUpdateSelectedAktivitaetInteraction(interaction)
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                imageVector = interaction.icon,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    )
+                    if (stufe.allowedAktivitaetInteractions.size > 1) {
+                        DropdownButton(
+                            title = uiState.selectedAktivitaetInteraction.nomenMehrzahl,
+                            contentColor = uiState.selectedAktivitaetInteraction.color,
+                            dropdown = { isShown, dismiss ->
+                                ThemedDropdownMenu(
+                                    expanded = isShown,
+                                    onDismissRequest = {
+                                        dismiss()
+                                    }
+                                ) {
+                                    stufe.allowedAktivitaetInteractions.forEach { interaction ->
+                                        ThemedDropdownMenuItem(
+                                            text = {
+                                                Text(interaction.nomenMehrzahl)
+                                            },
+                                            onClick = {
+                                                dismiss()
+                                                onUpdateSelectedAktivitaetInteraction(interaction)
+                                            },
+                                            trailingIcon = {
+                                                Icon(
+                                                    imageVector = interaction.icon,
+                                                    tint = interaction.color,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
 
@@ -416,7 +400,7 @@ private fun StufenbereichContentView(
                     item(
                         key = "StufenbereichErrorCell"
                     ) {
-                        CardErrorView(
+                        ErrorCardView(
                             errorDescription = abmeldungenState.message,
                             modifier = Modifier
                                 .padding(16.dp)
@@ -427,7 +411,7 @@ private fun StufenbereichContentView(
                     }
                 }
                 is UiState.Success -> {
-                    val filteredData = abmeldungenState.data.filter { it.event.endDate > uiState.selectedDate }.sortedByDescending { it.event.startDate }
+                    val filteredData = abmeldungenState.data.filter { it.event.end >= uiState.selectedDate }.sortedByDescending { it.event.start }
                     if (filteredData.isEmpty()) {
                         item(
                             key = "StufenbereichKeineDatenCell"
@@ -466,10 +450,13 @@ private fun StufenbereichContentView(
                                     onSendPushNotification(aktivitaet)
                                 },
                                 onEditAktivitaet = {
-                                    openSheet(mode = StufenbereichSheetMode.Update(id = aktivitaet.event.id))
+                                    onEditAktivitaet(AktivitaetBearbeitenMode.Update(aktivitaet.event.id))
+                                },
+                                onClick = {
+                                    onDisplayAktivitaet(aktivitaet)
                                 },
                                 modifier = Modifier
-                                    .padding(top = if (index == 0) 16.dp else 0.dp)
+                                    .padding(horizontal = 16.dp)
                                     .animateItem()
                             )
                         }
@@ -492,44 +479,112 @@ private fun StufenbereichContentView(
     }
 }
 
-sealed class StufenbereichSheetMode {
-    data object Insert: StufenbereichSheetMode()
-    data class Update(
-        val id: String
-    ): StufenbereichSheetMode()
-
-    val verb: String
-        get() = when (this) {
-            Insert -> "veröffentlichen"
-            is Update -> "aktualisieren"
-        }
-    val verbPassiv: String
-        get() = when (this) {
-            Insert -> "veröffentlicht"
-            is Update -> "aktualisiert"
-        }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+@Preview("Loading")
 @Composable
-private fun StufenbereichViewPreview() {
-    StufenbereichContentView(
-        stufe = SeesturmStufe.Biber,
-        uiState = StufenbereichState(),
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        accountNavController = rememberNavController(),
-        abmeldungenState = UiState.Success(emptyList()),
-        onRefresh = {},
-        onDeleteAllAbmeldungen = {},
-        onChangeDatePickerVisibility = {},
-        onUpdateSelectedAktivitaetInteraction = {},
-        onErrorRetry = {},
-        isEditButtonLoading = { false },
-        selectedDateString = "23.12.2024",
-        onDeleteAnAbmeldungen = {},
-        onSendPushNotification = {},
-        onUpdateSheetContent = {},
-        openSheetUponNavigation = false
-    )
+private fun StufenbereichViewPreview1() {
+    PfadiSeesturmTheme {
+        StufenbereichContentView(
+            stufe = SeesturmStufe.Biber,
+            uiState = StufenbereichState(),
+            abmeldungenState = UiState.Loading,
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            accountNavController = rememberNavController(),
+            onRefresh = {},
+            onDeleteAllAbmeldungen = {},
+            onErrorRetry = {},
+            onChangeDatePickerVisibility = {},
+            onUpdateSelectedAktivitaetInteraction = {},
+            isEditButtonLoading = { false },
+            onDeleteAnAbmeldungen = {},
+            onSendPushNotification = {},
+            onEditAktivitaet = {},
+            onDisplayAktivitaet = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Error")
+@Composable
+private fun StufenbereichViewPreview2() {
+    PfadiSeesturmTheme {
+        StufenbereichContentView(
+            stufe = SeesturmStufe.Biber,
+            uiState = StufenbereichState(),
+            abmeldungenState = UiState.Error("Schwerer Fehler"),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            accountNavController = rememberNavController(),
+            onRefresh = {},
+            onDeleteAllAbmeldungen = {},
+            onErrorRetry = {},
+            onChangeDatePickerVisibility = {},
+            onUpdateSelectedAktivitaetInteraction = {},
+            isEditButtonLoading = { false },
+            onDeleteAnAbmeldungen = {},
+            onSendPushNotification = {},
+            onEditAktivitaet = {},
+            onDisplayAktivitaet = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Empty")
+@Composable
+private fun StufenbereichViewPreview3() {
+    PfadiSeesturmTheme {
+        StufenbereichContentView(
+            stufe = SeesturmStufe.Biber,
+            uiState = StufenbereichState(),
+            abmeldungenState = UiState.Success(emptyList()),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            accountNavController = rememberNavController(),
+            onRefresh = {},
+            onDeleteAllAbmeldungen = {},
+            onErrorRetry = {},
+            onChangeDatePickerVisibility = {},
+            onUpdateSelectedAktivitaetInteraction = {},
+            isEditButtonLoading = { false },
+            onDeleteAnAbmeldungen = {},
+            onSendPushNotification = {},
+            onEditAktivitaet = {},
+            onDisplayAktivitaet = {}
+        )
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Success")
+@Composable
+private fun StufenbereichViewPreview4() {
+    PfadiSeesturmTheme {
+        StufenbereichContentView(
+            stufe = SeesturmStufe.Wolf,
+            uiState = StufenbereichState(),
+            abmeldungenState = UiState.Success(listOf(
+                GoogleCalendarEventWithAnAbmeldungen(
+                    event = DummyData.aktivitaet1,
+                    anAbmeldungen = listOf(
+                        DummyData.abmeldung1
+                    )
+                ),
+                GoogleCalendarEventWithAnAbmeldungen(
+                    event = DummyData.aktivitaet2,
+                    anAbmeldungen = listOf(
+                        DummyData.abmeldung3
+                    )
+                )
+            )),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            accountNavController = rememberNavController(),
+            onRefresh = {},
+            onDeleteAllAbmeldungen = {},
+            onErrorRetry = {},
+            onChangeDatePickerVisibility = {},
+            onUpdateSelectedAktivitaetInteraction = {},
+            isEditButtonLoading = { false },
+            onDeleteAnAbmeldungen = {},
+            onSendPushNotification = {},
+            onEditAktivitaet = {},
+            onDisplayAktivitaet = {}
+        )
+    }
 }

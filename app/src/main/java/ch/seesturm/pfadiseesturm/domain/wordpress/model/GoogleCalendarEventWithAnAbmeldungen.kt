@@ -1,14 +1,14 @@
 package ch.seesturm.pfadiseesturm.domain.wordpress.model
 
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetAnAbmeldung
-import ch.seesturm.pfadiseesturm.util.AktivitaetInteraction
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 
 data class GoogleCalendarEventWithAnAbmeldungen(
     val event: GoogleCalendarEvent,
     val anAbmeldungen: List<AktivitaetAnAbmeldung>
 )
 
-fun GoogleCalendarEventWithAnAbmeldungen.displayTextAnAbmeldungen(interaction: AktivitaetInteraction): String {
+fun GoogleCalendarEventWithAnAbmeldungen.displayTextAnAbmeldungen(interaction: AktivitaetInteractionType): String {
     val count = anAbmeldungen.count { it.type == interaction }
     return if (count == 1) {
         "$count ${interaction.nomen}"

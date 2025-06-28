@@ -7,6 +7,7 @@ import ch.seesturm.pfadiseesturm.data.auth.repository.AuthRepositoryImpl
 import ch.seesturm.pfadiseesturm.domain.auth.repository.AuthRepository
 import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
+import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -14,9 +15,7 @@ import com.google.firebase.auth.auth
 
 interface AuthModule {
 
-    val appAuthApi: AuthApi
-    val firebaseAuth: FirebaseAuth
-
+    val authApi: AuthApi
     val authRepository: AuthRepository
     val authService: AuthService
 }
@@ -24,13 +23,12 @@ interface AuthModule {
 class AuthModuleImpl(
     private val appContext: Context,
     private val cloudFunctionsRepository: CloudFunctionsRepository,
-    private val firestoreRepository: FirestoreRepository
+    private val firestoreRepository: FirestoreRepository,
+    private val fcmRepository: FCMRepository,
+    private val firebaseAuth: FirebaseAuth = Firebase.auth
 ): AuthModule {
 
-    override val firebaseAuth: FirebaseAuth
-        get() = Firebase.auth
-
-    override val appAuthApi: AuthApi by lazy {
+    override val authApi: AuthApi by lazy {
         AuthApiImpl(
             context = appContext,
             firebaseAuth = firebaseAuth
@@ -38,14 +36,15 @@ class AuthModuleImpl(
     }
 
     override val authRepository: AuthRepository by lazy {
-        AuthRepositoryImpl(appAuthApi)
+        AuthRepositoryImpl(authApi)
     }
+
     override val authService: AuthService by lazy {
         AuthService(
-            repository = authRepository,
+            authRepository = authRepository,
             cloudFunctionsRepository = cloudFunctionsRepository,
             firestoreRepository = firestoreRepository,
-            firebaseAuth = firebaseAuth
+            fcmRepository = fcmRepository
         )
     }
 }

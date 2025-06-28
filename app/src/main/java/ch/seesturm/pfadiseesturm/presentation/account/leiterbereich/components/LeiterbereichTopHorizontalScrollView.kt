@@ -1,7 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,22 +28,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.state.UiState
 
 @Composable
 fun LeiterbereichTopHorizontalScrollView(
-    onNavigateToFood: () -> Unit,
     foodState: UiState<List<FoodOrder>>,
+    onNavigateToFood: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top,
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         modifier = modifier
             .fillMaxWidth()
     ) {
@@ -132,22 +133,33 @@ fun LeiterbereichTopHorizontalScrollView(
     }
 }
 
-@Preview
+@Preview("Loading", showBackground = true)
 @Composable
-fun LeiterbereichTopHorizontalScrollViewPreview() {
-    LeiterbereichTopHorizontalScrollView(
-        onNavigateToFood = {},
-        foodState = UiState.Success(
-            data = listOf(
-                FoodOrder(
-                    id = "123123",
-                    itemDescription = "Dürüm",
-                    totalCount = 0,
-                    userIds = listOf(""),
-                    users = listOf(null),
-                    ordersString = ""
-                )
-            )
+private fun LeiterbereichTopHorizontalScrollViewPreview1() {
+    PfadiSeesturmTheme {
+        LeiterbereichTopHorizontalScrollView(
+            foodState = UiState.Loading,
+            onNavigateToFood = {}
         )
-    )
+    }
+}
+@Preview("Error", showBackground = true)
+@Composable
+private fun LeiterbereichTopHorizontalScrollViewPreview2() {
+    PfadiSeesturmTheme {
+        LeiterbereichTopHorizontalScrollView(
+            foodState = UiState.Error("Schwerer Fehler"),
+            onNavigateToFood = {}
+        )
+    }
+}
+@Preview("Success", showBackground = true)
+@Composable
+private fun LeiterbereichTopHorizontalScrollViewPreview3() {
+    PfadiSeesturmTheme {
+        LeiterbereichTopHorizontalScrollView(
+            foodState = UiState.Success(DummyData.foodOrders),
+            onNavigateToFood = {}
+        )
+    }
 }

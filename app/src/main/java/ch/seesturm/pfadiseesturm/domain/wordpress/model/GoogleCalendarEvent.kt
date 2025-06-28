@@ -11,13 +11,13 @@ data class GoogleCalendarEvent(
     val description: String?,
     val location: String?,
     val created: ZonedDateTime,
-    val updated: ZonedDateTime,
+    val modified: ZonedDateTime,
     val createdFormatted: String,
-    val updatedFormatted: String,
+    val modifiedFormatted: String,
     val isAllDay: Boolean,
     val firstDayOfMonthOfStartDate: ZonedDateTime,
-    val startDate: ZonedDateTime,
-    val endDate: ZonedDateTime,
+    val start: ZonedDateTime,
+    val end: ZonedDateTime,
     val startDayFormatted: String,
     val startMonthFormatted: String,
     val endDateFormatted: String?,
@@ -25,21 +25,21 @@ data class GoogleCalendarEvent(
     val fullDateTimeFormatted: String
 ) {
     val showUpdated: Boolean
-        get() = abs(Duration.between(created, updated).toMinutes()) > 2
+        get() = abs(Duration.between(created, modified).toMinutes()) > 5
+
     val hasEnded: Boolean
-        get() = endDate < ZonedDateTime.now()
+        get() = end < ZonedDateTime.now()
+
     val hasStarted: Boolean
-        get() = startDate <= ZonedDateTime.now()
+        get() = start <= ZonedDateTime.now()
 }
 
-fun GoogleCalendarEvent.toAktivitaetWithAnAbmeldungen(anAbmeldungen: List<AktivitaetAnAbmeldung>): GoogleCalendarEventWithAnAbmeldungen {
-    return GoogleCalendarEventWithAnAbmeldungen(
+fun GoogleCalendarEvent.toAktivitaetWithAnAbmeldungen(anAbmeldungen: List<AktivitaetAnAbmeldung>): GoogleCalendarEventWithAnAbmeldungen =
+    GoogleCalendarEventWithAnAbmeldungen(
         event = this,
         anAbmeldungen = anAbmeldungen.filter { it.eventId == this.id }
     )
-}
 
-// computed property to group the posts by year
 val List<GoogleCalendarEvent>.groupedByYearAndMonth: List<Pair<ZonedDateTime, List<GoogleCalendarEvent>>>
     get() = this
         .groupBy { it.firstDayOfMonthOfStartDate }

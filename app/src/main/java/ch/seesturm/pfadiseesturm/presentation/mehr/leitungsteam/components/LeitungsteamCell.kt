@@ -18,20 +18,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.LeitungsteamMember
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.customLoadingBlinking
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
+import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.DummyData
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -42,15 +44,14 @@ fun LeitungsteamCell(
     member: LeitungsteamMember,
     modifier: Modifier = Modifier
 ) {
+
     CustomCardView(
         modifier = modifier
-            .padding(bottom = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(member.photo)
@@ -102,8 +103,8 @@ fun LeitungsteamCell(
             ) {
                 Text(
                     text = member.name,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 2,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -118,35 +119,19 @@ fun LeitungsteamCell(
                         .fillMaxWidth()
                 )
                 if (member.contact.isNotEmpty()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Transparent)
-                    ) {
-                        Icon(
-                            Icons.Outlined.MailOutline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier
-                                .size(
-                                    with(LocalDensity.current) {
-                                        MaterialTheme.typography.labelSmall.lineHeight.toPx().toDp()
-                                    }
-                                )
-                                .alpha(0.4f)
-                        )
-                        Text(
+                    TextWithIcon(
+                        type = TextWithIconType.Text(
                             text = member.contact,
-                            fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .alpha(0.4f)
-                                .fillMaxWidth()
-                        )
-                    }
+                            textStyle = { MaterialTheme.typography.labelMedium }
+                        ),
+                        imageVector = Icons.Outlined.MailOutline,
+                        textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                        iconTint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                        maxLines = 1,
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -155,15 +140,10 @@ fun LeitungsteamCell(
 
 @Preview
 @Composable
-fun LeitungsteamCellPreview() {
-    LeitungsteamCell(
-        member = LeitungsteamMember(
-            name = "Test name / Pfadiname Pfadiname",
-            job = "Stufenleitung Pfadistufe",
-            contact = "xxx@yyy.ch",
-            photo = "https://seesturm.ch/wp-content/uploads/2017/10/Wicky2021-scaled.jpg"
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-    )
+private fun LeitungsteamCellPreview() {
+    PfadiSeesturmTheme {
+        LeitungsteamCell(
+            member = DummyData.leitungsteamMember
+        )
+    }
 }

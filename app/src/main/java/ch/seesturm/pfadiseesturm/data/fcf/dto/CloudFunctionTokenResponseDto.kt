@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CloudFunctionTokenResponseDto(
     val userId: String,
-    val firebaseToken: String
+    val firebaseAuthToken: String
 )

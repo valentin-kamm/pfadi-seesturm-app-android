@@ -16,22 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 
 @Composable
 fun AuthErrorView(
     message: String,
-    onButtonClick: () -> Unit,
+    onResetAuthState: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     CustomCardView(
         modifier = modifier
-            .padding()
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -65,19 +63,9 @@ fun AuthErrorView(
             SeesturmButton(
                 type = SeesturmButtonType.Primary(),
                 title = "Zurück",
-                onClick = {
-                    onButtonClick()
-                }
+                onClick = onResetAuthState,
+                isLoading = false
             )
         }
     }
-}
-
-@Preview
-@Composable
-private fun AuthErrorViewPreview() {
-    AuthErrorView(
-        message = "Irgend ein Fehler",
-        onButtonClick = {}
-    )
 }

@@ -16,24 +16,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.common.components.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 
 @Composable
 fun AnlassLoadingCardView(
+    modifier: Modifier = Modifier,
     onAppear: (() -> Unit)? = null,
-    modifier: Modifier
 ) {
     LaunchedEffect(Unit) {
-        if (onAppear != null) {
-            onAppear()
-        }
+        onAppear?.invoke()
     }
+
     CustomCardView(
         modifier = modifier
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -76,9 +74,8 @@ fun AnlassLoadingCardView(
 
 @Preview
 @Composable
-fun AnlassLoadingCardViewPreview() {
-    AnlassLoadingCardView(
-        null,
-        Modifier
-    )
+private fun AnlassLoadingCardViewPreview() {
+    PfadiSeesturmTheme {
+        AnlassLoadingCardView()
+    }
 }

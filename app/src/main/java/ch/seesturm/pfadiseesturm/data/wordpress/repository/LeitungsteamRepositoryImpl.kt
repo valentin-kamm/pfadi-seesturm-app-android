@@ -8,7 +8,6 @@ class LeitungsteamRepositoryImpl(
     private val api: WordpressApi
 ): LeitungsteamRepository {
 
-    override suspend fun getLeitungsteam(): List<LeitungsteamDto> {
-        return api.getLeitungsteam()
-    }
+    override suspend fun getLeitungsteam(): List<LeitungsteamDto> =
+        api.getLeitungsteam()
 }

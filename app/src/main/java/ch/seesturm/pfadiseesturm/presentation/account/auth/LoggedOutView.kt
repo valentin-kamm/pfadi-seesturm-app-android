@@ -17,18 +17,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.R
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButton
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonIconType
-import ch.seesturm.pfadiseesturm.presentation.common.components.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
 
 @Composable
 fun LoggedOutView(
-    isLoading: Boolean,
-    onLogin: () -> Unit,
+    authState: SeesturmAuthState,
+    onAuthenticate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     CustomCardView(
@@ -72,20 +72,9 @@ fun LoggedOutView(
                     )
                 ),
                 title = "Login mit MiData",
-                onClick = {
-                    onLogin()
-                },
-                isLoading = isLoading,
+                onClick = onAuthenticate,
+                isLoading = authState.signInButtonIsLoading,
             )
         }
     }
-}
-
-@Preview
-@Composable
-private fun LoggedOutViewPreview() {
-    LoggedOutView(
-        isLoading = true,
-        onLogin = {}
-    )
 }

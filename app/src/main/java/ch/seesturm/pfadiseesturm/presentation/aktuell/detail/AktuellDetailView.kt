@@ -1,12 +1,10 @@
 package ch.seesturm.pfadiseesturm.presentation.aktuell.detail
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.HideImage
 import androidx.compose.material.icons.outlined.Notifications
@@ -29,59 +26,74 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.MemoryCacheIdentifier
-import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.TopBarStyle
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.AktuellRepositoryImpl
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.hasValidImageUrl
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.AktuellService
+import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPost
+import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
+import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.components.CardErrorView
-import ch.seesturm.pfadiseesturm.presentation.common.components.HtmlText
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.common.components.customLoadingBlinking
-import ch.seesturm.pfadiseesturm.presentation.common.intersectWith
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.intersectWith
+import ch.seesturm.pfadiseesturm.util.isValidUrl
+import ch.seesturm.pfadiseesturm.util.state.UiState
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AktuellDetailView(
+    viewModel: AktuellDetailViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     navController: NavController,
-    onPushNotificationsNavigate: () -> Unit,
-    viewModel: AktuellDetailViewModel,
-    columnState: LazyListState = rememberLazyListState()
+    onPushNotificationsNavigate: () -> Unit
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
+    AktuellDetailContentView(
+        postState = uiState,
+        navController = navController,
+        bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+        onPushNotificationsNavigate = onPushNotificationsNavigate,
+        onRetry = {
+            viewModel.getPost()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AktuellDetailContentView(
+    postState: UiState<WordpressPost>,
+    navController: NavController,
+    bottomNavigationInnerPadding: PaddingValues,
+    onPushNotificationsNavigate: () -> Unit,
+    onRetry: () -> Unit,
+    columnState: LazyListState = rememberLazyListState()
+) {
+
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
-        backNavigationAction = {
-            navController.popBackStack()
+        onNavigateBack = {
+            navController.navigateUp()
         },
         actions = {
             IconButton(
@@ -101,13 +113,14 @@ fun AktuellDetailView(
 
         LazyColumn(
             state = columnState,
-            userScrollEnabled = !uiState.scrollingDisabled,
+            userScrollEnabled = !postState.scrollingDisabled,
             contentPadding = combinedPadding,
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
-            when (val localState = uiState) {
+            when (postState) {
                 UiState.Loading -> {
                     item(
                         key = "AktuellDetailLoadingView"
@@ -147,19 +160,18 @@ fun AktuellDetailView(
                     item(
                         key = "AktuellDetailErrorView"
                     ) {
-                        CardErrorView(
+                        ErrorCardView(
                             modifier = Modifier
                                 .padding(16.dp)
                                 .animateItem(),
                             errorTitle = "Ein Fehler ist aufgetreten",
-                            errorDescription = localState.message
+                            errorDescription = postState.message
                         ) {
-                            viewModel.getPost()
+                            onRetry()
                         }
                     }
                 }
                 is UiState.Success -> {
-                    val post = localState.data
                     item(
                         key = "AktuellDetailSuccessView"
                     ) {
@@ -170,24 +182,24 @@ fun AktuellDetailView(
                                 .fillMaxSize()
                                 .animateItem()
                         ) {
-                            if (post.hasValidImageUrl()) {
+                            if (postState.data.imageUrl.isValidUrl) {
                                 SubcomposeAsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
-                                        .data(post.imageUrl)
+                                        .data(postState.data.imageUrl)
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .aspectRatio(post.aspectRatio.toFloat())
+                                        .aspectRatio(postState.data.imageAspectRatio.toFloat())
                                 ) {
                                     when (painter.state) {
                                         is AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading -> {
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .aspectRatio(post.aspectRatio.toFloat())
+                                                    .aspectRatio(postState.data.imageAspectRatio.toFloat())
                                                     .graphicsLayer()
                                                     .customLoadingBlinking()
                                                     .background(MaterialTheme.colorScheme.onSurfaceVariant)
@@ -198,7 +210,7 @@ fun AktuellDetailView(
                                                 contentAlignment = Alignment.Center,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .aspectRatio(post.aspectRatio.toFloat())
+                                                    .aspectRatio(postState.data.imageAspectRatio.toFloat())
                                                     .background(MaterialTheme.colorScheme.onSurfaceVariant)
                                             ) {
                                                 Icon(
@@ -217,54 +229,36 @@ fun AktuellDetailView(
                                 }
                             }
                             Text(
-                                post.titleDecoded,
+                                postState.data.titleDecoded,
                                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(
-                                        top = if (post.hasValidImageUrl()) {
+                                        top = if (postState.data.imageUrl.isValidUrl) {
                                             0.dp
                                         } else {
                                             16.dp
                                         }
                                     )
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            TextWithIcon(
+                                type = TextWithIconType.Text(
+                                    text = postState.data.publishedFormatted.uppercase(),
+                                    textStyle = { MaterialTheme.typography.labelMedium }
+                                ),
+                                imageVector = Icons.Outlined.CalendarMonth,
+                                textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                                iconTint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                                maxLines = 1,
+                                horizontalAlignment = Alignment.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.Transparent)
                                     .padding(horizontal = 16.dp)
-
-                            ) {
-                                Icon(
-                                    Icons.Outlined.CalendarMonth,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier
-                                        .size(
-                                            with(LocalDensity.current) {
-                                                MaterialTheme.typography.labelMedium.lineHeight
-                                                    .toPx()
-                                                    .toDp()
-                                            }
-                                        )
-                                        .alpha(0.4f)
-                                )
-                                Text(
-                                    text = post.published.uppercase(),
-                                    fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .alpha(0.4f)
-                                )
-                            }
-                            HtmlText(
-                                html = post.content,
+                            )
+                            HtmlTextView(
+                                html = postState.data.content,
                                 textColor = MaterialTheme.colorScheme.onBackground,
-                                fontStyle = MaterialTheme.typography.bodyLarge,
+                                textStyle = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                             )
@@ -276,26 +270,42 @@ fun AktuellDetailView(
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview
+@Preview("Loading")
 @Composable
-fun AktuellDetailViewPreview() {
-    AktuellDetailView(
-        bottomNavigationInnerPadding = PaddingValues(0.dp),
-        navController = rememberNavController(),
-        onPushNotificationsNavigate = {  },
-        viewModel = AktuellDetailViewModel(
-            postId = 23505,
-            service = AktuellService(
-                AktuellRepositoryImpl(
-                    Retrofit.Builder()
-                        .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(WordpressApi::class.java)
-                )
-            ),
-            cacheIdentifier = MemoryCacheIdentifier.List
+private fun AktuellDetailViewPreview1() {
+    PfadiSeesturmTheme {
+        AktuellDetailContentView(
+            postState = UiState.Loading,
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onPushNotificationsNavigate = {},
+            onRetry = {}
         )
-    )
+    }
+}
+@Preview("Error")
+@Composable
+private fun AktuellDetailViewPreview2() {
+    PfadiSeesturmTheme {
+        AktuellDetailContentView(
+            postState = UiState.Error("Schwerer Fehler"),
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onPushNotificationsNavigate = {},
+            onRetry = {}
+        )
+    }
+}
+@Preview("Success")
+@Composable
+private fun AktuellDetailViewPreview3() {
+    PfadiSeesturmTheme {
+        AktuellDetailContentView(
+            postState = UiState.Success(DummyData.aktuellPost1),
+            navController = rememberNavController(),
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            onPushNotificationsNavigate = {},
+            onRetry = {}
+        )
+    }
 }

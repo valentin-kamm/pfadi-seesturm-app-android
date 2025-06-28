@@ -19,9 +19,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.common.components.CustomCardView
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.common.components.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 
 @Composable
 fun AktivitaetHomeLoadingView(
@@ -68,5 +69,10 @@ fun AktivitaetHomeLoadingView(
 @Preview
 @Composable
 private fun AktivitaetHomeLoadingViewPreview() {
-    AktivitaetHomeLoadingView(Modifier.fillMaxWidth())
+    PfadiSeesturmTheme {
+        AktivitaetHomeLoadingView(
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
 }

@@ -2,13 +2,13 @@ package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.util.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
 fun LeiterbereichStufenScrollView(
@@ -49,7 +49,7 @@ fun LeiterbereichStufenScrollView(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.Top,
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         modifier = modifier
             .fillMaxWidth()
     ) {
@@ -86,17 +86,15 @@ fun LeiterbereichStufenScrollView(
                         stufe = stufe,
                         onButtonClick = {
                             accountNavController.navigate(
-                                AppDestination.MainTabView.Destinations.Account.Destinations.Stufenbereich(
-                                    stufe = stufe,
-                                    openSheetUponNavigation = true
+                                AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet(
+                                    stufe = stufe
                                 )
                             )
                         },
                         onNavigate = {
                             accountNavController.navigate(
                                 AppDestination.MainTabView.Destinations.Account.Destinations.Stufenbereich(
-                                    stufe = stufe,
-                                    openSheetUponNavigation = false
+                                    stufe = stufe
                                 )
                             )
                         },
@@ -109,16 +107,38 @@ fun LeiterbereichStufenScrollView(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun LeiterbereichStufenScrollViewPreview() {
-    LeiterbereichStufenScrollView(
-        selectedStufen = setOf(
-            SeesturmStufe.Pfadi,
-            //SeesturmStufe.Wolf,
-            //SeesturmStufe.Pio
-        ),
-        screenWidth = 350.dp,
-        accountNavController = rememberNavController()
-    )
+    PfadiSeesturmTheme {
+        BoxWithConstraints {
+            val width = this.maxWidth
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                LeiterbereichStufenScrollView(
+                    selectedStufen = emptySet(),
+                    screenWidth = width,
+                    accountNavController = rememberNavController()
+                )
+                LeiterbereichStufenScrollView(
+                    selectedStufen = setOf(SeesturmStufe.Biber),
+                    screenWidth = width,
+                    accountNavController = rememberNavController()
+                )
+                LeiterbereichStufenScrollView(
+                    selectedStufen = setOf(SeesturmStufe.Biber, SeesturmStufe.Wolf),
+                    screenWidth = width,
+                    accountNavController = rememberNavController()
+                )
+                LeiterbereichStufenScrollView(
+                    selectedStufen = setOf(SeesturmStufe.Biber, SeesturmStufe.Wolf, SeesturmStufe.Pfadi, SeesturmStufe.Pio),
+                    screenWidth = width,
+                    accountNavController = rememberNavController()
+                )
+            }
+        }
+    }
 }

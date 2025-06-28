@@ -31,16 +31,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
-import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.data.wordpress.repository.PhotosRepositoryImpl
-import ch.seesturm.pfadiseesturm.domain.wordpress.service.PhotosService
-import ch.seesturm.pfadiseesturm.presentation.common.components.RedactedText
-import ch.seesturm.pfadiseesturm.presentation.mehr.MehrHorizontalPhotoScrollView
-import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PfadijahreViewModel
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.util.Constants
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.MehrHorizontalPhotoScrollView
+import ch.seesturm.pfadiseesturm.util.state.UiState
 import kotlin.random.Random
 
 @Composable
@@ -48,26 +43,35 @@ fun <T>FormItem(
     items: List<T>,
     index: Int,
     mainContent: FormItemContentType,
+    modifier: Modifier = Modifier,
+    disableRoundedCorners: Boolean = false,
     leadingIcon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
-    trailingElement: FormItemTertiaryElementType = FormItemTertiaryElementType.Blank,
-    modifier: Modifier = Modifier,
+    trailingElement: FormItemTrailingElementType = FormItemTrailingElementType.Blank,
     separatorColor: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
     separatorWidth: Float = 0.87f
 ) {
+
     val isFirst = index == 0
     val isLast = index == items.lastIndex
 
     val shape = when {
-        isFirst && isLast -> RoundedCornerShape(16.dp)
+        isFirst && isLast -> RoundedCornerShape(size = 16.dp)
         isFirst -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         isLast -> RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-        else -> RoundedCornerShape(0.dp)
+        else -> RoundedCornerShape(size = 0.dp)
     }
 
     Box(
         modifier = modifier
-            .clip(shape)
+            .then(
+                if (disableRoundedCorners) {
+                    Modifier
+                }
+                else {
+                    Modifier.clip(shape)
+                }
+            )
             .background(MaterialTheme.colorScheme.primaryContainer)
             .fillMaxWidth()
             .then(
@@ -149,17 +153,18 @@ fun <T>FormItem(
                 }
             }
             when (trailingElement) {
-                is FormItemTertiaryElementType.Blank -> {}
-                is FormItemTertiaryElementType.DisclosureIndicator -> {
+                is FormItemTrailingElementType.Blank -> {}
+                is FormItemTrailingElementType.DisclosureIndicator -> {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
                         contentDescription = null,
                         modifier = Modifier
                             .size(14.dp)
                             .alpha(0.4f)
+                            .wrapContentSize()
                     )
                 }
-                is FormItemTertiaryElementType.Custom -> {
+                is FormItemTrailingElementType.Custom -> {
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
@@ -180,69 +185,38 @@ fun <T>FormItem(
     }
 }
 
-sealed class FormItemContentType {
-    data class Text(
-        val title: String,
-        val isLoading: Boolean = false,
-        val textColor: FormItemTextContentColor = FormItemTextContentColor.Default,
-    ): FormItemContentType()
-    data class Custom(
-        val content: @Composable () -> Unit,
-        val contentPadding: PaddingValues = PaddingValues(0.dp)
-    ): FormItemContentType()
-}
-
-sealed class FormItemTextContentColor {
-    data class Custom(
-        val color: Color
-    ): FormItemTextContentColor()
-    data object Default: FormItemTextContentColor()
-}
-
-sealed class FormItemTertiaryElementType {
-    data object DisclosureIndicator: FormItemTertiaryElementType()
-    data object Blank: FormItemTertiaryElementType()
-    data class Custom(
-        val content: @Composable () -> Unit
-    ): FormItemTertiaryElementType()
-}
-
 @Preview("Text Content")
 @Composable
-fun FormItemPreview1() {
-    FormItem(
-        items = (0..<2).toList(),
-        index = 0,
-        mainContent = FormItemContentType.Text(
-            title = "Fotos"
-        ),
-        leadingIcon = Icons.Default.House,
-    )
+private fun FormItemPreview1() {
+    PfadiSeesturmTheme {
+        FormItem(
+            items = (0..<2).toList(),
+            index = 0,
+            mainContent = FormItemContentType.Text(
+                title = "Fotos"
+            ),
+            leadingIcon = Icons.Default.House,
+            trailingElement = FormItemTrailingElementType.DisclosureIndicator
+        )
+    }
 }
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview("Custom Content")
 @Composable
-fun FormItemPreview2() {
-    FormItem(
-        items = (0..<2).toList(),
-        index = 0,
-        mainContent = FormItemContentType.Custom(
-            content = {
-                MehrHorizontalPhotoScrollView(
-                    viewModel = PfadijahreViewModel(
-                        service = PhotosService(
-                            repository = PhotosRepositoryImpl(
-                                api = Retrofit.Builder()
-                                    .baseUrl(Constants.SEESTURM_API_BASE_URL)
-                                    .addConverterFactory(GsonConverterFactory.create())
-                                    .build()
-                                    .create(WordpressApi::class.java)
-                            )
-                        )
-                    ),
-                    mehrNavController = rememberNavController()
-                )
-            }
+private fun FormItemPreview2() {
+    PfadiSeesturmTheme {
+        FormItem(
+            items = (0..<2).toList(),
+            index = 0,
+            mainContent = FormItemContentType.Custom(
+                content = {
+                    MehrHorizontalPhotoScrollView(
+                        photosState = UiState.Loading,
+                        mehrNavController = rememberNavController()
+                    )
+                },
+                contentPadding = PaddingValues(vertical = 16.dp)
+            )
         )
-    )
+    }
 }

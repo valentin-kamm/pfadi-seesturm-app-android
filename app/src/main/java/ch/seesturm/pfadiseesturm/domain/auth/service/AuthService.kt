@@ -8,26 +8,24 @@ import ch.seesturm.pfadiseesturm.data.firestore.dto.toFirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.repository.AuthRepository
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
+import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.Leitungsteam
-import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
 import ch.seesturm.pfadiseesturm.util.DataError
+import ch.seesturm.pfadiseesturm.util.types.FirebaseHitobitoUserRole
 import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import java.time.ZonedDateTime
 
 class AuthService(
-    private val repository: AuthRepository,
+    private val authRepository: AuthRepository,
     private val cloudFunctionsRepository: CloudFunctionsRepository,
     private val firestoreRepository: FirestoreRepository,
-    private val firebaseAuth: FirebaseAuth
+    private val fcmRepository: FCMRepository
 ) {
 
-    suspend fun startAuthFlow(): SeesturmResult<Intent, DataError.AuthError> {
-        return try {
-            val intent = repository.getAuthIntent()
+    suspend fun startAuthFlow(): SeesturmResult<Intent, DataError.AuthError> =
+        try {
+            val intent = authRepository.getAuthIntent()
             SeesturmResult.Success(intent)
         }
         catch (e: PfadiSeesturmAppError) {
@@ -36,21 +34,29 @@ class AuthService(
         catch (e: Exception) {
             SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("Unbekannter Fehler: ${e.message}"))
         }
-    }
 
     suspend fun finishAuthFlow(activityResult: ActivityResult): SeesturmResult<FirebaseHitobitoUser, DataError.AuthError> {
 
         return try {
-            val (userInfo, accessToken) = repository.getValidatedHitobitoDetails(activityResult)
+            val (userInfo, hitobitoAccessToken) = authRepository.getHitobitoUserAndToken(activityResult)
             val firebaseAuthToken = cloudFunctionsRepository.getFirebaseAuthToken(
                 userId = userInfo.sub,
-                hitobitoAccessToken = accessToken
+                hitobitoAccessToken = hitobitoAccessToken
             )
-            repository.authenticateWithFirebase(firebaseToken = firebaseAuthToken)
-            val userDtoRequest = userInfo.toFirebaseHitobitoUserDto()
-            upsertUser(userDtoRequest, id = userInfo.sub)
-            val user = readUserFromFirestore(userInfo.sub)
-            SeesturmResult.Success(user)
+            val firebaseUser = authRepository.authenticateWithFirebase(firebaseAuthToken)
+            val firebaseUserClaims = authRepository.getCurrentFirebaseUserClaims(firebaseUser)
+            val firebaseUserRole = FirebaseHitobitoUserRole.fromClaims(firebaseUserClaims)
+            val fcmToken = fcmRepository.getCurrentFCMToken()
+            val firebaseUserDto = userInfo.toFirebaseHitobitoUserDto(firebaseUserRole.role).copy(
+                fcmToken = fcmToken
+            )
+            upsertUser(firebaseUserDto, id = userInfo.sub)
+            val firebaseHitobitoUser = firestoreRepository.readDocument(
+                document = FirestoreRepository.SeesturmFirestoreDocument.User(id = userInfo.sub),
+                type = FirebaseHitobitoUserDto::class.java
+            ).toFirebaseHitobitoUser()
+            fcmRepository.subscribeToTopic(SeesturmFCMNotificationTopic.Schoepflialarm)
+            SeesturmResult.Success(firebaseHitobitoUser)
         }
         catch (e: PfadiSeesturmAppError) {
             when (e) {
@@ -67,6 +73,30 @@ class AuthService(
         }
     }
 
+    suspend fun reauthenticateOnAppStart(): SeesturmResult<FirebaseHitobitoUser, DataError.AuthError> {
+        val firebaseUser = authRepository.getCurrentFirebaseUser()
+        return if (firebaseUser != null) {
+            try {
+                val claims = authRepository.getCurrentFirebaseUserClaims(firebaseUser)
+                FirebaseHitobitoUserRole.fromClaims(claims)
+                val firebaseHitobitoUser = firestoreRepository.readDocument(
+                    document = FirestoreRepository.SeesturmFirestoreDocument.User(id = firebaseUser.uid),
+                    type = FirebaseHitobitoUserDto::class.java
+                ).toFirebaseHitobitoUser()
+                SeesturmResult.Success(firebaseHitobitoUser)
+            }
+            catch (e: PfadiSeesturmAppError) {
+                SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("Die Anmeldung ist fehlgeschlagen. Versuche es erneut oder kontaktiere den Admin. ${e.message}"))
+            }
+            catch (e: Exception) {
+                SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("Bei der Anmeldung ist ein unbekannter Fehler aufgetreten. Versuche es erneut. ${e.message}"))
+            }
+        }
+        else {
+            SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("Es ist kein Benutzer angemeldet. Neue Anmeldung nötig."))
+        }
+    }
+
     private suspend fun upsertUser(user: FirebaseHitobitoUserDto, id: String) {
         try {
             firestoreRepository.upsertDocument(
@@ -80,34 +110,11 @@ class AuthService(
         }
     }
 
-    private suspend fun readUserFromFirestore(id: String): FirebaseHitobitoUser {
-        val document = FirestoreRepository.SeesturmFirestoreDocument.User(id)
-        val userDto = firestoreRepository.readDocument(
-            document = document,
-            type = FirebaseHitobitoUserDto::class.java
-        )
-        return userDto.toFirebaseHitobitoUser()
-    }
-
-    suspend fun reauthenticate(): SeesturmResult<FirebaseHitobitoUser, DataError.AuthError> {
-        val firebaseUser = firebaseAuth.currentUser
-        return if (firebaseUser != null && firebaseUser.isHitobitoUser()) {
-            try {
-                val user = readUserFromFirestore(firebaseUser.uid)
-                SeesturmResult.Success(user)
-            }
-            catch (e: Exception) {
-                SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("User konnte nicht von Firestore gelesen werden."))
-            }
-        }
-        else {
-            SeesturmResult.Error(DataError.AuthError.SIGN_IN_ERROR("Es ist kein Benutzer angemeldet. Neue Anmeldung nötig."))
-        }
-    }
-
-    fun signOut(): SeesturmResult<Unit, DataError.AuthError> {
+    suspend fun signOut(): SeesturmResult<Unit, DataError.AuthError> {
         return try {
-            repository.signOutFromFirebase()
+            fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.Schoepflialarm)
+            fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.SchoepflialarmReaction)
+            authRepository.signOutFromFirebase()
             SeesturmResult.Success(Unit)
         }
         catch (e: Exception) {
@@ -115,10 +122,12 @@ class AuthService(
         }
     }
 
-    suspend fun deleteUser(user: FirebaseHitobitoUser): SeesturmResult<Unit, DataError.AuthError> {
+    suspend fun deleteAccount(user: FirebaseHitobitoUser): SeesturmResult<Unit, DataError.AuthError> {
         return try {
+            fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.Schoepflialarm)
+            fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.SchoepflialarmReaction)
             firestoreRepository.deleteDocument(FirestoreRepository.SeesturmFirestoreDocument.User(user.userId))
-            repository.deleteFirebaseAccount()
+            authRepository.deleteFirebaseUserAccount()
             SeesturmResult.Success(Unit)
         }
         catch (e: Exception) {
@@ -126,11 +135,20 @@ class AuthService(
         }
     }
 
-    fun getCurrentUid(): String? {
-        return repository.getCurrentUid()
-    }
-}
+    suspend fun isCurrentUserHitobitoUser(): Boolean {
 
-private fun FirebaseUser.isHitobitoUser(): Boolean {
-    return !isAnonymous && providerId == "firebase"
+        val firebaseUser = authRepository.getCurrentFirebaseUser() ?: return false
+
+        try {
+            val claims = authRepository.getCurrentFirebaseUserClaims(firebaseUser)
+            FirebaseHitobitoUserRole.fromClaims(claims)
+            return true
+        }
+        catch (e: Exception) {
+            return false
+        }
+    }
+
+    fun getCurrentUid(): String? =
+        authRepository.getCurrentUid()
 }

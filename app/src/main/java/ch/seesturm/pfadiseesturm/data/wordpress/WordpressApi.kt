@@ -3,6 +3,7 @@ package ch.seesturm.pfadiseesturm.data.wordpress
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventsDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.LeitungsteamDto
+import ch.seesturm.pfadiseesturm.data.wordpress.dto.MinimumRequiredAppBuild
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WeatherDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WordpressDocumentDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WordpressPhotoDto
@@ -68,6 +69,8 @@ interface WordpressBaseApi {
     @GET("leitungsteam/members")
     suspend fun getLeitungsteam(): List<LeitungsteamDto>
 
+    @GET("minimumAppBuild")
+    suspend fun getMinimumRequiredAppBuild(): MinimumRequiredAppBuild
 }
 
 interface WordpressApi {
@@ -90,6 +93,8 @@ interface WordpressApi {
     suspend fun getLuuchtturm(): List<WordpressDocumentDto>
 
     suspend fun getLeitungsteam(): List<LeitungsteamDto>
+
+    suspend fun getMinimumRequiredAppBuild(): MinimumRequiredAppBuild
 }
 
 class WordpressApiImpl(
@@ -141,6 +146,9 @@ class WordpressApiImpl(
 
     override suspend fun getLeitungsteam(): List<LeitungsteamDto> =
         api.getLeitungsteam()
+
+    override suspend fun getMinimumRequiredAppBuild(): MinimumRequiredAppBuild =
+        api.getMinimumRequiredAppBuild()
 
     private fun getDateString(instant: Instant = Instant.now()): String {
         return DateTimeFormatter.ISO_INSTANT

@@ -1,9 +1,11 @@
 package ch.seesturm.pfadiseesturm.presentation.common.forms
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,14 +13,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.House
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,37 +40,57 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-fun <T> SwipeableFormItem(
+fun <T>SwipeableFormItem(
     items: List<T>,
     index: Int,
-    mainContent: FormItemContentType,
-    enabled: Boolean = false,
+    content: FormItemContentType,
+    modifier: Modifier = Modifier,
+    swipeEnabled: Boolean = false,
     isRevealed: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
-    onExpanded: () -> Unit = {},
-    onCollapsed: () -> Unit = {},
+    onExpand: () -> Unit = {},
+    onCollapse: () -> Unit = {},
     leadingIcon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
-    trailingElement: FormItemTertiaryElementType = FormItemTertiaryElementType.Blank,
-    modifier: Modifier = Modifier
+    trailingElementWhenEnabled: @Composable () -> Unit = {
+        IconButton(
+            onClick = onExpand,
+            colors = IconButtonColors(
+                contentColor = Color.White,
+                containerColor = Color.SEESTURM_RED,
+                disabledContentColor = Color.White,
+                disabledContainerColor = Color.SEESTURM_RED
+            ),
+            modifier = Modifier
+                .size(20.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Remove,
+                tint = Color.White,
+                contentDescription = null
+            )
+        }
+    }
 ) {
 
     val isFirst = index == 0
     val isLast = index == items.lastIndex
 
     val shape = when {
-        isFirst && isLast -> RoundedCornerShape(16.dp)
+        isFirst && isLast -> RoundedCornerShape(size = 16.dp)
         isFirst -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         isLast -> RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-        else -> RoundedCornerShape(0.dp)
+        else -> RoundedCornerShape(size = 0.dp)
     }
 
-    if (enabled) {
+    if (swipeEnabled) {
+
         var contextMenuWidth by remember {
             mutableFloatStateOf(0f)
         }
@@ -74,17 +98,19 @@ fun <T> SwipeableFormItem(
             Animatable(initialValue = 0f)
         }
         val scope = rememberCoroutineScope()
+
         LaunchedEffect(
             isRevealed,
             contextMenuWidth
         ) {
-            if(isRevealed) {
+            if (isRevealed) {
                 offset.animateTo(contextMenuWidth)
             }
             else {
                 offset.animateTo(0f)
             }
         }
+
         Box(
             modifier = modifier
                 .clip(shape)
@@ -100,10 +126,21 @@ fun <T> SwipeableFormItem(
             ) {
                 actions()
             }
-            Surface(
-                modifier = Modifier
+            FormItem(
+                items = items,
+                index = index,
+                mainContent = content,
+                leadingIcon = leadingIcon,
+                onClick = onClick,
+                disableRoundedCorners = true,
+                trailingElement = FormItemTrailingElementType.Custom(
+                    content = trailingElementWhenEnabled
+                ),
+                modifier = modifier
                     .fillMaxSize()
-                    .offset { IntOffset(offset.value.roundToInt(), 0) }
+                    .offset {
+                        IntOffset(offset.value.roundToInt(), 0)
+                    }
                     .pointerInput(contextMenuWidth) {
                         detectHorizontalDragGestures(
                             onHorizontalDrag = { _, dragAmount ->
@@ -118,76 +155,70 @@ fun <T> SwipeableFormItem(
                                     offset.value >= contextMenuWidth / 2f -> {
                                         scope.launch {
                                             offset.animateTo(contextMenuWidth)
-                                            onExpanded()
+                                            onExpand()
                                         }
                                     }
-
                                     else -> {
                                         scope.launch {
                                             offset.animateTo(0f)
-                                            onCollapsed()
+                                            onCollapse()
                                         }
                                     }
                                 }
                             }
                         )
                     }
-            ) {
-                FormItem(
-                    items = items,
-                    index = index,
-                    mainContent = mainContent,
-                    leadingIcon = leadingIcon,
-                    onClick = onClick,
-                    trailingElement = trailingElement,
-                    modifier = modifier
-                )
-            }
+            )
         }
     }
     else {
         FormItem(
             items = items,
             index = index,
-            mainContent = mainContent,
+            mainContent = content,
+            modifier = modifier,
             leadingIcon = leadingIcon,
             onClick = onClick,
-            trailingElement = trailingElement,
-            modifier = modifier
+            trailingElement = FormItemTrailingElementType.Blank
         )
     }
 }
 
-@Preview("Custom Content")
+@Preview(showBackground = true)
 @Composable
-fun SwipeableFormItemPreview() {
-    FormItem(
-        items = (0..<2).toList(),
-        index = 0,
-        mainContent = FormItemContentType.Text(
-            title = "Fotos"
-        ),
-        leadingIcon = Icons.Default.House,
-        trailingElement = FormItemTertiaryElementType.Custom(
-            content = {
-                IconButton(
-                    onClick = {},
-                    colors = IconButtonColors(
-                        containerColor = Color.SEESTURM_RED,
-                        contentColor = Color.White,
-                        disabledContentColor = Color.White,
-                        disabledContainerColor = Color.SEESTURM_RED
-                    ),
-                    modifier = Modifier
-                        .size(20.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Remove,
-                        tint = Color.White,
-                        contentDescription = null
+private fun SwipeableFormItemPreview() {
+
+    PfadiSeesturmTheme {
+
+        val items: List<Int> = (0..<2).toList()
+
+        LazyColumn(
+            state = rememberLazyListState(),
+            contentPadding = PaddingValues(all = 16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            items.forEachIndexed { index, _ ->
+                item {
+                    SwipeableFormItem(
+                        items = items,
+                        index = index,
+                        content = FormItemContentType.Text(
+                            title = "Test $index"
+                        ),
+                        swipeEnabled = index == 1,
+                        isRevealed = index == 1,
+                        actions = {
+                            FormItemActionIcon(
+                                onClick = {},
+                                backgroundColor = Color.Red,
+                                icon = Icons.Filled.Delete
+                            )
+                        }
                     )
                 }
             }
-        )
-    )
+        }
+    }
 }

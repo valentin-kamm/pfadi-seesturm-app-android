@@ -15,18 +15,30 @@ class PhotosService(
     suspend fun getPfadijahre(): SeesturmResult<List<WordpressPhotoGallery>, DataError.Network> =
         fetchFromWordpress(
             fetchAction = { repository.getPfadijahre() },
-            transform = { it.map { it.toWordpressPhotoGallery() } }
+            transform = { list ->
+                list.map { pfadijahr ->
+                    pfadijahr.toWordpressPhotoGallery()
+                }
+            }
         )
 
-    suspend fun getAlbums(id: String): SeesturmResult<List<WordpressPhotoGallery>, DataError.Network> =
+    suspend fun getAlbums(pfadijahrId: String): SeesturmResult<List<WordpressPhotoGallery>, DataError.Network> =
         fetchFromWordpress(
-            fetchAction = { repository.getAlbums(id) },
-            transform = { it.map { it.toWordpressPhotoGallery() } }
+            fetchAction = { repository.getAlbums(pfadijahrId) },
+            transform = { list ->
+                list.map { album ->
+                    album.toWordpressPhotoGallery()
+                }
+            }
         )
 
-    suspend fun getPhotos(id: String): SeesturmResult<List<WordpressPhoto>, DataError.Network> =
+    suspend fun getPhotos(albumId: String): SeesturmResult<List<WordpressPhoto>, DataError.Network> =
         fetchFromWordpress(
-            fetchAction = { repository.getPhotos(id) },
-            transform = { it.map { it.toWordpressPhoto() } }
+            fetchAction = { repository.getPhotos(albumId) },
+            transform = { list ->
+                list.map { photo ->
+                    photo.toWordpressPhoto()
+                }
+            }
         )
 }
