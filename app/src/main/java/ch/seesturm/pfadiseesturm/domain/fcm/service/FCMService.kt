@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
-import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
@@ -114,15 +113,9 @@ class FCMService(
 
     suspend fun updateFCMToken(userId: String, newToken: String): SeesturmResult<Unit, DataError.RemoteDatabase> =
         try {
-            firestoreRepository.performTransaction(
-                document = FirestoreRepository.SeesturmFirestoreDocument.User(id = userId),
-                type = FirebaseHitobitoUserDto::class.java,
-                forceNewCreatedDate = false,
-                update = { oldUser ->
-                    oldUser.copy(
-                        fcmToken = newToken
-                    )
-                }
+            fcmRepository.updateFCMToken(
+                userId = userId,
+                newToken = newToken
             )
             SeesturmResult.Success(Unit)
         }

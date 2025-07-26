@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +40,7 @@ import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 fun AktivitaetHomeCardView(
     aktivitaet: GoogleCalendarEvent?,
     stufe: SeesturmStufe,
+    isDarkTheme: Boolean,
     onClick: () -> Unit,
     modifier: Modifier
 ) {
@@ -71,7 +74,7 @@ fun AktivitaetHomeCardView(
                     ) {
                         Text(
                             text = aktivitaet?.title ?: stufe.stufenName,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
@@ -111,7 +114,7 @@ fun AktivitaetHomeCardView(
                         ),
                         imageVector = Icons.Outlined.CalendarMonth,
                         textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                        iconTint = stufe.highContrastColor(),
+                        iconTint = stufe.highContrastColor(isDarkTheme),
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,7 +152,8 @@ private fun AktivitaetHomeCardViewPreview1() {
             aktivitaet = null,
             stufe = SeesturmStufe.Biber,
             onClick = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }
@@ -161,7 +165,8 @@ private fun AktivitaetHomeCardViewPreview2() {
             aktivitaet = DummyData.aktivitaet1,
             stufe = SeesturmStufe.Pfadi,
             onClick = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }

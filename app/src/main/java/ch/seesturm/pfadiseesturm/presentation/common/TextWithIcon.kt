@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.House
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,10 +35,23 @@ fun TextWithIcon(
     iconTint: Color = MaterialTheme.colorScheme.onBackground,
     contentDescription: String? = null,
     maxLines: Int = Int.MAX_VALUE,
-    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically
 ) {
+
+    val iconSize = when (type) {
+        is TextWithIconType.AnnotatedString -> {
+            type.iconSize
+        }
+        is TextWithIconType.Text -> {
+            with(LocalDensity.current) {
+                type.textStyle().lineHeight.toPx().toDp()
+            }
+        }
+    }
+
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = verticalAlignment,
         horizontalArrangement = Arrangement.spacedBy(8.dp, horizontalAlignment),
         modifier = modifier
     ) {
@@ -46,18 +60,7 @@ fun TextWithIcon(
             contentDescription = contentDescription,
             tint = iconTint,
             modifier = Modifier
-                .size(
-                    when (type) {
-                        is TextWithIconType.AnnotatedString -> {
-                            type.iconSize
-                        }
-                        is TextWithIconType.Text -> {
-                            with(LocalDensity.current) {
-                                type.textStyle().lineHeight.toPx().toDp()
-                            }
-                        }
-                    }
-                )
+                .size(iconSize)
         )
         when (type) {
             is TextWithIconType.AnnotatedString -> {
@@ -74,7 +77,7 @@ fun TextWithIcon(
             is TextWithIconType.Text -> {
                 Text(
                     text = type.text,
-                    style = type.textStyle(),
+                    style = type.textStyle().copy(hyphens = Hyphens.Auto),
                     color = textColor,
                     maxLines = maxLines,
                     overflow = TextOverflow.Ellipsis,
@@ -104,7 +107,20 @@ private fun TextWithIconPreview1() {
     PfadiSeesturmTheme {
         TextWithIcon(
             type = TextWithIconType.Text("Test"),
-            imageVector = Icons.Default.Terrain,
+            imageVector = Icons.Default.House,
+            iconTint = Color.SEESTURM_GREEN,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+@Preview(showBackground = true)
+@Composable
+private fun TextWithIconPreview2() {
+    PfadiSeesturmTheme {
+        TextWithIcon(
+            type = TextWithIconType.Text("Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test"),
+            imageVector = Icons.Default.House,
             iconTint = Color.SEESTURM_GREEN,
             modifier = Modifier
                 .fillMaxWidth()

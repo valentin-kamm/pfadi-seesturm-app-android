@@ -1,7 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.common.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,11 +41,14 @@ fun AktuellNavHost(
     NavHost(
         navController = aktuellNavController,
         startDestination = AppDestination.MainTabView.Destinations.Aktuell.Destinations.AktuellRoot,
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+        },
         exitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)
         },
         popEnterTransition = {
-            fadeIn()
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right)
         },
         popExitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)

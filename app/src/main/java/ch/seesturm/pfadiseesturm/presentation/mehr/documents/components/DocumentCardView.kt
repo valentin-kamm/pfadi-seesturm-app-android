@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,7 +63,7 @@ fun <T>DocumentCardView(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth(),
-        trailingElement = FormItemTrailingElementType.DisclosureIndicator,
+        trailingElement = FormItemTrailingElementType.Blank,
         mainContent = FormItemContentType.Custom(
             contentPadding = PaddingValues(end = 16.dp),
             content = {
@@ -126,7 +127,7 @@ fun <T>DocumentCardView(
                             text = document.title,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                             color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -140,7 +141,7 @@ fun <T>DocumentCardView(
                             imageVector = Icons.Outlined.CalendarMonth,
                             textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                             iconTint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                            maxLines = 1,
+                            maxLines = 2,
                             horizontalAlignment = Alignment.Start,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -157,7 +158,7 @@ fun <T>DocumentCardView(
 private fun DocumentCardViewPreview() {
     PfadiSeesturmTheme {
         DocumentCardView(
-            document = DummyData.document1,
+            document = DummyData.document1.copy(published = "Hallo Hallo Hallo Hallo Hallo Hallo Hallo "),
             items = listOf(DummyData.document1),
             index = 0
         )

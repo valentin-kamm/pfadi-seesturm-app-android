@@ -57,12 +57,4 @@ class AnlaesseDetailViewModel(
             }
         }
     }
-
-    fun updateAlertVisibility(isVisible: Boolean) {
-        _state.update {
-            it.copy(
-                showCalendarSubscriptionAlert = isVisible
-            )
-        }
-    }
 }

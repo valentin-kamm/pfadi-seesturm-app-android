@@ -28,6 +28,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListFooter
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
@@ -86,9 +87,7 @@ fun PushNachrichtenVerwaltenView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = "Push-Nachrichten",
-        onNavigateBack = {
-            navController.navigateUp()
-        }
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() }
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(

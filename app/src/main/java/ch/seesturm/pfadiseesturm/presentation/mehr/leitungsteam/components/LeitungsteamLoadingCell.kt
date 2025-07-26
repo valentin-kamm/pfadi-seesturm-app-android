@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,46 +26,47 @@ import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 fun LeitungsteamLoadingCell(
     modifier: Modifier = Modifier
 ) {
-    CustomCardView(
+
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
-            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .graphicsLayer {
+                    shape = CircleShape
+                    clip = true
+                }
+                .customLoadingBlinking()
+                .background(MaterialTheme.colorScheme.onSurfaceVariant)
+        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+                .padding(vertical = 16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .graphicsLayer()
-                    .size(130.dp)
-                    .customLoadingBlinking()
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
+            RedactedText(
+                numberOfLines = 1,
+                textStyle = MaterialTheme.typography.titleLarge
             )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 16.dp)
-                    .padding(vertical = 16.dp)
-            ) {
-                RedactedText(
-                    numberOfLines = 1,
-                    textStyle = MaterialTheme.typography.bodyLarge
-                )
-                RedactedText(
-                    numberOfLines = 2,
-                    textStyle = MaterialTheme.typography.labelMedium,
-                    lastLineFraction = 0.4f
-                )
-            }
+            RedactedText(
+                numberOfLines = 2,
+                textStyle = MaterialTheme.typography.labelMedium,
+                lastLineFraction = 0.4f
+            )
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun LeitungsteamLoadingCellPreview() {
+private fun LeitungsteamLoadingCellPreview() {
     PfadiSeesturmTheme {
         LeitungsteamLoadingCell()
     }

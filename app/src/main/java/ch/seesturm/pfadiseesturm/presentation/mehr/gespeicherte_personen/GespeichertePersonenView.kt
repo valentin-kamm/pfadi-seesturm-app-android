@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -41,10 +42,13 @@ import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
@@ -117,9 +121,7 @@ private fun GespeichertePersonenContentView(
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
-        onNavigateBack = {
-            navController.navigateUp()
-        },
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() },
         actions = {
             if (personenState is UiState.Success && personenState.data.isNotEmpty()) {
                 TextButton(
@@ -202,6 +204,11 @@ private fun GespeichertePersonenContentView(
                     val persons = personenState.data
 
                     if (persons.isNotEmpty()) {
+                        item {
+                            BasicListHeader(
+                                mode = BasicListHeaderMode.Normal("Gespeicherte Personen"),
+                            )
+                        }
                         itemsIndexed(
                             items = persons,
                             key = { index, _ ->
@@ -262,14 +269,14 @@ private fun GespeichertePersonenContentView(
                                     )
                                     Text(
                                         text = "Keine Personen gespeichert",
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                     )
                                     Text(
                                         text = "Füge die Angaben von Personen hinzu, die du of von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen.",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.bodySmall,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .fillMaxWidth()

@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPhotoGallery
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -86,9 +87,7 @@ private fun GalleriesContentView(
             PhotoGalleriesType.Pfadijahre -> "Fotos"
             is PhotoGalleriesType.Albums -> type.name
         },
-        onNavigateBack = {
-            navController.navigateUp()
-        }
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() },
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(
@@ -179,7 +178,7 @@ private fun GalleriesContentView(
                                         navController.navigate(
                                             when (type) {
                                                 is PhotoGalleriesType.Albums -> {
-                                                    AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph(
+                                                    AppDestination.MainTabView.Destinations.Mehr.Destinations.Photos(
                                                         id = item.id,
                                                         title = item.title
                                                     )

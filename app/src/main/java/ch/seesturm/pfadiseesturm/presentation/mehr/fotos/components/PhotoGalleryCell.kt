@@ -108,7 +108,7 @@ fun PhotoGalleryCell(
                 text = title,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()

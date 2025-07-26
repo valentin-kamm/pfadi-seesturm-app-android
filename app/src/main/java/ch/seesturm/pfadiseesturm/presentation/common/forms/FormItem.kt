@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -62,125 +63,133 @@ fun <T>FormItem(
         else -> RoundedCornerShape(size = 0.dp)
     }
 
-    Box(
-        modifier = modifier
-            .then(
-                if (disableRoundedCorners) {
-                    Modifier
-                }
-                else {
-                    Modifier.clip(shape)
-                }
-            )
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .fillMaxWidth()
-            .then(
-                if (onClick != null) {
-                    Modifier
-                        .clickable {
-                            onClick()
-                        }
-                } else {
-                    Modifier
-                }
-            ),
-        contentAlignment = Alignment.BottomEnd
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+    key(items, index) {
+        Box(
+            modifier = modifier
+                .then(
+                    if (disableRoundedCorners) {
+                        Modifier
+                    } else {
+                        Modifier.clip(shape)
+                    }
+                )
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .fillMaxWidth()
                 .then(
-                    when (mainContent) {
-                        is FormItemContentType.Text -> {
-                            Modifier
-                                .padding(horizontal = 16.dp)
-                                .padding(vertical = 14.dp)
-                        }
-                        is FormItemContentType.Custom -> {
-                            Modifier
-                                .padding(mainContent.contentPadding)
-                        }
+                    if (onClick != null) {
+                        Modifier
+                            .clickable {
+                                onClick()
+                            }
+                    } else {
+                        Modifier
                     }
-                )
+                ),
+            contentAlignment = Alignment.BottomEnd
         ) {
-            if (leadingIcon != null) {
-                Icon(
-                    imageVector = leadingIcon,
-                    contentDescription = null,
-                    tint = Color.SEESTURM_GREEN,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .wrapContentSize()
-                )
-            }
-            when (mainContent) {
-                is FormItemContentType.Text -> {
-                    val textColor = when (mainContent.textColor) {
-                        is FormItemTextContentColor.Custom -> { mainContent.textColor.color }
-                        FormItemTextContentColor.Default -> { MaterialTheme.colorScheme.onBackground }
-                    }
-                    if (mainContent.isLoading) {
-                        RedactedText(
-                            numberOfLines = 1,
-                            textStyle = MaterialTheme.typography.bodyLarge,
-                            lastLineFraction = Random.nextFloat() * (0.8f - 0.4f) + 0.4f,
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                    }
-                    else {
-                        Text(
-                            text = mainContent.title,
-                            textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = textColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                    }
-                }
-                is FormItemContentType.Custom -> {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                    ) {
-                        mainContent.content()
-                    }
-                }
-            }
-            when (trailingElement) {
-                is FormItemTrailingElementType.Blank -> {}
-                is FormItemTrailingElementType.DisclosureIndicator -> {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        when (mainContent) {
+                            is FormItemContentType.Text -> {
+                                Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(vertical = 8.dp)
+                            }
+
+                            is FormItemContentType.Custom -> {
+                                Modifier
+                                    .padding(mainContent.contentPadding)
+                            }
+                        }
+                    )
+            ) {
+                if (leadingIcon != null) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
+                        imageVector = leadingIcon,
                         contentDescription = null,
+                        tint = Color.SEESTURM_GREEN,
                         modifier = Modifier
-                            .size(14.dp)
-                            .alpha(0.4f)
+                            .size(20.dp)
                             .wrapContentSize()
                     )
                 }
-                is FormItemTrailingElementType.Custom -> {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize()
-                    ) {
-                        trailingElement.content()
+                when (mainContent) {
+                    is FormItemContentType.Text -> {
+                        val textColor = when (mainContent.textColor) {
+                            is FormItemTextContentColor.Custom -> {
+                                mainContent.textColor.color
+                            }
+
+                            FormItemTextContentColor.Default -> {
+                                MaterialTheme.colorScheme.onBackground
+                            }
+                        }
+                        if (mainContent.isLoading) {
+                            RedactedText(
+                                numberOfLines = 1,
+                                textStyle = MaterialTheme.typography.bodyLarge,
+                                lastLineFraction = Random.nextFloat() * (0.8f - 0.4f) + 0.4f,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                        } else {
+                            Text(
+                                text = mainContent.title,
+                                textAlign = TextAlign.Start,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = textColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                        }
+                    }
+
+                    is FormItemContentType.Custom -> {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                        ) {
+                            mainContent.content()
+                        }
+                    }
+                }
+                when (trailingElement) {
+                    is FormItemTrailingElementType.Blank -> {}
+                    is FormItemTrailingElementType.DisclosureIndicator -> {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowForwardIos,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(14.dp)
+                                .alpha(0.4f)
+                                .wrapContentSize()
+                        )
+                    }
+
+                    is FormItemTrailingElementType.Custom -> {
+                        Box(
+                            modifier = Modifier
+                                .wrapContentSize()
+                        ) {
+                            trailingElement.content()
+                        }
                     }
                 }
             }
-        }
-        if (index != items.lastIndex) {
-            HorizontalDivider(
-                color = separatorColor,
-                thickness = 1.dp,
-                modifier = Modifier
-                    .fillMaxWidth(separatorWidth)
-            )
+            if (index != items.lastIndex) {
+                HorizontalDivider(
+                    color = separatorColor,
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .fillMaxWidth(separatorWidth)
+                )
+            }
         }
     }
 }

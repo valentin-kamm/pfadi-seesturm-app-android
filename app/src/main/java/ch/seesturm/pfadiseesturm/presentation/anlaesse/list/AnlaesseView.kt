@@ -11,11 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -28,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -37,9 +32,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.groupedByYearAndMonth
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
-import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.CalendarSubscriptionAlert
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicLoadingStickHeader
@@ -47,13 +43,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderO
 import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
-import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.InfiniteScrollUiState
-import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
-import ch.seesturm.pfadiseesturm.util.subscribeToCalendar
 import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
@@ -69,16 +62,6 @@ fun AnlaesseView(
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    CalendarSubscriptionAlert (
-        isShown = uiState.showCalendarSubscriptionAlert,
-        title = "Kalender kann nicht abonniert werden",
-        calendar = calendar,
-        onDismiss = {
-            viewModel.updateAlertVisibility(false)
-        }
-    )
 
     AnlaesseContentView(
         uiState = uiState,
@@ -93,16 +76,7 @@ fun AnlaesseView(
         onNavigateBack = onNavigateBack,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         onNavigateToDetail = onNavigateToDetail,
-        eventsLastUpdated = uiState.lastUpdated,
-        onSubscribeToCalendar = {
-            val result = subscribeToCalendar(
-                subscriptionUrl = calendar.subscriptionUrl,
-                context = context
-            )
-            if (result is SeesturmResult.Error) {
-                viewModel.updateAlertVisibility(true)
-            }
-        }
+        eventsLastUpdated = uiState.lastUpdated
     )
 }
 
@@ -114,7 +88,6 @@ private fun AnlaesseContentView(
     calendar: SeesturmCalendar,
     onGetInitialEvents: (Boolean) -> Unit,
     onGetMoreEvents: () -> Unit,
-    onSubscribeToCalendar: () -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
     onNavigateToDetail: (SeesturmCalendar, String) -> Unit,
     eventsLastUpdated: String,
@@ -126,17 +99,14 @@ private fun AnlaesseContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Large,
         title = if (calendar.isLeitungsteam) "Termine Leitungsteam" else "Anlässe",
-        onNavigateBack = onNavigateBack,
+        navigationAction = if (onNavigateBack != null) {
+            TopBarNavigationIcon.Back { onNavigateBack() }
+        }
+        else {
+            TopBarNavigationIcon.None
+        },
         actions = {
-            IconButton(
-                onClick = onSubscribeToCalendar
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = if (calendar.isLeitungsteam) Color.SEESTURM_RED else Color.SEESTURM_GREEN
-                )
-            }
+            CalendarSubscriptionButton(calendar)
         }
     ) { topBarInnerPadding ->
 
@@ -188,7 +158,7 @@ private fun AnlaesseContentView(
                         key = { index ->
                             "Loading Cell 2.$index"
                         }
-                    ) { index ->
+                    ) {
                         AnlassLoadingCardView(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
@@ -331,7 +301,8 @@ private fun AnlaesseContentView(
             PullToRefreshDefaults.Indicator(
                 state = refreshState,
                 isRefreshing = uiState.refreshing,
-                color = Color.SEESTURM_GREEN
+                color = Color.SEESTURM_GREEN,
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
         }
     }
@@ -350,7 +321,6 @@ private fun AnlaesseViewPreview1() {
             calendar = SeesturmCalendar.TERMINE,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
@@ -371,7 +341,6 @@ private fun AnlaesseViewPreview2() {
             calendar = SeesturmCalendar.TERMINE,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
@@ -392,7 +361,6 @@ private fun AnlaesseViewPreview3() {
             calendar = SeesturmCalendar.TERMINE,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
@@ -416,7 +384,6 @@ private fun AnlaesseViewPreview4() {
             calendar = SeesturmCalendar.TERMINE,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
@@ -440,7 +407,6 @@ private fun AnlaesseViewPreview5() {
             calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
@@ -464,7 +430,6 @@ private fun AnlaesseViewPreview6() {
             calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
             onGetInitialEvents = {},
             onGetMoreEvents = {},
-            onSubscribeToCalendar = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},

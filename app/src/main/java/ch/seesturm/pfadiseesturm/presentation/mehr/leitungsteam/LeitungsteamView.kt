@@ -39,8 +39,11 @@ import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
 import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -86,25 +89,19 @@ private fun LeitungsteamContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = "Leitungsteam",
-        onNavigateBack = {
-            navController.navigateUp()
-        }
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() }
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(
             other = topBarInnerPadding,
             layoutDirection = LayoutDirection.Ltr,
-            additionalBottomPadding = 16.dp,
-            additionalEndPadding = 16.dp,
-            additionalStartPadding = 16.dp,
-            additionalTopPadding = 16.dp
+            additionalBottomPadding = 16.dp
         )
 
         LazyColumn(
             state = columnState,
             userScrollEnabled = !uiState.scrollingDisabled,
             contentPadding = combinedPadding,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
@@ -122,7 +119,7 @@ private fun LeitungsteamContentView(
                                 .background(MaterialTheme.colorScheme.background)
                                 .fillMaxWidth()
                                 .animateItem()
-                                .padding(vertical = 16.dp)
+                                .padding(16.dp)
                         ) {
                             RedactedText(
                                 numberOfLines = 1,
@@ -137,9 +134,18 @@ private fun LeitungsteamContentView(
                             "LeitungsteamLoadingCell$index"
                         }
                     ) { index ->
-                        LeitungsteamLoadingCell(
+                        FormItem(
+                            items = (0..<loadingCellCount).toList(),
+                            index = index,
                             modifier = Modifier
                                 .animateItem()
+                                .padding(horizontal = 16.dp)
+                                .padding(top = if (index == 0) 16.dp else 0.dp),
+                            mainContent = FormItemContentType.Custom(
+                                content = {
+                                    LeitungsteamLoadingCell()
+                                }
+                            ),
                         )
                     }
                 }
@@ -152,6 +158,7 @@ private fun LeitungsteamContentView(
                             errorDescription = uiState.message,
                             modifier = Modifier
                                 .animateItem()
+                                .padding(16.dp)
                         ) {
                             onRetry()
                         }
@@ -168,7 +175,7 @@ private fun LeitungsteamContentView(
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.background)
                                 .fillMaxWidth()
-                                .padding(vertical = 16.dp)
+                                .padding(16.dp)
                                 .animateItem()
                         ) {
                             Text(
@@ -219,17 +226,27 @@ private fun LeitungsteamContentView(
                         }
                     }
                     if (uiState.data.map { it.teamName }.contains(selectedStufe)) {
+                        val members = uiState.data.first { it.teamName == selectedStufe }.members
                         itemsIndexed(
-                            items = uiState.data.first { it.teamName == selectedStufe }.members,
+                            items = members,
                             key = { index, _ ->
                                 "LeitungsteamCell$index"
                             }
                         ) { index, item ->
-                            LeitungsteamCell(
-                                member = item,
+                            FormItem(
+                                items = members,
+                                index = index,
                                 modifier = Modifier
                                     .animateItem()
-                                    .animateItem()
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = if (index == 0) 16.dp else 0.dp),
+                                mainContent = FormItemContentType.Custom(
+                                    content = {
+                                        LeitungsteamCell(
+                                            member = item
+                                        )
+                                    }
+                                )
                             )
                         }
                     }
@@ -274,6 +291,10 @@ private fun LeitungsteamViewPreview3() {
                         id = 123,
                         teamName = "Abteilungsleitung",
                         members = listOf(
+                            DummyData.leitungsteamMember,
+                            DummyData.leitungsteamMember,
+                            DummyData.leitungsteamMember,
+                            DummyData.leitungsteamMember,
                             DummyData.leitungsteamMember,
                             DummyData.leitungsteamMember
                         )

@@ -68,7 +68,7 @@ fun SeesturmSnackbarContentView(
             Text(
                 text = message,
                 maxLines = 3,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 overflow = TextOverflow.Ellipsis,
                 color = Color.White,
                 modifier = Modifier

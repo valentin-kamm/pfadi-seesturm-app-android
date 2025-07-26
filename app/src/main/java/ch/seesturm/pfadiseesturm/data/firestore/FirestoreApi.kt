@@ -7,6 +7,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -19,6 +20,7 @@ interface FirestoreApi {
     suspend fun <T: FirestoreDto>insertDocument(item: T, collection: CollectionReference)
     suspend fun <T: FirestoreDto>upsertDocument(item: T, document: DocumentReference, type: Class<T>)
     suspend fun <T: FirestoreDto>readDocument(document: DocumentReference, type: Class<T>): T
+    suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>): List<T>
     suspend fun deleteDocument(document: DocumentReference)
     suspend fun deleteDocuments(documents: List<DocumentReference>)
     suspend fun deleteAllDocumentsInCollection(collection: CollectionReference)
@@ -76,6 +78,15 @@ class FirestoreApiImpl(
     override suspend fun <T : FirestoreDto> readDocument(document: DocumentReference, type: Class<T>): T {
         return document.get().await().toObject(type)
             ?: throw IllegalArgumentException("Document does not exist or cannot be cast.")
+    }
+
+    override suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>): List<T> {
+
+        val snapshot = collection.get().await()
+        return snapshot.documents.map { document ->
+            document.toObject(type)
+                ?: throw IllegalArgumentException("Document does not exist or cannot be cast.")
+        }
     }
 
     override suspend fun deleteDocument(document: DocumentReference) {

@@ -48,6 +48,7 @@ import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_b
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
@@ -92,6 +93,7 @@ fun AktivitaetBearbeitenView(
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     val isStartDatePickerShown = rememberSaveable { mutableStateOf(false) }
     val isStartTimePickerShown = rememberSaveable { mutableStateOf(false) }
@@ -184,7 +186,8 @@ fun AktivitaetBearbeitenView(
                     content = {
                         AktivitaetBearbeitenPreviewView(
                             aktivitaet = event,
-                            stufe = stufe
+                            stufe = stufe,
+                            isDarkTheme = appState.theme.isDarkTheme
                         )
                     }
                 )
@@ -221,7 +224,8 @@ fun AktivitaetBearbeitenView(
         },
         onNavigateBack = {
             accountNavController.navigateUp()
-        }
+        },
+        isDarkTheme = appState.theme.isDarkTheme
     )
 }
 
@@ -245,6 +249,7 @@ private fun AktivitaetBearbeitenContentView(
     onOpenPreview: (GoogleCalendarEvent) -> Unit,
     onOpenTemplates: () -> Unit,
     onNavigateToTemplates: () -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState()
 ) {
@@ -273,7 +278,7 @@ private fun AktivitaetBearbeitenContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Large,
         title = mode.topBarTitle(stufe),
-        onNavigateBack = onNavigateBack,
+        navigationAction = TopBarNavigationIcon.Back { onNavigateBack() },
         modifier = modifier,
         actions = {
             TextButton(
@@ -699,7 +704,7 @@ private fun AktivitaetBearbeitenContentView(
                                         enabled = !uiState.publishAktivitaetState.isLoading,
                                         colors = SwitchDefaults.colors().copy(
                                             checkedThumbColor = MaterialTheme.colorScheme.background,
-                                            checkedTrackColor = stufe.highContrastColor()
+                                            checkedTrackColor = stufe.highContrastColor(isDarkTheme)
                                         )
                                     )
                                 }
@@ -711,7 +716,7 @@ private fun AktivitaetBearbeitenContentView(
                     ) {
                         SeesturmButton(
                             type = SeesturmButtonType.Primary(
-                                buttonColor = stufe.highContrastColor(),
+                                buttonColor = stufe.highContrastColor(isDarkTheme),
                                 contentColor = stufe.onHighContrastColor()
                             ),
                             modifier = Modifier
@@ -790,7 +795,8 @@ private fun AktivitaetBearbeitenViewPreview1() {
             onOpenPreview = {},
             onOpenTemplates = {},
             onNavigateToTemplates = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }
@@ -855,7 +861,8 @@ private fun AktivitaetBearbeitenViewPreview2() {
             onOpenPreview = {},
             onOpenTemplates = {},
             onNavigateToTemplates = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }
@@ -920,7 +927,8 @@ private fun AktivitaetBearbeitenViewPreview3() {
             onOpenPreview = {},
             onOpenTemplates = {},
             onNavigateToTemplates = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }

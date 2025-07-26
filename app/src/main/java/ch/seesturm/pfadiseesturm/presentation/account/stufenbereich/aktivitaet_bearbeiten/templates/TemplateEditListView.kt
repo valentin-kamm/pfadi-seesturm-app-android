@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.DummyData
@@ -120,7 +121,7 @@ private fun TemplateEditListContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = "Vorlagen ${stufe.stufenName}",
-        onNavigateBack = onNavigateBack,
+        navigationAction = TopBarNavigationIcon.Back { onNavigateBack() },
         modifier = modifier,
         actions = {
             if (mode is TemplateListViewMode.Edit && state is UiState.Success && state.data.isNotEmpty()) {

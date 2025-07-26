@@ -32,7 +32,11 @@ class FCMModuleImpl(
     }
 
     override val fcmRepository: FCMRepository by lazy {
-        FCMRepositoryImpl(fcmApi, dataStore)
+        FCMRepositoryImpl(
+            api = fcmApi,
+            dataStore = dataStore,
+            firestoreRepository = firestoreRepository
+        )
     }
     override val fcmService: FCMService by lazy {
         FCMService(

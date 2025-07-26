@@ -9,6 +9,8 @@ import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.OnboardingService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.SelectedThemeService
+import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
+import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.presentation.account.auth.AuthIntentController
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
@@ -19,6 +21,8 @@ import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -29,6 +33,7 @@ import kotlinx.coroutines.launch
 class AppStateViewModel(
     private val authService: AuthService,
     private val themeService: SelectedThemeService,
+    private val fcmService: FCMService,
     private val onboardingService: OnboardingService,
     private val wordpressApi: WordpressApi,
     private val currentAppBuild: Int?
@@ -38,10 +43,30 @@ class AppStateViewModel(
     val state = _state.asStateFlow()
 
     init {
+        runOnAppStart()
+    }
+
+    private fun runOnAppStart() {
+
         startListeningToSelectedTheme()
-        reauthenticateOnAppStart()
-        checkMinimumRequiredAppBuild()
         navigateToOnboardingViewIfNecessary()
+
+        viewModelScope.launch {
+
+            val reauthJob = async { reauthenticateOnAppStart() }
+            val versionCheckJob = async { checkMinimumRequiredAppBuild() }
+
+            awaitAll(reauthJob, versionCheckJob)
+
+            // re-subscribe to schöepflialarm topic in the background after re-auth is complete
+            val isHitobitoUser = authService.isCurrentUserHitobitoUser()
+            if (isHitobitoUser) {
+                fcmService.subscribe(
+                    topic = SeesturmFCMNotificationTopic.Schoepflialarm,
+                    requestPermission = { true }
+                )
+            }
+        }
     }
 
     fun startAuthFlow() {
@@ -79,26 +104,24 @@ class AppStateViewModel(
         }
     }
 
-    private fun reauthenticateOnAppStart() {
+    private suspend fun reauthenticateOnAppStart() {
 
-        viewModelScope.launch {
-            updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
-            when (val result = authService.reauthenticateOnAppStart()) {
-                is SeesturmResult.Error -> {
-                    updateAuthState(
-                        SeesturmAuthState.SignedOut(
-                            state = ActionState.Idle
-                        )
+        updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
+        when (val result = authService.reauthenticateOnAppStart()) {
+            is SeesturmResult.Error -> {
+                updateAuthState(
+                    SeesturmAuthState.SignedOut(
+                        state = ActionState.Idle
                     )
-                }
-                is SeesturmResult.Success -> {
-                    updateAuthState(
-                        SeesturmAuthState.SignedInWithHitobito(
-                            user = result.data,
-                            state = ActionState.Idle
-                        )
+                )
+            }
+            is SeesturmResult.Success -> {
+                updateAuthState(
+                    SeesturmAuthState.SignedInWithHitobito(
+                        user = result.data,
+                        state = ActionState.Idle
                     )
-                }
+                )
             }
         }
     }
@@ -239,22 +262,29 @@ class AppStateViewModel(
         }
     }
 
-    private fun checkMinimumRequiredAppBuild() {
-        viewModelScope.launch {
-            try {
-                val minimimRequiredBuild = wordpressApi.getMinimumRequiredAppBuild()
+    private suspend fun checkMinimumRequiredAppBuild() {
 
-                if (currentAppBuild != null && currentAppBuild < minimimRequiredBuild.android) {
-                    _state.update {
-                        it.copy(
-                            showAppVersionCheckOverlay = true
-                        )
-                    }
+        try {
+            val minimimRequiredBuild = wordpressApi.getMinimumRequiredAppBuild()
+
+            if (currentAppBuild != null && currentAppBuild < minimimRequiredBuild.android) {
+                _state.update {
+                    it.copy(
+                        showAppVersionCheckOverlay = true
+                    )
                 }
             }
-            catch (e: Exception) {
-                println("Minimum required app build could not be checked.")
-            }
+        }
+        catch (e: Exception) {
+            println("Minimum required app build could not be checked.")
+        }
+    }
+
+    fun updateAllowedOrientation(orientation: AllowedOrientation) {
+        _state.update {
+            it.copy(
+                allowedOrientation = orientation
+            )
         }
     }
 }

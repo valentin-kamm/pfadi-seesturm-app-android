@@ -79,7 +79,7 @@ fun LeiterbereichProfileHeaderView(
                 )
                 ThemedDropdownMenuItem(
                     text = {
-                        Text(text = "Account löschen")
+                        Text(text = "App-Account löschen")
                     },
                     onClick = {
                         onDeleteAccount()

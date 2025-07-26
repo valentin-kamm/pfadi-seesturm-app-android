@@ -11,8 +11,8 @@ import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.main.MainActivity
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.authModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
-import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
+import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class FirebaseNotificationHandler: FirebaseMessagingService() {
 
@@ -63,7 +64,7 @@ class FirebaseNotificationHandler: FirebaseMessagingService() {
     @SuppressLint("MissingPermission")
     private fun showNotification(data: CloudFunctionPushNotificationRequestDto, topic: SeesturmFCMNotificationTopic) {
 
-        val notificationId = System.currentTimeMillis().toInt()
+        val notificationId = UUID.randomUUID().hashCode()
 
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("topic", topic)
@@ -93,9 +94,10 @@ class FirebaseNotificationHandler: FirebaseMessagingService() {
                     putExtra("reaction", reaction)
                     putExtra("notificationId", notificationId)
                 }
+                reactionIntent.action = "reaction_to_${notificationId}_${reaction.name}"
                 val reactionPendingIntent = PendingIntent.getBroadcast(
                     this,
-                    reaction.ordinal,
+                    notificationId * 100 + reaction.ordinal,
                     reactionIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )

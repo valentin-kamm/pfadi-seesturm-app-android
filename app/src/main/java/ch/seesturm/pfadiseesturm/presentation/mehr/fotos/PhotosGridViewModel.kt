@@ -28,8 +28,6 @@ class PhotosGridViewModel(
             is UiState.Success -> "${state.value.selectedImageIndex + 1} von ${localState.data.count()}"
                 else -> ""
         }
-    val currentImageForSharing: Bitmap?
-        get() = state.value.imagesForSharing[state.value.selectedImageIndex]
 
     fun fetchPhotos() {
 
@@ -62,15 +60,6 @@ class PhotosGridViewModel(
         _state.update {
             it.copy(
                 selectedImageIndex = index
-            )
-        }
-    }
-    fun saveBitmapForSharing(index: Int, bitmap: Bitmap) {
-        _state.update {
-            val newMap = it.imagesForSharing.toMutableMap()
-            newMap[index] = bitmap
-            it.copy(
-                imagesForSharing = newMap
             )
         }
     }

@@ -1,15 +1,12 @@
 package ch.seesturm.pfadiseesturm.presentation.common.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
@@ -22,7 +19,6 @@ import ch.seesturm.pfadiseesturm.presentation.mehr.documents.DocumentsViewModel
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.GalleriesView
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.GalleriesViewModel
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotoGalleriesType
-import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotoSliderView
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotosGridView
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotosGridViewModel
 import ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen.GespeichertePersonenView
@@ -56,11 +52,14 @@ fun MehrNavHost(
     NavHost(
         navController = mehrNavController,
         startDestination = AppDestination.MainTabView.Destinations.Mehr.Destinations.MehrRoot,
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+        },
         exitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)
         },
         popEnterTransition = {
-            fadeIn()
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right)
         },
         popExitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
@@ -125,58 +124,24 @@ fun MehrNavHost(
             )
         }
 
-        // sub-graph to scope view model to both screens
-        navigation<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph>(
-            startDestination = AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph.Photos
-        ) {
-            composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph.Photos> {
-                val parentEntry = remember(it) {
-                    mehrNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph>()
-                }
-                val args = parentEntry.toRoute<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph>()
-                val viewModel = viewModel<PhotosGridViewModel>(
-                    parentEntry, // important
-                    factory = viewModelFactoryHelper {
-                        PhotosGridViewModel(
-                            service = wordpressModule.photosService,
-                            albumId = args.id
-                        )
-                    }
-                )
-                PhotosGridView(
-                    viewModel = viewModel,
-                    bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-                    navController = mehrNavController,
-                    albumTitle = args.title,
-                    onNavigateToSlider = { selectedIndex ->
-                        viewModel.setSelectedImageIndex(selectedIndex)
-                        mehrNavController.navigate(
-                            AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph.PhotosSlider
-                        )
-                    }
-                )
-            }
+        composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.Photos> {
 
-            composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph.PhotosSlider> {
-                val parentEntry = remember(it) {
-                    mehrNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph>()
-                }
-                val args = parentEntry.toRoute<AppDestination.MainTabView.Destinations.Mehr.Destinations.PhotosGraph>()
-                val viewModel = viewModel<PhotosGridViewModel>(
-                    parentEntry, // important
+            val args = it.toRoute<AppDestination.MainTabView.Destinations.Mehr.Destinations.Photos>()
+
+            PhotosGridView(
+                viewModel = viewModel<PhotosGridViewModel>(
                     factory = viewModelFactoryHelper {
                         PhotosGridViewModel(
                             service = wordpressModule.photosService,
                             albumId = args.id
                         )
                     }
-                )
-                PhotoSliderView(
-                    viewModel = viewModel,
-                    bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-                    navController = mehrNavController
-                )
-            }
+                ),
+                appStateViewModel = appStateViewModel,
+                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+                navController = mehrNavController,
+                albumTitle = args.title
+            )
         }
 
         composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.Dokumente> {

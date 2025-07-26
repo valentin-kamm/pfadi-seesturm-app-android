@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
@@ -92,9 +94,7 @@ private fun AktuellDetailContentView(
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
-        onNavigateBack = {
-            navController.navigateUp()
-        },
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() },
         actions = {
             IconButton(
                 onClick = {
@@ -142,7 +142,7 @@ private fun AktuellDetailContentView(
                             )
                             RedactedText(
                                 2,
-                                MaterialTheme.typography.displaySmall,
+                                MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                             )
@@ -230,7 +230,7 @@ private fun AktuellDetailContentView(
                             }
                             Text(
                                 postState.data.titleDecoded,
-                                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .padding(

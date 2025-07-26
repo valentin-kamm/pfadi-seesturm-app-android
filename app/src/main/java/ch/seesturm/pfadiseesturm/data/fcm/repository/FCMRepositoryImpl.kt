@@ -3,13 +3,16 @@ package ch.seesturm.pfadiseesturm.data.fcm.repository
 import androidx.datastore.core.DataStore
 import ch.seesturm.pfadiseesturm.data.data_store.dao.SeesturmPreferencesDao
 import ch.seesturm.pfadiseesturm.data.fcm.FCMApi
+import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
+import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class FCMRepositoryImpl(
     private val api: FCMApi,
+    private val firestoreRepository: FirestoreRepository,
     private val dataStore: DataStore<SeesturmPreferencesDao>
 ): FCMRepository {
 
@@ -50,5 +53,18 @@ class FCMRepositoryImpl(
                 subscribedFcmTopics = newTopicList
             )
         }
+    }
+
+    override suspend fun updateFCMToken(userId: String, newToken: String) {
+        firestoreRepository.performTransaction(
+            document = FirestoreRepository.SeesturmFirestoreDocument.User(id = userId),
+            type = FirebaseHitobitoUserDto::class.java,
+            forceNewCreatedDate = false,
+            update = { oldUser ->
+                oldUser.copy(
+                    fcmToken = newToken
+                )
+            }
+        )
     }
 }

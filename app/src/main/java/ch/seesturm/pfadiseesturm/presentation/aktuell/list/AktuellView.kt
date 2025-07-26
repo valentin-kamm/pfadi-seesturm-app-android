@@ -248,7 +248,8 @@ private fun AktuellContentView(
             PullToRefreshDefaults.Indicator(
                 state = refreshState,
                 isRefreshing = uiState.refreshing,
-                color = Color.SEESTURM_GREEN
+                color = Color.SEESTURM_GREEN,
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
         }
     }

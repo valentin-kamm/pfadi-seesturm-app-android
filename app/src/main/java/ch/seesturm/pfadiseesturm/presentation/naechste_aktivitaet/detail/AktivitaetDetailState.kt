@@ -17,8 +17,7 @@ data class AktivitaetDetailState(
     val vornameState: SeesturmTextFieldState,
     val nachnameState: SeesturmTextFieldState,
     val pfadinameState: SeesturmTextFieldState,
-    val bemerkungState: SeesturmTextFieldState,
-    val showCalendarSubscriptionAlert: Boolean = false
+    val bemerkungState: SeesturmTextFieldState
 ) {
     companion object {
         fun create(

@@ -26,11 +26,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -46,6 +50,7 @@ import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.compone
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
@@ -54,10 +59,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @Composable
 fun OrdersView(
@@ -131,9 +136,7 @@ private fun OrdersContentView(
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
-        onNavigateBack = {
-            accountNavController.navigateUp()
-        },
+        navigationAction = TopBarNavigationIcon.Back { accountNavController.navigateUp() },
         title = "Bestellungen",
         actions = {
             if (foodState is UiState.Success) {
@@ -232,7 +235,7 @@ private fun OrdersContentView(
                         itemsIndexed(
                             items = relevantOrders,
                             key = { _, order ->
-                                "EssenBestellenCell${order.id}"
+                                order.id
                             }
                         ) { index, order ->
                             FoodOrderCell(
@@ -276,14 +279,14 @@ private fun OrdersContentView(
                                     )
                                     Text(
                                         text = "Keine Bestellungen",
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                     )
                                     Text(
                                         text = "Füge jetzt die erste Bestellung hinzu.",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.bodySmall,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .fillMaxWidth()

@@ -106,7 +106,7 @@ sealed class AlertWithSettingsActionType {
     val description: String
         get() {
             return when (this) {
-                Location -> "Um diese Funktion nutzen zu können, musst du die Ortungsdienste in den Einstellungen aktivieren."
+                Location -> "Um diese Funktion nutzen zu können, musst du die Ortungsdienste in den Einstellungen aktivieren (inkl. präzise Ortung)."
                 Notifications -> "Um diese Funktion nutzen zu können, musst du Push-Nachrichten in den Einstellungen aktivieren."
             }
         }
@@ -125,7 +125,7 @@ private fun PushNotificationsSettingsAlertPreview() {
     PfadiSeesturmTheme {
         AlertWithSettingsAction(
             isShown = true,
-            type = AlertWithSettingsActionType.Notifications,
+            type = AlertWithSettingsActionType.Location,
             onDismiss = {}
         )
     }

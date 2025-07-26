@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -19,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,7 +48,10 @@ fun FoodOrderCell(
         items = orders,
         index = index,
         mainContent = FormItemContentType.Custom(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                vertical = 8.dp,
+                horizontal = 16.dp
+            ),
             content = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -61,9 +64,9 @@ fun FoodOrderCell(
                         style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                         color = Color.SEESTURM_GREEN,
                         maxLines = 1,
+                        textAlign = TextAlign.Start,
                         modifier = Modifier
                             .widthIn(min = 65.dp)
-                            .wrapContentWidth()
                     )
                     Column(
                         horizontalAlignment = Alignment.End,
@@ -73,7 +76,7 @@ fun FoodOrderCell(
                     ) {
                         Text(
                             text = order.itemDescription,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.End,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -82,7 +85,7 @@ fun FoodOrderCell(
                         )
                         Text(
                             text = order.ordersString,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.copy(hyphens = Hyphens.Auto),
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.End,
                             color = MaterialTheme.colorScheme.onBackground,

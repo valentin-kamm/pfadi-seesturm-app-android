@@ -229,10 +229,11 @@ fun LeiterbereichView(
                             requestNotificationsPermission = requestNotificationsPermission
                         )
                     },
-                    sheetHeightPercentage = 0.5f
+                    sheetHeightPercentage = 0.75f
                 )
             )
-        }
+        },
+        isDarkTheme = appState.theme.isDarkTheme
     )
 }
 
@@ -252,6 +253,7 @@ private fun LeiterbereichContentView(
     onRetryEvents: () -> Unit,
     onToggleStufe: (SeesturmStufe) -> Unit,
     onOpenSchoepflialarmSheet: () -> Unit,
+    isDarkTheme: Boolean,
     calendar: SeesturmCalendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
     columnState: LazyListState = rememberLazyListState(),
     screenWidth: Dp = LocalConfiguration.current.screenWidthDp.dp
@@ -428,6 +430,7 @@ private fun LeiterbereichContentView(
                             selectedStufen = selectedStufen.data,
                             screenWidth = screenWidth,
                             accountNavController = accountNavController,
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem()
@@ -552,7 +555,8 @@ private fun LeiterbereichViewPreview1() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {}
+            onOpenSchoepflialarmSheet = {},
+            isDarkTheme = false
         )
     }
 }
@@ -573,7 +577,8 @@ private fun LeiterbereichViewPreview2() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {}
+            onOpenSchoepflialarmSheet = {},
+            isDarkTheme = false
         )
     }
 }
@@ -594,7 +599,8 @@ private fun LeiterbereichViewPreview3() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {}
+            onOpenSchoepflialarmSheet = {},
+            isDarkTheme = false
         )
     }
 }
@@ -615,7 +621,8 @@ private fun LeiterbereichViewPreview4() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {}
+            onOpenSchoepflialarmSheet = {},
+            isDarkTheme = false
         )
     }
 }

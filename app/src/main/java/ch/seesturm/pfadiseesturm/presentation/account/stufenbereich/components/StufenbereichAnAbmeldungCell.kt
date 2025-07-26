@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,8 +40,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
-import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
@@ -54,6 +55,7 @@ fun StufenbereichAnAbmeldungCell(
     onSendPushNotification: () -> Unit,
     onEditAktivitaet: () -> Unit,
     onClick: () -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -85,7 +87,7 @@ fun StufenbereichAnAbmeldungCell(
                 ) {
                     Text(
                         text = aktivitaet.event.title,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -94,7 +96,7 @@ fun StufenbereichAnAbmeldungCell(
                     )
                     Text(
                         text = aktivitaet.event.fullDateTimeFormatted,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(hyphens = Hyphens.Auto),
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start,
                         color = MaterialTheme.colorScheme.onBackground,
@@ -174,14 +176,14 @@ fun StufenbereichAnAbmeldungCell(
                                 )
                             }
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
                                 horizontalAlignment = Alignment.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
                             ) {
                                 Text(
                                     text = abmeldung.displayName,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                                     overflow = TextOverflow.Ellipsis,
                                     textAlign = TextAlign.Start,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -202,7 +204,7 @@ fun StufenbereichAnAbmeldungCell(
                                 )
                                 Text(
                                     text = abmeldung.bemerkungForDisplay,
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelSmall.copy(hyphens = Hyphens.Auto),
                                     overflow = TextOverflow.Ellipsis,
                                     textAlign = TextAlign.Start,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -225,7 +227,7 @@ fun StufenbereichAnAbmeldungCell(
                         icon = Icons.Default.Edit
                     ),
                     isLoading = isBearbeitenButtonLoading,
-                    buttonColor = stufe.highContrastColor(),
+                    buttonColor = stufe.highContrastColor(isDarkTheme),
                     contentColor = stufe.onHighContrastColor(),
                     dropdown = { isShown, dismiss ->
                         ThemedDropdownMenu(
@@ -309,7 +311,8 @@ private fun StufenbereichAnAbmeldungCellPreview1() {
             onDeleteAnAbmeldungen = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
-            onClick = {}
+            onClick = {},
+            isDarkTheme = false
         )
     }
 }
@@ -332,7 +335,8 @@ private fun StufenbereichAnAbmeldungCellPreview2() {
             onDeleteAnAbmeldungen = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
-            onClick = {}
+            onClick = {},
+            isDarkTheme = false
         )
     }
 }
@@ -352,94 +356,8 @@ private fun StufenbereichAnAbmeldungCellPreview3() {
             onDeleteAnAbmeldungen = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
-            onClick = {}
-        )
-    }
-}
-
-/*
-@Preview
-@Composable
-private fun StufenbereichAnAbmeldungCellPreview() {
-    PfadiSeesturmTheme {
-        StufenbereichAnAbmeldungCell(
-            aktivitaet = GoogleCalendarEventWithAnAbmeldungen(
-                event = GoogleCalendarEventDto(
-                    id = "049i70bbetjb6j9nqi9in866bl",
-                    summary = "Waldweihnachten \uD83C\uDF84",
-                    description = "Die traditionelle Waldweihnacht der Pfadi Seesturm kann dieses Jahr hoffentlich wieder in gewohnter Form stattfinden. Die genauen Zeiten werden später kommuniziert.",
-                    location = "im Wald",
-                    created = "2022-08-28T15:34:26.000Z",
-                    updated = "2022-08-28T15:34:26.247Z",
-                    start = GoogleCalendarEventStartEndDto(
-                        dateTime = "2022-12-17T15:00:00Z",
-                        date = null
-                    ),
-                    end = GoogleCalendarEventStartEndDto(
-                        dateTime = "2022-12-17T18:00:00Z",
-                        date = null
-                    )
-                ).toGoogleCalendarEvent(),
-                anAbmeldungen = listOf(
-                    AktivitaetAnAbmeldung(
-                        id = "123",
-                        eventId = "049i70bbetjb6j9nqi9in866bl",
-                        uid = "aksjdfhakjfh",
-                        vorname = "Peter",
-                        nachname = "Müller",
-                        pfadiname = "XY",
-                        bemerkung = "Hallo",
-                        type = AktivitaetInteractionType.ABMELDEN,
-                        stufe = SeesturmStufe.Biber,
-                        created = ZonedDateTime.now(),
-                        modified = ZonedDateTime.now(),
-                        createdString = "",
-                        modifiedString = ""
-                    ),
-                    AktivitaetAnAbmeldung(
-                        id = "3458o3794",
-                        eventId = "049i70bbetjb6j9nqi9in866bl",
-                        uid = "aksjdfhakjfh",
-                        vorname = "Peter",
-                        nachname = "Müller",
-                        pfadiname = "XY",
-                        bemerkung = "Hallo",
-                        type = AktivitaetInteractionType.ANMELDEN,
-                        stufe = SeesturmStufe.Biber,
-                        created = ZonedDateTime.now(),
-                        modified = ZonedDateTime.now(),
-                        createdString = "",
-                        modifiedString = ""
-                    ),
-                    AktivitaetAnAbmeldung(
-                        id = "ewkrunwekr",
-                        eventId = "049i70bbetjb6j9nqi9in866bl",
-                        uid = "aksjdfhakjfh",
-                        vorname = "Franz",
-                        nachname = "Müller",
-                        pfadiname = "XY",
-                        bemerkung = "Hallo",
-                        type = AktivitaetInteractionType.ABMELDEN,
-                        stufe = SeesturmStufe.Biber,
-                        created = ZonedDateTime.now(),
-                        modified = ZonedDateTime.now(),
-                        createdString = "",
-                        modifiedString = ""
-                    )
-                )
-            ),
-            stufe = SeesturmStufe.Biber,
-            selectedAktivitaetInteraction = AktivitaetInteractionType.ABMELDEN,
-            isBearbeitenButtonLoading = false,
-            onChangeSelectedAktivitaetInteraction = {},
-            onDeleteAnAbmeldungen = {},
-            onSendPushNotification = {},
-            onEditAktivitaet = {},
             onClick = {},
-            modifier = Modifier
-                .fillMaxWidth()
+            isDarkTheme = false
         )
     }
 }
-
- */

@@ -26,10 +26,12 @@ data class DailyWeatherDto(
 
 fun DailyWeatherDto.toDailyWeather(): DailyWeather {
 
-    val forecastStartDate = DateTimeUtil.shared.parseIsoDateWithOffset(forecastStart).atZone(ZoneId.systemDefault())
-    val forecastEndDate = DateTimeUtil.shared.parseIsoDateWithOffset(forecastEnd).atZone(ZoneId.systemDefault())
-    val sunriseDate = DateTimeUtil.shared.parseIsoDateWithOffset(sunrise).atZone(ZoneId.systemDefault())
-    val sunsetDate = DateTimeUtil.shared.parseIsoDateWithOffset(sunset).atZone(ZoneId.systemDefault())
+    val targetDisplayTimezone = ZoneId.of("Europe/Zurich")
+
+    val forecastStartDate = DateTimeUtil.shared.parseIsoDateWithOffset(forecastStart).atZone(targetDisplayTimezone)
+    val forecastEndDate = DateTimeUtil.shared.parseIsoDateWithOffset(forecastEnd).atZone(targetDisplayTimezone)
+    val sunriseDate = DateTimeUtil.shared.parseIsoDateWithOffset(sunrise).atZone(targetDisplayTimezone)
+    val sunsetDate = DateTimeUtil.shared.parseIsoDateWithOffset(sunset).atZone(targetDisplayTimezone)
 
     return DailyWeather(
         forecastStart = forecastStartDate,
@@ -43,10 +45,10 @@ fun DailyWeatherDto.toDailyWeather(): DailyWeather {
         temperatureMax = "${temperatureMax.roundToInt()}°",
         temperatureMin = "${temperatureMin.roundToInt()}°",
         precipitationAmount = "${precipitationAmount.roundToInt()} mm",
-        precipitationChance = "${100*precipitationChance.roundToInt()} %",
+        precipitationChance = "${(100 * precipitationChance).roundToInt()} %",
         snowfallAmount = "${snowfallAmount.roundToInt()} mm",
-        cloudCover = "${100*cloudCover.roundToInt()} %",
-        humidity = "${100*humidity.roundToInt()} %",
+        cloudCover = "${(100 * cloudCover).roundToInt()} %",
+        humidity = "${(100 * humidity).roundToInt()} %",
         windDirection = convertWindDirection(windDirection),
         windSpeed = "${windSpeed.roundToInt()} km/h",
         sunrise = sunriseDate,

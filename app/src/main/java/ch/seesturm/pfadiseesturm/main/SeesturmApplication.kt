@@ -40,14 +40,13 @@ class SeesturmApplication: Application() {
         super.onCreate()
 
         FirebaseApp.initializeApp(this)
-        val firebaseAppCheck = FirebaseAppCheck.getInstance()
         if (DEBUG) {
-            firebaseAppCheck.installAppCheckProviderFactory(
+            FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance()
             )
         }
         else {
-            firebaseAppCheck.installAppCheckProviderFactory(
+            FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
                 PlayIntegrityAppCheckProviderFactory.getInstance()
             )
         }

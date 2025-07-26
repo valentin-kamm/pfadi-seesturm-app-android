@@ -6,6 +6,5 @@ import ch.seesturm.pfadiseesturm.util.state.UiState
 
 data class PhotosGridState(
     val result: UiState<List<WordpressPhoto>> = UiState.Loading,
-    val selectedImageIndex: Int = 0,
-    val imagesForSharing: Map<Int, Bitmap> = emptyMap()
+    val selectedImageIndex: Int = 0
 )

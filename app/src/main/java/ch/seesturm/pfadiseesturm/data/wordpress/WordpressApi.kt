@@ -124,7 +124,10 @@ class WordpressApiImpl(
         maxResults: Int
     ): GoogleCalendarEventsDto =
         api.getEventsByPageId(calendarId = calendarId, pageToken = pageToken, maxResults = maxResults)
-    override suspend fun getEvents(calendarId: String, timeMin: Instant): GoogleCalendarEventsDto =
+    override suspend fun getEvents(
+        calendarId: String,
+        timeMin: Instant
+    ): GoogleCalendarEventsDto =
         api.getEventsByCalendarId(calendarId = calendarId, timeMin = getDateString(timeMin))
     override suspend fun getEvent(calendarId: String, eventId: String): GoogleCalendarEventDto =
         api.getEvent(calendarId, eventId)

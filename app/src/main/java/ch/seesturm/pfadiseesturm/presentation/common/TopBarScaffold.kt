@@ -4,16 +4,23 @@ import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -31,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
@@ -50,7 +59,7 @@ fun TopBarScaffold(
     modifier: Modifier = Modifier,
     hideTopBar: Boolean = false,
     title: String? = null,
-    onNavigateBack: (() -> Unit)? = null,
+    navigationAction: TopBarNavigationIcon = TopBarNavigationIcon.None,
     actions: @Composable RowScope.() -> Unit = {},
     staticSnackbar: TopBarScaffoldStaticSnackbarType = TopBarScaffoldStaticSnackbarType.None,
     floatingActionButton: @Composable () -> Unit = {},
@@ -91,21 +100,38 @@ fun TopBarScaffold(
                                 if (title != null) {
                                     Text(
                                         text = title,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = LocalTextStyle.current.copy(hyphens = Hyphens.Auto)
                                     )
                                 }
                             },
                             navigationIcon = {
-                                if (onNavigateBack != null) {
-                                    IconButton(
-                                        onClick = onNavigateBack
-                                    ) {
-                                        Icon(
-                                            Icons.AutoMirrored.Outlined.ArrowBack,
-                                            contentDescription = "Zurück",
-                                            tint = Color.SEESTURM_GREEN
-                                        )
+                                when (navigationAction) {
+                                    is TopBarNavigationIcon.Back -> {
+                                        IconButton(
+                                            onClick = navigationAction.onNavigateBack
+                                        ) {
+                                            Icon(
+                                                Icons.AutoMirrored.Outlined.ArrowBack,
+                                                contentDescription = "Zurück",
+                                                tint = Color.SEESTURM_GREEN
+                                            )
+                                        }
                                     }
+                                    is TopBarNavigationIcon.Close -> {
+                                        IconButton(
+                                            onClick = navigationAction.onClose
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Schliessen",
+                                                tint = Color.SEESTURM_GREEN
+                                            )
+                                        }
+                                    }
+                                    TopBarNavigationIcon.None -> {}
                                 }
                             },
                             colors = TopAppBarColors(
@@ -114,7 +140,7 @@ fun TopBarScaffold(
                                     Color.Transparent
                                 }
                                 else {
-                                    MaterialTheme.colorScheme.background
+                                    MaterialTheme.colorScheme.primaryContainer
                                 },
                                 navigationIconContentColor = Color.SEESTURM_GREEN,
                                 titleContentColor = MaterialTheme.colorScheme.onBackground,
@@ -141,21 +167,38 @@ fun TopBarScaffold(
                                 if (title != null) {
                                     Text(
                                         text = title,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = LocalTextStyle.current.copy(hyphens = Hyphens.Auto)
                                     )
                                 }
                             },
                             navigationIcon = {
-                                if (onNavigateBack != null) {
-                                    IconButton(
-                                        onClick = onNavigateBack,
-                                    ) {
-                                        Icon(
-                                            Icons.AutoMirrored.Outlined.ArrowBack,
-                                            contentDescription = "Zurück",
-                                            tint = Color.SEESTURM_GREEN
-                                        )
+                                when (navigationAction) {
+                                    is TopBarNavigationIcon.Back -> {
+                                        IconButton(
+                                            onClick = navigationAction.onNavigateBack,
+                                        ) {
+                                            Icon(
+                                                Icons.AutoMirrored.Outlined.ArrowBack,
+                                                contentDescription = "Zurück",
+                                                tint = Color.SEESTURM_GREEN
+                                            )
+                                        }
                                     }
+                                    is TopBarNavigationIcon.Close -> {
+                                        IconButton(
+                                            onClick = navigationAction.onClose,
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Schliessen",
+                                                tint = Color.SEESTURM_GREEN
+                                            )
+                                        }
+                                    }
+                                    TopBarNavigationIcon.None -> {}
                                 }
                             },
                             colors = TopAppBarColors(
@@ -164,7 +207,7 @@ fun TopBarScaffold(
                                     Color.Transparent
                                 }
                                 else {
-                                    MaterialTheme.colorScheme.background
+                                    MaterialTheme.colorScheme.primaryContainer
                                 },
                                 navigationIconContentColor = Color.SEESTURM_GREEN,
                                 titleContentColor = MaterialTheme.colorScheme.onBackground,
@@ -218,8 +261,15 @@ fun TopBarScaffold(
         },
         floatingActionButton = floatingActionButton,
         modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = if (Build.VERSION.SDK_INT < 30) {
+            WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+        }
+        else {
+            ScaffoldDefaults.contentWindowInsets
+        }
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .then(
@@ -235,4 +285,14 @@ fun TopBarScaffold(
             content(innerPadding)
         }
     }
+}
+
+sealed class TopBarNavigationIcon {
+    data object None: TopBarNavigationIcon()
+    data class Back(
+        val onNavigateBack: () -> Unit
+    ): TopBarNavigationIcon()
+    data class Close(
+        val onClose: () -> Unit
+    ): TopBarNavigationIcon()
 }

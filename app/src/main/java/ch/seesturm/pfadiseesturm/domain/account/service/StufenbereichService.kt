@@ -18,9 +18,9 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithA
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.WordpressService
 import ch.seesturm.pfadiseesturm.util.DataError
+import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -236,8 +236,7 @@ class StufenbereichService(
                 AktivitaetTemplateDto::class.java,
                 forceNewCreatedDate = false,
                 update = { oldTemplate ->
-                    AktivitaetTemplateDto(
-                        stufenId = oldTemplate.stufenId,
+                    oldTemplate.copy(
                         description = description
                     )
                 }

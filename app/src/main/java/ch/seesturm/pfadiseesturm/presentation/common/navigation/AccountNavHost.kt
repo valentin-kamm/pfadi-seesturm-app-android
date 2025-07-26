@@ -1,7 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.common.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,11 +59,14 @@ fun AccountNavHost(
     NavHost(
         navController = accountNavController,
         startDestination = AppDestination.MainTabView.Destinations.Account.Destinations.AccountRoot,
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+        },
         exitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)
         },
         popEnterTransition = {
-            fadeIn()
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right)
         },
         popExitTransition = {
             slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
@@ -153,6 +155,7 @@ fun AccountNavHost(
                 stufe = arguments.stufe,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController,
+                appStateViewModel = appStateViewModel,
                 viewModel = viewModel<StufenbereichViewModel>(
                     factory = viewModelFactoryHelper {
                         StufenbereichViewModel(

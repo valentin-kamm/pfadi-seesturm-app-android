@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.util.types
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -60,6 +61,13 @@ enum class SchoepflialarmReactionType {
             Coming -> Color.SEESTURM_GREEN
             NotComing -> Color.SEESTURM_RED
             AlreadyThere -> MaterialTheme.colorScheme.onBackground
+        }
+    val onReactionColor: Color
+        @Composable
+        get() = when (this) {
+            Coming -> Color.White
+            NotComing -> Color.White
+            AlreadyThere -> MaterialTheme.colorScheme.background
         }
 
     companion object {

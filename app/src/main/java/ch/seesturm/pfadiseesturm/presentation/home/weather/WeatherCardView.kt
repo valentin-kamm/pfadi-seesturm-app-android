@@ -3,7 +3,6 @@ package ch.seesturm.pfadiseesturm.presentation.home.weather
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,6 +58,7 @@ import ch.seesturm.pfadiseesturm.util.launchWebsite
 @Composable
 fun WeatherCardView(
     weather: Weather,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -97,7 +97,7 @@ fun WeatherCardView(
                     ) {
                         Text(
                             text = weather.daily.dayFormatted,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color.Transparent)
@@ -146,7 +146,7 @@ fun WeatherCardView(
                             }
                             Text(
                                 annotatedString,
-                                style = MaterialTheme.typography.displayMedium,
+                                style = MaterialTheme.typography.displaySmall,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -155,6 +155,7 @@ fun WeatherCardView(
                         Text(
                             text = weather.daily.weatherCondition.description,
                             maxLines = 1,
+                            style = MaterialTheme.typography.bodyMedium,
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center,
@@ -165,7 +166,7 @@ fun WeatherCardView(
                     }
                     Image(
                         painter = painterResource(
-                            if (isSystemInDarkTheme()) {
+                            if (isDarkTheme) {
                                 weather.daily.weatherCondition.darkIconId
                             } else {
                                 weather.daily.weatherCondition.lightIconId
@@ -274,7 +275,7 @@ fun WeatherCardView(
                                     weather = weather,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(16.dp)
+                                        .padding(8.dp)
                                 )
                             }
 
@@ -283,7 +284,7 @@ fun WeatherCardView(
                                     weather = weather,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(16.dp)
+                                        .padding(8.dp)
                                 )
                             }
 
@@ -292,7 +293,7 @@ fun WeatherCardView(
                                     weather = weather,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(16.dp)
+                                        .padding(8.dp)
                                 )
                             }
                         }
@@ -344,7 +345,8 @@ fun WeatherCardView(
 private fun WeatherCardViewPreview() {
     PfadiSeesturmTheme {
         WeatherCardView(
-            weather = DummyData.weather
+            weather = DummyData.weather,
+            isDarkTheme = false
         )
     }
 }

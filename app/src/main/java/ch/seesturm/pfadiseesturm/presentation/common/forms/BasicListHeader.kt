@@ -26,7 +26,7 @@ fun BasicListHeader(
             BasicListHeaderMode.Loading -> {
                 RedactedText(
                     numberOfLines = 1,
-                    textStyle = MaterialTheme.typography.bodyMedium,
+                    textStyle = MaterialTheme.typography.bodySmall,
                     lastLineFraction = 0.45f,
                     modifier = Modifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)
@@ -36,7 +36,7 @@ fun BasicListHeader(
                 Text(
                     mode.text.uppercase(),
                     maxLines = 1,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)
                         .alpha(0.4f)

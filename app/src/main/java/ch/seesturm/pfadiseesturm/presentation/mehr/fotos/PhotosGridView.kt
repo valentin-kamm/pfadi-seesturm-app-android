@@ -15,46 +15,80 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPhoto
+import ch.seesturm.pfadiseesturm.main.AllowedOrientation
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.PhotoGalleryCell
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.PhotoGalleryLoadingCell
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @Composable
 fun PhotosGridView(
     viewModel: PhotosGridViewModel,
+    appStateViewModel: AppStateViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     navController: NavController,
-    albumTitle: String,
-    onNavigateToSlider: (Int) -> Unit
+    albumTitle: String
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val selectedImageIndex = rememberSaveable { mutableStateOf<Int?>(null) }
 
     PhotosGridContentView(
         uiState = uiState,
         albumTitle = albumTitle,
-        onNavigateToSlider = onNavigateToSlider,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         navController = navController,
         onRetry = {
             viewModel.fetchPhotos()
+        },
+        onClickImage = { index ->
+            viewModel.setSelectedImageIndex(index)
+            selectedImageIndex.value = index
+            appStateViewModel.updateAllowedOrientation(AllowedOrientation.All)
         }
     )
+
+    if (selectedImageIndex.value != null) {
+        Dialog(
+            onDismissRequest = {
+                selectedImageIndex.value = null
+                appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
+            },
+            properties = DialogProperties(
+                dismissOnBackPress =  true,
+                dismissOnClickOutside = true,
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            PhotoSliderView(
+                viewModel = viewModel,
+                onClose = {
+                    selectedImageIndex.value = null
+                    appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
+                }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,8 +96,8 @@ fun PhotosGridView(
 private fun PhotosGridContentView(
     uiState: PhotosGridState,
     albumTitle: String,
-    onNavigateToSlider: (Int) -> Unit,
     onRetry: () -> Unit,
+    onClickImage: (Int) -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
     navController: NavController,
     gridState: LazyGridState = rememberLazyGridState()
@@ -87,9 +121,7 @@ private fun PhotosGridContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = albumTitle,
-        onNavigateBack = {
-            navController.navigateUp()
-        }
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() }
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(topBarInnerPadding, LayoutDirection.Ltr)
@@ -173,7 +205,7 @@ private fun PhotosGridContentView(
                                     thumbnailUrl = item.thumbnailUrl,
                                     title = null,
                                     onClick = {
-                                        onNavigateToSlider(index)
+                                        onClickImage(index)
                                     },
                                     modifier = Modifier
                                         .animateItem()
@@ -196,7 +228,7 @@ private fun PhotosGridViewPreview1() {
                 result = UiState.Loading
             ),
             albumTitle = "Test",
-            onNavigateToSlider = {},
+            onClickImage = {},
             onRetry = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             navController = rememberNavController()
@@ -212,7 +244,7 @@ private fun PhotosGridViewPreview2() {
                 result = UiState.Error("Schwerer Fehler")
             ),
             albumTitle = "Test",
-            onNavigateToSlider = {},
+            onClickImage = {},
             onRetry = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             navController = rememberNavController()
@@ -228,7 +260,7 @@ private fun PhotosGridViewPreview3() {
                 result = UiState.Success(emptyList())
             ),
             albumTitle = "Test",
-            onNavigateToSlider = {},
+            onClickImage = {},
             onRetry = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             navController = rememberNavController()
@@ -275,7 +307,7 @@ private fun PhotosGridViewPreview4() {
                 )
             ),
             albumTitle = "Test",
-            onNavigateToSlider = {},
+            onClickImage = {},
             onRetry = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             navController = rememberNavController()

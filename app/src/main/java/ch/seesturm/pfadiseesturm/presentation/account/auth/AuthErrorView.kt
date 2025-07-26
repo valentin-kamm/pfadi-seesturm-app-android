@@ -15,11 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 
 @Composable
@@ -32,12 +35,11 @@ fun AuthErrorView(
         modifier = modifier
     ) {
         Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .padding(vertical = 8.dp)
         ) {
             Icon(
                 imageVector = Icons.Outlined.PersonOff,
@@ -48,14 +50,14 @@ fun AuthErrorView(
             )
             Text(
                 text = "Beim Anmelden ist ein Fehler aufgetreten",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
             )
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,5 +69,16 @@ fun AuthErrorView(
                 isLoading = false
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun AuthErrorViewPreview() {
+    PfadiSeesturmTheme {
+        AuthErrorView(
+            message = "Schwerer Fehler",
+            onResetAuthState = {}
+        )
     }
 }

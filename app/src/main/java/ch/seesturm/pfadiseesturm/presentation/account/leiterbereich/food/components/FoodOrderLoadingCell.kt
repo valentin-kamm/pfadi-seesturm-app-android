@@ -37,7 +37,10 @@ fun FoodOrderLoadingCell(
         items = items,
         index = index,
         mainContent = FormItemContentType.Custom(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                horizontal = 16.dp,
+                vertical = 16.dp
+            ),
             content = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -50,7 +53,6 @@ fun FoodOrderLoadingCell(
                         textStyle = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier
                             .width(65.dp)
-                            .wrapContentWidth()
                     )
                     Column(
                         horizontalAlignment = Alignment.End,

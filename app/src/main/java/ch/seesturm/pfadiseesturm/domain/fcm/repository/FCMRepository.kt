@@ -9,4 +9,5 @@ interface FCMRepository {
     suspend fun unsubscribeFromTopic(topic: SeesturmFCMNotificationTopic)
     fun getSubscribedTopics(): Flow<Set<SeesturmFCMNotificationTopic>>
     suspend fun getCurrentFCMToken(): String
+    suspend fun updateFCMToken(userId: String, newToken: String)
 }

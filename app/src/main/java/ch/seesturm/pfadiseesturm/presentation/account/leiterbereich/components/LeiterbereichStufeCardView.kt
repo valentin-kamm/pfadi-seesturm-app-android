@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +41,7 @@ fun LeiterbereichStufeCardView(
     stufe: SeesturmStufe,
     onButtonClick: () -> Unit,
     onNavigate: () -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -71,7 +73,7 @@ fun LeiterbereichStufeCardView(
                 Text(
                     text = stufe.stufenName,
                     maxLines = 1,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -80,7 +82,7 @@ fun LeiterbereichStufeCardView(
                 )
                 SeesturmButton(
                     type = SeesturmButtonType.Secondary(
-                        buttonColor = stufe.highContrastColor(),
+                        buttonColor = stufe.highContrastColor(isDarkTheme),
                         contentColor = stufe.onHighContrastColor(),
                         icon = SeesturmButtonIconType.Predefined(
                             icon = Icons.Default.Add
@@ -121,7 +123,8 @@ private fun LeiterbereichStufeCardViewPreview1() {
                     cardWidth = 120.dp,
                     stufe = stufe,
                     onButtonClick = {},
-                    onNavigate = {}
+                    onNavigate = {},
+                    isDarkTheme = false
                 )
             }
         }
@@ -141,7 +144,8 @@ private fun LeiterbereichStufeCardViewPreview2() {
                     cardWidth = 120.dp,
                     stufe = stufe,
                     onButtonClick = {},
-                    onNavigate = {}
+                    onNavigate = {},
+                    isDarkTheme = false
                 )
             }
         }

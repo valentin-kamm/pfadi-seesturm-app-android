@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressDocument
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.documents.components.DocumentCardView
@@ -78,9 +79,7 @@ private fun DocumentsContentView(
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = documentType.title,
-        onNavigateBack = {
-            navController.navigateUp()
-        }
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() },
     ) { topBarInnerPadding ->
 
         val combinedPadding = bottomNavigationInnerPadding.intersectWith(

@@ -42,7 +42,7 @@ fun AktivitaetDetailLoadingCardView(
             ) {
                 RedactedText(
                     numberOfLines = 1,
-                    textStyle = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                    textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                     lastLineFraction = 0.8f,
                     modifier = Modifier
                         .weight(1f)

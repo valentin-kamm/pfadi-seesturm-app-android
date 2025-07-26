@@ -59,12 +59,14 @@ fun LeiterbereichTopHorizontalScrollView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .padding(8.dp)
+                        .padding(6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Fastfood,
                         contentDescription = null,
-                        tint = Color.SEESTURM_RED
+                        tint = Color.SEESTURM_RED,
+                        modifier = Modifier
+                            .size(20.dp)
                     )
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -73,7 +75,7 @@ fun LeiterbereichTopHorizontalScrollView(
                         Text(
                             text = "Essen bestellen",
                             maxLines = 1,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -84,7 +86,7 @@ fun LeiterbereichTopHorizontalScrollView(
                             UiState.Loading -> {
                                 RedactedText(
                                     numberOfLines = 1,
-                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    textStyle = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier
                                         .width(75.dp)
                                 )
@@ -96,7 +98,7 @@ fun LeiterbereichTopHorizontalScrollView(
                                     contentDescription = null,
                                     tint = Color.SEESTURM_RED,
                                     modifier = Modifier
-                                        .size(15.dp)
+                                        .size(12.dp)
                                 )
                             }
 
@@ -109,7 +111,7 @@ fun LeiterbereichTopHorizontalScrollView(
                                 Text(
                                     text = orderString,
                                     maxLines = 1,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.labelSmall,
                                     overflow = TextOverflow.Ellipsis,
                                     textAlign = TextAlign.Start,
                                     color = MaterialTheme.colorScheme.onBackground,

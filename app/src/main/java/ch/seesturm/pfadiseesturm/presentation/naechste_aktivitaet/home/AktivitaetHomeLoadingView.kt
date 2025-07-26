@@ -43,7 +43,7 @@ fun AktivitaetHomeLoadingView(
             ) {
                 RedactedText(
                     numberOfLines = 1,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
                         .weight(1f)
                 )

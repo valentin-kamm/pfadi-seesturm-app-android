@@ -81,7 +81,7 @@ fun SchoepflialarmLoadingCardView(
                         backgroundColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         shadowColor = Color.Transparent,
                         modifier = Modifier
-                            .height(36.dp)
+                            .height(32.dp)
                             .weight(1f)
                             .graphicsLayer()
                             .customLoadingBlinking()

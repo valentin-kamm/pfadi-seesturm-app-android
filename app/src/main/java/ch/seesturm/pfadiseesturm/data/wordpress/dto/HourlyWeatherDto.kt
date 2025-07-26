@@ -16,8 +16,11 @@ data class HourlyWeatherDto(
 )
 
 fun HourlyWeatherDto.toHourlyWeather(): HourlyWeather {
+
+    val targetDisplayTimezone = ZoneId.of("Europe/Zurich")
+
     return HourlyWeather(
-        forecastStart = DateTimeUtil.shared.parseIsoDateWithOffset(forecastStart).atZone(ZoneId.systemDefault()),
+        forecastStart = DateTimeUtil.shared.parseIsoDateWithOffset(forecastStart).atZone(targetDisplayTimezone),
         cloudCoverPercentage = 100 * cloudCover,
         precipitationType = precipitationType,
         precipitationAmount = precipitationAmount,

@@ -30,9 +30,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         manifestPlaceholders["appAuthRedirectScheme"] = "https"
-
     }
-
     signingConfigs {
         create("release") {
 
@@ -154,4 +152,7 @@ dependencies {
 
     // splash screen
     implementation(libs.androidx.core.splashscreen)
+
+    // zooming on images
+    implementation(libs.zoomable)
 }

@@ -2,6 +2,7 @@ package ch.seesturm.pfadiseesturm.presentation.common
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 private typealias snackbarHost = @Composable () -> Unit
 

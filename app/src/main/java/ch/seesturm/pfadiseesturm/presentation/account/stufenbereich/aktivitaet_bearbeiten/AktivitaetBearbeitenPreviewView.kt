@@ -23,6 +23,7 @@ import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 fun AktivitaetBearbeitenPreviewView(
     aktivitaet: GoogleCalendarEvent,
     stufe: SeesturmStufe,
+    isDarkTheme: Boolean,
     listState: LazyListState = rememberLazyListState()
 ) {
 
@@ -38,6 +39,7 @@ fun AktivitaetBearbeitenPreviewView(
                 aktivitaet = aktivitaet,
                 stufe = stufe,
                 mode = AktivitaetDetailViewMode.ViewOnly,
+                isDarkTheme = isDarkTheme,
                 modifier = Modifier
                     .fillMaxWidth()
             )
@@ -51,8 +53,8 @@ private fun AktivitaetBearbeitenPreviewViewPreview() {
     PfadiSeesturmTheme {
         AktivitaetBearbeitenPreviewView(
             aktivitaet = DummyData.aktivitaet1,
-            stufe = SeesturmStufe.Wolf
-
+            stufe = SeesturmStufe.Wolf,
+            isDarkTheme = false
         )
     }
 }

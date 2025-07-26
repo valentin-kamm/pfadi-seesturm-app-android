@@ -45,14 +45,14 @@ fun StufenbereichAnAbmeldungLoadingCell(
                 .padding(16.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
                 RedactedText(
-                    numberOfLines = 2,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    numberOfLines = 1,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     lastLineFraction = 0.75f,
                     modifier = Modifier
                         .weight(1f)

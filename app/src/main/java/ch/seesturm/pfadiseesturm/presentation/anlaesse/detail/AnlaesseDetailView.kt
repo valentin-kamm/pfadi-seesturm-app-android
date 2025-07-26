@@ -13,8 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,8 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -32,21 +30,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.CalendarSubscriptionAlert
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
-import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.subscribeToCalendar
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
@@ -59,31 +56,12 @@ fun AnlaesseDetailView(
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    CalendarSubscriptionAlert (
-        isShown = uiState.showCalendarSubscriptionAlert,
-        title = "Kalender kann nicht abonniert werden",
-        calendar = calendar,
-        onDismiss = {
-            viewModel.updateAlertVisibility(false)
-        }
-    )
 
     AnlaesseDetailContentView(
         terminState = uiState.eventState,
         calendar = calendar,
         navController = navController,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-        onSubscribeToCalendar = {
-            val subscriptionResult = subscribeToCalendar(
-                subscriptionUrl = calendar.subscriptionUrl,
-                context = context
-            )
-            if (subscriptionResult is SeesturmResult.Error) {
-                viewModel.updateAlertVisibility(true)
-            }
-        },
         onRetry = {
             viewModel.getEvent()
         }
@@ -97,26 +75,15 @@ fun AnlaesseDetailContentView(
     calendar: SeesturmCalendar,
     navController: NavController,
     bottomNavigationInnerPadding: PaddingValues,
-    onSubscribeToCalendar: () -> Unit,
     onRetry: () -> Unit,
     columnState: LazyListState = rememberLazyListState()
 ) {
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
-        onNavigateBack = {
-            navController.navigateUp()
-        },
+        navigationAction = TopBarNavigationIcon.Back { navController.navigateUp() },
         actions = {
-            IconButton(
-                onClick = onSubscribeToCalendar
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = if (calendar.isLeitungsteam) Color.SEESTURM_RED else Color.SEESTURM_GREEN
-                )
-            }
+            CalendarSubscriptionButton(calendar)
         }
     ) { topBarInnerPadding ->
 
@@ -152,12 +119,12 @@ fun AnlaesseDetailContentView(
                         ) {
                             RedactedText(
                                 2,
-                                MaterialTheme.typography.displaySmall,
+                                MaterialTheme.typography.headlineMedium,
                                 lastLineFraction = 0.4f
                             )
                             RedactedText(
                                 10,
-                                MaterialTheme.typography.bodyLarge,
+                                MaterialTheme.typography.bodyMedium,
                                 lastLineFraction = 0.75f
                             )
                         }
@@ -188,7 +155,7 @@ fun AnlaesseDetailContentView(
                         ) {
                             Text(
                                 terminState.data.title,
-                                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                                 textAlign = TextAlign.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -215,7 +182,7 @@ fun AnlaesseDetailContentView(
                             TextWithIcon(
                                 type = TextWithIconType.Text(
                                     text = terminState.data.fullDateTimeFormatted,
-                                    textStyle = { MaterialTheme.typography.bodyLarge }
+                                    textStyle = { MaterialTheme.typography.bodyMedium }
                                 ),
                                 imageVector = Icons.Outlined.CalendarMonth,
                                 textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
@@ -228,7 +195,7 @@ fun AnlaesseDetailContentView(
                                 TextWithIcon(
                                     type = TextWithIconType.Text(
                                         text = terminState.data.location,
-                                        textStyle = { MaterialTheme.typography.bodyLarge }
+                                        textStyle = { MaterialTheme.typography.bodyMedium }
                                     ),
                                     imageVector = Icons.Outlined.LocationOn,
                                     textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
@@ -265,7 +232,6 @@ private fun AnlaesseDetailViewPreview1() {
             calendar = SeesturmCalendar.TERMINE,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }
@@ -279,7 +245,6 @@ private fun AnlaesseDetailViewPreview2() {
             calendar = SeesturmCalendar.TERMINE,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }
@@ -293,7 +258,6 @@ private fun AnlaesseDetailViewPreview3() {
             calendar = SeesturmCalendar.TERMINE,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }
@@ -307,7 +271,6 @@ private fun AnlaesseDetailViewPreview4() {
             calendar = SeesturmCalendar.TERMINE,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }
@@ -321,7 +284,6 @@ private fun AnlaesseDetailViewPreview5() {
             calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }
@@ -335,7 +297,6 @@ private fun AnlaesseDetailViewPreview6() {
             calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
             navController = rememberNavController(),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onSubscribeToCalendar = {},
             onRetry = {}
         )
     }

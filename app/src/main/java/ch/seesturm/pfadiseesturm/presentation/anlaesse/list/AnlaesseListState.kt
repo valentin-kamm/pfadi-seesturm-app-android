@@ -7,6 +7,5 @@ data class AnlaesseListState(
     val result: InfiniteScrollUiState<List<GoogleCalendarEvent>> = InfiniteScrollUiState.Loading,
     val nextPageToken: String? = "",
     val lastUpdated: String = "",
-    val refreshing: Boolean = false,
-    val showCalendarSubscriptionAlert: Boolean = false
+    val refreshing: Boolean = false
 )

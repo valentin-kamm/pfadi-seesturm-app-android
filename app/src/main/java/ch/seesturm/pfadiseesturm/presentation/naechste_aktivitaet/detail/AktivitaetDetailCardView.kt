@@ -29,6 +29,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +52,7 @@ fun AktivitaetDetailCardView(
     aktivitaet: GoogleCalendarEvent?,
     stufe: SeesturmStufe,
     mode: AktivitaetDetailViewMode,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -72,13 +74,13 @@ fun AktivitaetDetailCardView(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier
                             .weight(1f)
                     ) {
                         Text(
                             text = aktivitaet.title,
-                            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                             textAlign = TextAlign.Start
                         )
                         TextWithIcon(
@@ -174,7 +176,7 @@ fun AktivitaetDetailCardView(
                                 style = SpanStyle(
                                     fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                                     fontWeight = FontWeight.Bold,
-                                    color = stufe.highContrastColor()
+                                    color = stufe.highContrastColor(isDarkTheme)
                                 )
                             ) {
                                 append("Zeit: ")
@@ -195,7 +197,7 @@ fun AktivitaetDetailCardView(
                         }
                     ),
                     imageVector = Icons.Outlined.AccessTime,
-                    iconTint = stufe.highContrastColor(),
+                    iconTint = stufe.highContrastColor(isDarkTheme),
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -208,7 +210,7 @@ fun AktivitaetDetailCardView(
                                     style = SpanStyle(
                                         fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                                         fontWeight = FontWeight.Bold,
-                                        color = stufe.highContrastColor()
+                                        color = stufe.highContrastColor(isDarkTheme)
                                     )
                                 ) {
                                     append("Treffpunkt: ")
@@ -229,7 +231,7 @@ fun AktivitaetDetailCardView(
                             }
                         ),
                         imageVector = Icons.Outlined.LocationOn,
-                        iconTint = stufe.highContrastColor(),
+                        iconTint = stufe.highContrastColor(isDarkTheme),
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -243,8 +245,8 @@ fun AktivitaetDetailCardView(
                             textStyle = { MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold) }
                         ),
                         imageVector = Icons.Outlined.Info,
-                        textColor = stufe.highContrastColor(),
-                        iconTint = stufe.highContrastColor(),
+                        textColor = stufe.highContrastColor(isDarkTheme),
+                        iconTint = stufe.highContrastColor(isDarkTheme),
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -264,20 +266,20 @@ fun AktivitaetDetailCardView(
                 ) {
                     stufe.allowedAktivitaetInteractions.forEach { interaction ->
                         SeesturmButton(
-                            type = SeesturmButtonType.Primary(
+                            type = SeesturmButtonType.Secondary(
                                 buttonColor = interaction.color,
                                 icon = SeesturmButtonIconType.Predefined(
                                     icon = interaction.icon
                                 )
                             ),
-                            enabled = mode is AktivitaetDetailViewMode.Interactive,
                             title = interaction.verb.capitalize(Locale("de-CH")),
                             onClick = {
                                 if (mode is AktivitaetDetailViewMode.Interactive) {
                                     mode.onOpenSheet(interaction)
                                 }
                             },
-                            isLoading = false
+                            isLoading = false,
+                            enabled = mode is AktivitaetDetailViewMode.Interactive
                         )
                     }
                 }
@@ -298,7 +300,7 @@ fun AktivitaetDetailCardView(
                 ) {
                     Text(
                         text = stufe.stufenName,
-                        style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .weight(1f)
@@ -365,7 +367,8 @@ private fun AktivitaetDetailCardViewPreview1() {
                 onOpenSheet = { _ -> }
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isDarkTheme = false
         )
     }
 }
@@ -381,7 +384,8 @@ private fun AktivitaetDetailCardViewPreview2() {
                 onOpenSheet = { _ -> }
             ),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isDarkTheme = false
         )
     }
 }
@@ -394,7 +398,8 @@ private fun AktivitaetDetailCardViewPreview3() {
             stufe = SeesturmStufe.Pfadi,
             mode = AktivitaetDetailViewMode.ViewOnly,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isDarkTheme = false
         )
     }
 }

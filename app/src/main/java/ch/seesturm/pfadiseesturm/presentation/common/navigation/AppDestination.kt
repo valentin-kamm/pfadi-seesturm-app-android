@@ -110,19 +110,11 @@ sealed class AppDestination {
                         val title: String
                     ): Destinations()
 
-                    // nested graph to share viewmodel
                     @Serializable
-                    data class PhotosGraph(
+                    data class Photos(
                         val id: String,
                         val title: String
-                    ): Destinations() {
-
-                        @Serializable
-                        data object Photos: Destinations()
-
-                        @Serializable
-                        data object PhotosSlider: Destinations()
-                    }
+                    ): Destinations()
 
                     @Serializable
                     data object GespeichertePersonen: Destinations()

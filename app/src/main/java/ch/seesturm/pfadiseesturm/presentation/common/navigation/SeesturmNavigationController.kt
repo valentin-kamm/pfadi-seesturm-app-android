@@ -1,6 +1,8 @@
 package ch.seesturm.pfadiseesturm.presentation.common.navigation
 
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 object SeesturmNavigationController {

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +43,7 @@ import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
@@ -179,38 +181,40 @@ private fun SchoepflialarmSheetContentView(
                     item(
                         key = "SchoepflialarmSheetSchoepflialarmMessageLoadingHeader"
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .animateItem()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        CustomCardView {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalAlignment = Alignment.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .animateItem()
                             ) {
-                                Box(
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     modifier = Modifier
-                                        .clip(CircleShape)
-                                        .graphicsLayer()
-                                        .size(30.dp)
-                                        .customLoadingBlinking()
-                                        .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                                        .wrapContentSize()
-                                )
+                                        .fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .graphicsLayer()
+                                            .size(30.dp)
+                                            .customLoadingBlinking()
+                                            .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                                            .wrapContentSize()
+                                    )
+                                    RedactedText(
+                                        numberOfLines = 1,
+                                        textStyle = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                                 RedactedText(
                                     numberOfLines = 1,
                                     textStyle = MaterialTheme.typography.bodyMedium
                                 )
                             }
-                            RedactedText(
-                                numberOfLines = 1,
-                                textStyle = MaterialTheme.typography.bodyMedium
-                            )
                         }
                     }
                     SchoepflialarmReactionType.entries.sortedBy { it.sortingOrder }.forEach { reactionType ->
@@ -259,60 +263,65 @@ private fun SchoepflialarmSheetContentView(
                     item(
                         key = "SchoepflialarmSheetSchoepflialarmMessageHeader"
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .animateItem()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        CustomCardView {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalAlignment = Alignment.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(16.dp)
                             ) {
-                                CircleProfilePictureView(
-                                    user = user,
-                                    size = 30.dp
-                                )
-                                Text(
-                                    text = schoepflialarmResult.data.user?.displayNameShort ?: "Unbekannter Benutzer",
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    overflow = TextOverflow.Ellipsis,
-                                    maxLines = 2,
-                                    textAlign = TextAlign.Start,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .weight(1f)
-                                )
+                                ) {
+                                    CircleProfilePictureView(
+                                        user = user,
+                                        size = 30.dp
+                                    )
+                                    Text(
+                                        text = schoepflialarmResult.data.user?.displayNameShort ?: "Unbekannter Benutzer",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+                                        overflow = TextOverflow.Ellipsis,
+                                        maxLines = 2,
+                                        textAlign = TextAlign.Start,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                    )
+                                    Text(
+                                        text = schoepflialarmResult.data.createdFormatted,
+                                        style = MaterialTheme.typography.labelSmall.copy(hyphens = Hyphens.Auto),
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.End,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        maxLines = 2,
+                                        modifier = Modifier
+                                            .alpha(0.4f)
+                                            .weight(0.5f)
+                                    )
+                                }
                                 Text(
-                                    text = schoepflialarmResult.data.createdFormatted,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.End,
+                                    text = schoepflialarmResult.data.message,
+                                    style = MaterialTheme.typography.bodyMedium.copy(hyphens = Hyphens.Auto),
+                                    textAlign = TextAlign.Start,
                                     color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 2,
                                     modifier = Modifier
-                                        .alpha(0.4f)
+                                        .fillMaxWidth()
                                 )
                             }
-                            Text(
-                                text = schoepflialarmResult.data.message,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Start,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
                         }
                     }
                     SchoepflialarmReactionType.entries.sortedBy { it.sortingOrder }.forEach { reactionType ->
                         item(
                             key = "SchoepflialarmSheetReactionSection${reactionType.rawValue}"
                         ) {
+
+                            val reactions = schoepflialarmResult.data.reactions(reactionType)
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -322,7 +331,7 @@ private fun SchoepflialarmSheetContentView(
                                 TextWithIcon(
                                     imageVector = reactionType.icon,
                                     type = TextWithIconType.Text(
-                                        text = reactionType.title.uppercase(),
+                                        text = "${reactionType.title.uppercase()} (${reactions.count()})",
                                         textStyle = { MaterialTheme.typography.bodyMedium }
                                     ),
                                     iconTint = reactionType.color,
@@ -333,8 +342,6 @@ private fun SchoepflialarmSheetContentView(
                                         .padding(vertical = 8.dp, horizontal = 32.dp)
                                 )
                             }
-
-                            val reactions = schoepflialarmResult.data.reactions(reactionType)
 
                             if (reactions.isNotEmpty()) {
                                 reactions.forEachIndexed { index, reaction ->
@@ -360,7 +367,7 @@ private fun SchoepflialarmSheetContentView(
                                                     Text(
                                                         text = reaction.user?.displayNameShort
                                                             ?: "Unbekannter Benutzer",
-                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(hyphens = Hyphens.Auto),
                                                         textAlign = TextAlign.Start,
                                                         color = MaterialTheme.colorScheme.onBackground,
                                                         modifier = Modifier
@@ -369,7 +376,7 @@ private fun SchoepflialarmSheetContentView(
                                                     )
                                                     Text(
                                                         text = reaction.createdFormatted,
-                                                        style = MaterialTheme.typography.bodySmall,
+                                                        style = MaterialTheme.typography.labelSmall.copy(hyphens = Hyphens.Auto),
                                                         overflow = TextOverflow.Ellipsis,
                                                         textAlign = TextAlign.End,
                                                         color = MaterialTheme.colorScheme.onBackground,
@@ -397,7 +404,7 @@ private fun SchoepflialarmSheetContentView(
                                         content = {
                                             Text(
                                                 text = "Keine Reaktionen",
-                                                style = MaterialTheme.typography.bodyMedium,
+                                                style = MaterialTheme.typography.bodyMedium.copy(hyphens = Hyphens.Auto),
                                                 textAlign = TextAlign.Start,
                                                 color = MaterialTheme.colorScheme.onBackground,
                                                 modifier = Modifier
@@ -422,23 +429,11 @@ private fun SchoepflialarmSheetContentView(
                                 .padding(horizontal = 16.dp)
                                 .animateItem()
                         )
-                        PushNotificationToggle(
-                            items = (0..1).toList(),
-                            topic = SeesturmFCMNotificationTopic.SchoepflialarmReaction,
-                            index = 0,
-                            state = notificationTopicsReadingState,
-                            actionState = togglePushNotificationState,
-                            onToggle = { isOn ->
-                                onPushNotificationToggle(isOn)
-                            },
-                            modifier = Modifier
-                                .animateItem()
-                        )
                         FormItem(
                             modifier = Modifier
                                 .animateItem(),
                             items = (0..1).toList(),
-                            index = 1,
+                            index = 0,
                             mainContent = FormItemContentType.Custom(
                                 content = {
                                     Row(
@@ -451,9 +446,9 @@ private fun SchoepflialarmSheetContentView(
                                         SchoepflialarmReactionType.entries.sortedBy { it.sortingOrder }
                                             .forEach { reaction ->
                                                 SeesturmButton(
-                                                    type = SeesturmButtonType.Primary(
+                                                    type = SeesturmButtonType.Secondary(
                                                         buttonColor = reaction.color,
-                                                        contentColor = Color.White,
+                                                        contentColor = reaction.onReactionColor,
                                                         icon = SeesturmButtonIconType.Predefined(
                                                             icon = reaction.icon
                                                         )
@@ -472,6 +467,18 @@ private fun SchoepflialarmSheetContentView(
                                 }
                             )
                         )
+                        PushNotificationToggle(
+                            items = (0..1).toList(),
+                            topic = SeesturmFCMNotificationTopic.SchoepflialarmReaction,
+                            index = 1,
+                            state = notificationTopicsReadingState,
+                            actionState = togglePushNotificationState,
+                            onToggle = { isOn ->
+                                onPushNotificationToggle(isOn)
+                            },
+                            modifier = Modifier
+                                .animateItem()
+                        )
                     }
                 }
             }
@@ -486,7 +493,7 @@ private fun SchoepflialarmSheetContentView(
                             .hazeEffect(hazeState, style = CupertinoMaterials.thin())
                     } else {
                         Modifier
-                            .background(MaterialTheme.colorScheme.background)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     }
                 )
         ) {

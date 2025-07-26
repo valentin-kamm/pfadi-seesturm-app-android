@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PersonAddAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,28 +22,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.CalendarSubscriptionAlert
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
-import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.subscribeToCalendar
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @Composable
 fun AktivitaetDetailView(
@@ -58,17 +56,9 @@ fun AktivitaetDetailView(
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val showGespeichertePersonenDropdown = rememberSaveable { mutableStateOf(false) }
-    val context = LocalContext.current
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
-    CalendarSubscriptionAlert (
-        isShown = uiState.showCalendarSubscriptionAlert,
-        title = "Kalender der ${stufe.stufenName} kann nicht abonniert werden",
-        calendar = stufe.calendar,
-        onDismiss = {
-            viewModel.updateCalendarSubscriptionAlertVisibility(false)
-        }
-    )
+    val showGespeichertePersonenDropdown = rememberSaveable { mutableStateOf(false) }
 
     fun showSheet(interaction: AktivitaetInteractionType) {
 
@@ -161,15 +151,7 @@ fun AktivitaetDetailView(
         onOpenSheet = { interaction ->
             showSheet(interaction)
         },
-        onSubscribeToCalendar = {
-            val result = subscribeToCalendar(
-                subscriptionUrl = stufe.calendar.subscriptionUrl,
-                context = context
-            )
-            if (result is SeesturmResult.Error) {
-                viewModel.updateCalendarSubscriptionAlertVisibility(true)
-            }
-        },
+        isDarkTheme = appState.theme.isDarkTheme,
         modifier = modifier
     )
 
@@ -185,7 +167,7 @@ private fun AktivitaetDetailContentView(
     onNavigateBack: () -> Unit,
     onRetry: () -> Unit,
     onOpenSheet: (AktivitaetInteractionType) -> Unit,
-    onSubscribeToCalendar: () -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier,
     columnState: LazyListState = rememberLazyListState()
 ) {
@@ -193,19 +175,10 @@ private fun AktivitaetDetailContentView(
     TopBarScaffold(
         title = stufe.aktivitaetDescription,
         topBarStyle = TopBarStyle.Small,
-        onNavigateBack = {
-            onNavigateBack()
-        },
+        navigationAction = TopBarNavigationIcon.Back { onNavigateBack() },
         modifier = modifier,
         actions = {
-            IconButton(
-                onClick = onSubscribeToCalendar
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null
-                )
-            }
+            CalendarSubscriptionButton(stufe.calendar)
             if (type is AktivitaetDetailViewLocation.Home) {
                 IconButton(
                     onClick = {
@@ -277,6 +250,7 @@ private fun AktivitaetDetailContentView(
                                     onOpenSheet = onOpenSheet
                                 )
                             },
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem()
@@ -305,8 +279,8 @@ private fun AktivitaetDetailViewPreview1() {
             onNavigateBack = {},
             onRetry = {},
             onOpenSheet = {},
-            onSubscribeToCalendar = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }
@@ -327,8 +301,8 @@ private fun AktivitaetDetailViewPreview2() {
             onNavigateBack = {},
             onRetry = {},
             onOpenSheet = {},
-            onSubscribeToCalendar = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }
@@ -349,8 +323,8 @@ private fun AktivitaetDetailViewPreview3() {
             onNavigateBack = {},
             onRetry = {},
             onOpenSheet = {},
-            onSubscribeToCalendar = {},
-            modifier = Modifier
+            modifier = Modifier,
+            isDarkTheme = false
         )
     }
 }

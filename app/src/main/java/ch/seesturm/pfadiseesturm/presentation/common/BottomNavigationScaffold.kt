@@ -158,6 +158,8 @@ fun BottomNavigationScaffold(
         appState.sheetContent?.let { sheetContent ->
             ModalBottomSheet(
                 sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                tonalElevation = 16.dp,
                 onDismissRequest = {
                     appStateViewModel.updateSheetContent(null)
                 }
@@ -200,7 +202,7 @@ fun BottomNavigationScaffold(
                                         },
                                         colors = TopAppBarColors(
                                             containerColor = MaterialTheme.colorScheme.background,
-                                            scrolledContainerColor = MaterialTheme.colorScheme.background,
+                                            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                             navigationIconContentColor = Color.SEESTURM_GREEN,
                                             titleContentColor = MaterialTheme.colorScheme.onBackground,
                                             actionIconContentColor = Color.SEESTURM_GREEN,

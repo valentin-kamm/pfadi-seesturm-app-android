@@ -1,6 +1,18 @@
 package ch.seesturm.pfadiseesturm.util
 
 import android.os.Build
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import com.google.firebase.Timestamp
 import java.time.DayOfWeek
@@ -93,16 +105,16 @@ class DateTimeUtil {
         // Beispiele:
 
         // ganztägiges event (1 tag)
-        // 13. Oktober 2025, ganztägig
+        // Samstag, 13. Oktober 2025, ganztägig
 
         // ganztägiges event (mehrere Tag)
-        // 13. Oktober 2025 bis 14. Oktober 2025, ganztägig
+        // Samstag, 13. Oktober 2025 bis Sonntag, 14. Oktober 2025, ganztägig
 
         // nicht-ganztägiges event (1 tag)
-        // 13. Oktober 2025, 13:00 bis 14:00 Uhr
+        // Samstag, 13. Oktober 2025, 13:00 bis 14:00 Uhr
 
         // nicht-ganztägiges event (mehrere Tage)
-        // 13. Oktober 2025, 13:00 Uhr bis 14. Oktober 2025, 14:00 Uhr
+        // Samstag, 13. Oktober 2025, 13:00 Uhr bis Sonntag, 14. Oktober 2025, 14:00 Uhr
 
         if (endDate < startDate) {
             throw PfadiSeesturmAppError.DateError("Enddatum ist kleiner als Startdatum.")
@@ -112,25 +124,25 @@ class DateTimeUtil {
 
         val firstPart = if (isAllDay && isSingleDay) {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy")
+                .ofPattern("EEEE, dd. MMMM yyyy")
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + ", ganztägig"
         }
         else if (isAllDay) {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy")
+                .ofPattern("EEEE, dd. MMMM yyyy")
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + " bis "
         }
         else if (isSingleDay) {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy, HH:mm")
+                .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + " bis "
         }
         else {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy, HH:mm")
+                .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
                 .withLocale(Locale("de", "CH"))
             formatter.format(startDate) + " Uhr bis "
         }
@@ -140,7 +152,7 @@ class DateTimeUtil {
         }
         else if (isAllDay) {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy")
+                .ofPattern("EEEE, dd. MMMM yyyy")
                 .withLocale(Locale("de", "CH"))
             formatter.format(endDate) + ", ganztägig"
         }
@@ -152,7 +164,7 @@ class DateTimeUtil {
         }
         else {
             val formatter = DateTimeFormatter
-                .ofPattern("dd. MMMM yyyy, HH:mm")
+                .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
                 .withLocale(Locale("de", "CH"))
             formatter.format(endDate) + " Uhr"
         }
@@ -274,6 +286,164 @@ class DateTimeUtil {
                 "dd. MMM",
                 DateFormattingType.Absolute
             )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun DateTimeCheckPreview() {
+
+    val heute = ZonedDateTime.now()
+    val heuteSpäter = heute.plusHours(2)
+    val vorvorgestern = heute.minusDays(3)
+    val vorgestern = heute.minusDays(2)
+    val gestern = heute.minusDays(1)
+    val morgen = heute.plusDays(1)
+    val übermorgen = heute.plusDays(2)
+    val überübermorgen = heute.plusDays(3)
+
+    PfadiSeesturmTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorvorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = gestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = heute,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = morgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = übermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = überübermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = true)
+            ))
+
+            HorizontalDivider()
+            
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorvorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = gestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = heute,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = morgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = übermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = überübermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Relative(withTime = false)
+            ))
+
+            HorizontalDivider()
+
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorvorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = vorgestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = gestern,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = heute,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = morgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = übermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+            Text(DateTimeUtil.shared.formatDate(
+                date = überübermorgen,
+                format = "dd.MM.yyyy",
+                type = DateFormattingType.Absolute
+            ))
+
+            HorizontalDivider()
+
+            Text(DateTimeUtil.shared.formatDateRange(
+                startDate = heute,
+                endDate = morgen,
+                isAllDay = false
+            ))
+            Text(DateTimeUtil.shared.formatDateRange(
+                startDate = heute,
+                endDate = morgen,
+                isAllDay = true
+            ))
+            Text(DateTimeUtil.shared.formatDateRange(
+                startDate = heute,
+                endDate = heuteSpäter,
+                isAllDay = false
+            ))
+            Text(DateTimeUtil.shared.formatDateRange(
+                startDate = heute,
+                endDate = heuteSpäter,
+                isAllDay = true
+            ))
         }
     }
 }

@@ -25,6 +25,7 @@ fun AktivitaetHomeHorizontalScrollView(
     screenWidth: Dp,
     onRetry: (SeesturmStufe) -> Unit,
     onNavigate: (AppDestination.MainTabView.Destinations.Home.Destinations) -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -86,6 +87,7 @@ fun AktivitaetHomeHorizontalScrollView(
                                         )
                                     )
                                 },
+                                isDarkTheme = isDarkTheme,
                                 modifier = Modifier
                                     .width(cardWidth)
                                     .animateItem()
@@ -118,6 +120,7 @@ private fun AktivitaetHomeHorizontalScrollViewPreview() {
             screenWidth = 400.dp,
             onRetry = {},
             onNavigate = {},
+            isDarkTheme = false,
             modifier = Modifier
         )
     }

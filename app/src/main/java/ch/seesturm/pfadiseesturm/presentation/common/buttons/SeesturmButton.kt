@@ -28,12 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
+import com.patrykandpatrick.vico.compose.common.fill
 
 @Composable
 fun SeesturmButton(
@@ -193,7 +195,11 @@ private fun SeesturmButtonContent(
             if (title != null) {
                 Text(
                     text = title,
-                    color = contentColor
+                    color = contentColor,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
                 )
             }
             when (icon) {

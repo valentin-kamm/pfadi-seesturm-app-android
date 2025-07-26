@@ -276,14 +276,6 @@ class AktivitaetDetailViewModel(
         }
     }
 
-    fun updateCalendarSubscriptionAlertVisibility(isVisible: Boolean) {
-        _state.update {
-            it.copy(
-                showCalendarSubscriptionAlert = isVisible
-            )
-        }
-    }
-
     fun setGespeichertePerson(person: GespeichertePerson) {
         updateVorname(person.vorname)
         updateNachname(person.nachname)

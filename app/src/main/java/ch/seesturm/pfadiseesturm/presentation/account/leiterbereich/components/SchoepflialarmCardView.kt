@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,7 +58,7 @@ fun SchoepflialarmCardView(
                 )
                 Text(
                     text = schoepflialarm.user?.displayNameShort ?: "Unbekannter Benutzer",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
                     textAlign = TextAlign.Start,
@@ -68,18 +69,19 @@ fun SchoepflialarmCardView(
                 )
                 Text(
                     text = schoepflialarm.createdFormatted,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall.copy(hyphens = Hyphens.Auto),
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.End,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 2,
                     modifier = Modifier
                         .alpha(0.4f)
+                        .weight(0.5f)
                 )
             }
             Text(
                 text = schoepflialarm.message,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(hyphens = Hyphens.Auto),
                 textAlign = TextAlign.Start,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
@@ -102,7 +104,7 @@ fun SchoepflialarmCardView(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp)
+                                .padding(6.dp)
                         ) {
                             TextWithIcon(
                                 imageVector = reaction.icon,
@@ -125,7 +127,10 @@ fun SchoepflialarmCardView(
 private fun SchoepflialarmCardViewPreview() {
     PfadiSeesturmTheme {
         SchoepflialarmCardView(
-            schoepflialarm = DummyData.schoepflialarm,
+            schoepflialarm = DummyData.schoepflialarm.copy(
+                createdFormatted = "Sonntag, 22. Juni, 00:00 Uhr",
+                user = DummyData.user1.copy(pfadiname = "Ein ganz langer Pfadiname")
+            ),
             user = DummyData.user1,
             onClick = {},
             modifier = Modifier

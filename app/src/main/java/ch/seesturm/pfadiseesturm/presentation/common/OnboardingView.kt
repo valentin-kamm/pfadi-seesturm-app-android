@@ -1,7 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.common
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -16,14 +15,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -54,6 +52,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -81,7 +80,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OnboardingView(
     viewModel: PushNachrichtenVerwaltenViewModel,
@@ -172,7 +170,7 @@ fun OnboardingView(
                 }
             }
         }
-    ) {
+    ) { innerPadding ->
         OnboardingContentView(
             onHideOnboardingScreen = {
                 onSetHasSeenOnboardingView()
@@ -192,7 +190,8 @@ fun OnboardingView(
                     requestPermission = requestPermission
                 )
             },
-            hadPreviousAppVersionInstalled = hadPreviousAppVersionInstalled
+            hadPreviousAppVersionInstalled = hadPreviousAppVersionInstalled,
+            innerPadding = innerPadding
         )
     }
 }
@@ -204,6 +203,7 @@ private fun OnboardingContentView(
     actionState: ActionState<SeesturmFCMNotificationTopic>,
     onToggle: (SeesturmFCMNotificationTopic, Boolean) -> Unit,
     hadPreviousAppVersionInstalled: Boolean,
+    innerPadding: PaddingValues,
     pagerState: PagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { 5 }
@@ -220,6 +220,7 @@ private fun OnboardingContentView(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
+            .padding(bottom = innerPadding.calculateBottomPadding())
     ) {
         HorizontalPager(
             state = pagerState,
@@ -233,13 +234,19 @@ private fun OnboardingContentView(
                     0.dp
                 }
                 else {
-                    WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp
+                    innerPadding.calculateTopPadding() + 16.dp
                 }
-                val startEndPadding = if (index == 0) {
-                    0.dp
+                val startPadding = if (index == 0) {
+                    innerPadding.calculateStartPadding(LayoutDirection.Ltr)
                 }
                 else {
-                    16.dp
+                    innerPadding.calculateStartPadding(LayoutDirection.Ltr) + 16.dp
+                }
+                val endPadding = if (index == 0) {
+                    innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+                }
+                else {
+                    innerPadding.calculateEndPadding(LayoutDirection.Ltr) + 16.dp
                 }
 
                 if (index in 0..3) {
@@ -250,8 +257,8 @@ private fun OnboardingContentView(
                             .padding(
                                 top = topPadding,
                                 bottom = 0.dp,
-                                start = startEndPadding,
-                                end = startEndPadding
+                                start = startPadding,
+                                end = endPadding
                             ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(32.dp, alignment = Alignment.Top)
@@ -436,8 +443,8 @@ private fun OnboardingContentView(
                         contentPadding = PaddingValues(
                             top = topPadding,
                             bottom = 0.dp,
-                            start = startEndPadding,
-                            end = startEndPadding
+                            start = endPadding,
+                            end = startPadding
                         ),
                         additionalTopContent = {
                             Text(
@@ -547,7 +554,8 @@ private fun OnboardingViewPreview() {
             subscribedTopicsState = UiState.Success(emptySet()),
             actionState = ActionState.Idle,
             onToggle = { _, _ -> },
-            hadPreviousAppVersionInstalled = true
+            hadPreviousAppVersionInstalled = true,
+            innerPadding = PaddingValues(0.dp)
         )
     }
 }

@@ -31,6 +31,7 @@ fun LeiterbereichStufenScrollView(
     selectedStufen: Set<SeesturmStufe>,
     screenWidth: Dp,
     accountNavController: NavController,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -98,6 +99,7 @@ fun LeiterbereichStufenScrollView(
                                 )
                             )
                         },
+                        isDarkTheme = isDarkTheme,
                         modifier = Modifier
                             .animateItem()
                     )
@@ -121,22 +123,26 @@ private fun LeiterbereichStufenScrollViewPreview() {
                 LeiterbereichStufenScrollView(
                     selectedStufen = emptySet(),
                     screenWidth = width,
-                    accountNavController = rememberNavController()
+                    accountNavController = rememberNavController(),
+                    isDarkTheme = false
                 )
                 LeiterbereichStufenScrollView(
                     selectedStufen = setOf(SeesturmStufe.Biber),
                     screenWidth = width,
-                    accountNavController = rememberNavController()
+                    accountNavController = rememberNavController(),
+                    isDarkTheme = false
                 )
                 LeiterbereichStufenScrollView(
                     selectedStufen = setOf(SeesturmStufe.Biber, SeesturmStufe.Wolf),
                     screenWidth = width,
-                    accountNavController = rememberNavController()
+                    accountNavController = rememberNavController(),
+                    isDarkTheme = false
                 )
                 LeiterbereichStufenScrollView(
                     selectedStufen = setOf(SeesturmStufe.Biber, SeesturmStufe.Wolf, SeesturmStufe.Pfadi, SeesturmStufe.Pio),
                     screenWidth = width,
-                    accountNavController = rememberNavController()
+                    accountNavController = rememberNavController(),
+                    isDarkTheme = false
                 )
             }
         }

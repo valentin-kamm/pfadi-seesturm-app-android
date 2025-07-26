@@ -103,7 +103,7 @@ fun TemplateListView(
             is UiState.Success -> {
                 if (state.data.isNotEmpty()) {
                     itemsIndexed(
-                        items = state.data.sortedBy { it.created },
+                        items = state.data.sortedByDescending { it.created },
                         key = { _, template ->
                             "TemplateListViewCell${template.id}"
                         }

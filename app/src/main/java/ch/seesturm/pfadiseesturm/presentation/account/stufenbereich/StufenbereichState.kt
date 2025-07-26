@@ -3,9 +3,10 @@ package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetAnAbmeldung
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
-import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -17,7 +18,7 @@ data class StufenbereichState(
     val sendPushNotificationState: ActionState<GoogleCalendarEventWithAnAbmeldungen> = ActionState.Idle,
     val refreshing: Boolean = false,
     val selectedAktivitaetInteraction: AktivitaetInteractionType = AktivitaetInteractionType.ABMELDEN,
-    val selectedDate: ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault()).minusMonths(3),
+    val selectedDate: ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault()).minusMonths(3).with(LocalTime.MIDNIGHT),
     val showDeleteAllAbmeldungenAlert: Boolean = false,
     val showDeleteAbmeldungenAlert: GoogleCalendarEventWithAnAbmeldungen? = null,
     val showSendPushNotificationAlert: GoogleCalendarEventWithAnAbmeldungen? = null

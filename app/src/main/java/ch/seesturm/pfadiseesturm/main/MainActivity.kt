@@ -1,6 +1,7 @@
 package ch.seesturm.pfadiseesturm.main
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -8,19 +9,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.authModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.dataStoreModule
+import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.wordpressModule
 import ch.seesturm.pfadiseesturm.presentation.common.UpdateRequiredView
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
@@ -29,9 +32,9 @@ import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 import ch.seesturm.pfadiseesturm.util.SeesturmAppIntent
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAppLink
-import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.viewModelFactoryHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -44,7 +47,8 @@ class MainActivity : ComponentActivity() {
                 themeService = dataStoreModule.selectedThemeService,
                 onboardingService = dataStoreModule.onboardingService,
                 wordpressApi = wordpressModule.wordpressApi,
-                currentAppBuild = getCurrentAppBuild()
+                currentAppBuild = getCurrentAppBuild(),
+                fcmService = fcmModule.fcmService
             )
         }
     }
@@ -53,6 +57,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
+
         enableEdgeToEdge()
 
         handleIntentIfNecessary(intent)
@@ -63,6 +68,28 @@ class MainActivity : ComponentActivity() {
             val overallNavController = rememberNavController()
             val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
+            LaunchedEffect(appState.allowedOrientation) {
+                requestedOrientation = when (appState.allowedOrientation) {
+                    AllowedOrientation.All -> {
+                        ActivityInfo.SCREEN_ORIENTATION_SENSOR
+                    }
+                    AllowedOrientation.PortraitOnly -> {
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    }
+                }
+            }
+
+            val isDarkTheme = appState.theme.isDarkTheme
+
+            // set color of system bar icons (clock, service, ...)
+            SideEffect {
+                val window = (this@MainActivity).window
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.isAppearanceLightStatusBars = !isDarkTheme
+                insetsController.isAppearanceLightNavigationBars = !isDarkTheme
+            }
+
             ObserveAsEvents(
                 flow = OnboardingController.events
             ) {
@@ -72,11 +99,7 @@ class MainActivity : ComponentActivity() {
             }
 
             PfadiSeesturmTheme(
-                darkTheme = when (appState.theme) {
-                    SeesturmAppTheme.Dark -> true
-                    SeesturmAppTheme.Light -> false
-                    SeesturmAppTheme.System -> isSystemInDarkTheme()
-                }
+                darkTheme = isDarkTheme
             ) {
                 if (appState.showAppVersionCheckOverlay) {
                     UpdateRequiredView(
@@ -158,6 +181,7 @@ class MainActivity : ComponentActivity() {
         // navigate to appropriate screen
         lifecycleScope.launch {
             SeesturmNavigationController.changeTab(intent.topic.targetTab)
+            delay(200)
             when (intent.topic) {
                 SeesturmFCMNotificationTopic.Schoepflialarm, SeesturmFCMNotificationTopic.SchoepflialarmReaction -> {
                     SeesturmNavigationController.navigateInAccount(AppDestination.MainTabView.Destinations.Account.Destinations.AccountRoot)

@@ -5,5 +5,4 @@ import ch.seesturm.pfadiseesturm.util.state.UiState
 
 data class AnlaesseDetailState(
     val eventState: UiState<GoogleCalendarEvent> = UiState.Loading,
-    val showCalendarSubscriptionAlert: Boolean = false
 )

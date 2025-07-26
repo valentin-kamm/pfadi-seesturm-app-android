@@ -39,7 +39,7 @@ fun MehrHorizontalPhotoScrollView(
                 }
             ) {
                 PhotoGalleryLoadingCell(
-                    size = 130.dp,
+                    size = 110.dp,
                     withText = true,
                     modifier = Modifier
                         .animateItem()
@@ -54,7 +54,7 @@ fun MehrHorizontalPhotoScrollView(
                 }
             ) { item ->
                 PhotoGalleryCell(
-                    size = 130.dp,
+                    size = 110.dp,
                     thumbnailUrl = item.thumbnailUrl,
                     title = item.title,
                     onClick = {

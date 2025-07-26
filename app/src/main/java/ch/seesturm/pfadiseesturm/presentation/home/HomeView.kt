@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellCardView
 import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
@@ -68,6 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeView(
     viewModel: HomeViewModel,
+    appStateViewModel: AppStateViewModel,
     calendar: SeesturmCalendar,
     bottomNavigationInnerPadding: PaddingValues,
     tabNavController: NavController,
@@ -75,6 +77,7 @@ fun HomeView(
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     HomeContentView(
         uiState = uiState,
@@ -120,7 +123,8 @@ fun HomeView(
             viewModel.viewModelScope.launch {
                 viewModel.fetchWeather(isPullToRefresh)
             }
-        }
+        },
+        isDarkTheme = appState.theme.isDarkTheme
     )
 }
 
@@ -138,6 +142,7 @@ private fun HomeContentView(
     onFetchPost: (Boolean) -> Unit,
     onFetchEvents: (Boolean) -> Unit,
     onFetchWeather: (Boolean) -> Unit,
+    isDarkTheme: Boolean,
     columnState: LazyListState = rememberLazyListState(),
     refreshState: PullToRefreshState = rememberPullToRefreshState()
 ) {
@@ -251,6 +256,7 @@ private fun HomeContentView(
                                         onFetchAktivitaet(stufe, false)
                                     },
                                     onNavigate = onNavigate,
+                                    isDarkTheme = isDarkTheme,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .animateItem()
@@ -465,6 +471,7 @@ private fun HomeContentView(
                         ) {
                             WeatherCardView(
                                 weather = weatherState.data,
+                                isDarkTheme = isDarkTheme,
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .animateItem()
@@ -482,7 +489,8 @@ private fun HomeContentView(
                 PullToRefreshDefaults.Indicator(
                     state = refreshState,
                     isRefreshing = uiState.refreshing,
-                    color = Color.SEESTURM_GREEN
+                    color = Color.SEESTURM_GREEN,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             }
         }
@@ -511,7 +519,8 @@ private fun HomeViewPreview1() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -540,7 +549,8 @@ private fun HomeViewPreview2() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -566,7 +576,8 @@ private fun HomeViewPreview3() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -594,7 +605,8 @@ private fun HomeViewPreview4() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -622,7 +634,8 @@ private fun HomeViewPreview5() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -648,7 +661,8 @@ private fun HomeViewPreview6() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }
@@ -676,7 +690,8 @@ private fun HomeViewPreview7() {
             onFetchAktivitaet = { _, _ -> },
             onFetchPost = {  },
             onFetchEvents = {  },
-            onFetchWeather = {  }
+            onFetchWeather = {  },
+            isDarkTheme = false
         )
     }
 }

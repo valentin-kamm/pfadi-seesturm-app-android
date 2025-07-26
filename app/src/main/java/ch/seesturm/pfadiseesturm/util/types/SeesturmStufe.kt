@@ -20,7 +20,7 @@ enum class SeesturmStufe(
     val calendar: SeesturmCalendar,
     val iconReference: Int,
     val color: Color,
-    val highContrastColor: @Composable () -> Color,
+    val highContrastColor: @Composable (Boolean) -> Color,
     val onHighContrastColor: @Composable () -> Color,
     val allowedAktivitaetInteractions: List<AktivitaetInteractionType>,
     val aktivitaetNotificationTopic: SeesturmFCMNotificationTopic
@@ -47,8 +47,8 @@ enum class SeesturmStufe(
         calendar = SeesturmCalendar.AKTIVITAETEN_WOLFSSTUFE,
         iconReference = R.drawable.wolf,
         color = Color.SEESTURM_YELLOW,
-        highContrastColor = {
-            if (androidx.compose.foundation.isSystemInDarkTheme()) {
+        highContrastColor = { isDarkTheme ->
+            if (isDarkTheme) {
                 Color.SEESTURM_YELLOW
             }
             else {

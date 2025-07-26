@@ -7,9 +7,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.BottomNavigationScaffold
 import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
-import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,7 +18,7 @@ fun TabNavigationHost(
     tabNavController: NavHostController = rememberNavController()
 ) {
 
-    // react to change tab events
+    // react to programmatic navigation events
     ObserveAsEvents(
         flow = SeesturmNavigationController.tabEvents
     ) { tabChangeEvent ->

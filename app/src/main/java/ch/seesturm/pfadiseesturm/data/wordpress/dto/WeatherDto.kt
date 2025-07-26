@@ -14,7 +14,9 @@ data class WeatherDto(
 
 fun WeatherDto.toWeather(): Weather {
 
-    val readDate = DateTimeUtil.shared.parseIsoDateWithOffset(iso8601DateString = readTime).atZone(ZoneId.systemDefault())
+    val targetDisplayTimezone = ZoneId.of("Europe/Zurich")
+
+    val readDate = DateTimeUtil.shared.parseIsoDateWithOffset(iso8601DateString = readTime).atZone(targetDisplayTimezone)
 
     return Weather(
         attributionURL = attributionURL,

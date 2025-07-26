@@ -19,8 +19,8 @@ import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
 import ch.seesturm.pfadiseesturm.util.SchoepflialarmError
 import ch.seesturm.pfadiseesturm.util.SchoepflialarmLocalizedError
-import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
+import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -137,14 +137,24 @@ class SchoepflialarmService(
         reaction: SchoepflialarmReactionType
     ): SeesturmResult<Unit, DataError.RemoteDatabase> {
 
-        val payload = SchoepflialarmReactionDto(
-            created = Timestamp.now(),
-            modified = Timestamp.now(),
-            userId = userId,
-            reaction = reaction.rawValue
-        )
+        try {
 
-        return try {
+            // check that user does not have a reaction yet
+            val currentReactions = firestoreRepository.readCollection(
+                collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions,
+                type = SchoepflialarmReactionDto::class.java
+            )
+            if (currentReactions.map { it.userId }.contains(userId)) {
+                return SeesturmResult.Error(DataError.RemoteDatabase.SAVING_ERROR)
+            }
+
+            val payload = SchoepflialarmReactionDto(
+                created = Timestamp.now(),
+                modified = Timestamp.now(),
+                userId = userId,
+                reaction = reaction.rawValue
+            )
+
             fcfRepository.sendPushNotification(
                 type = SeesturmFCMNotificationType.SchoepflialarmReactionGeneric(
                     userName = userDisplayNameShort,
@@ -155,10 +165,10 @@ class SchoepflialarmService(
                 item = payload,
                 collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions
             )
-            SeesturmResult.Success(Unit)
+            return SeesturmResult.Success(Unit)
         }
         catch (e: Exception) {
-            SeesturmResult.Error(DataError.RemoteDatabase.SAVING_ERROR)
+            return SeesturmResult.Error(DataError.RemoteDatabase.SAVING_ERROR)
         }
     }
 
