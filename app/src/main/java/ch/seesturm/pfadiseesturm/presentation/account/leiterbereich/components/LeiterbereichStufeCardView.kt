@@ -94,7 +94,8 @@ fun LeiterbereichStufeCardView(
                     },
                     modifier = Modifier
                         .padding(top = 8.dp),
-                    isLoading = false
+                    isLoading = false,
+                    allowHorizontalTextShrink = false
                 )
             }
             Icon(

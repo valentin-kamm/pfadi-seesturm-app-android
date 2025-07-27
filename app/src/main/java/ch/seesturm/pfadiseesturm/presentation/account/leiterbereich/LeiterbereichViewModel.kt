@@ -25,6 +25,7 @@ import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -204,6 +205,7 @@ class LeiterbereichViewModel(
             )
         }
         viewModelScope.launch {
+            delay(100)
             leiterbereichService.observeUsers()
                 .combine(leiterbereichService.observeFoodOrders()) { usersResult, foodResult ->
                     when (usersResult) {

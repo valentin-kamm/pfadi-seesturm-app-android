@@ -276,7 +276,7 @@ private fun AktivitaetBearbeitenContentView(
     )
 
     TopBarScaffold(
-        topBarStyle = TopBarStyle.Large,
+        topBarStyle = TopBarStyle.Small,
         title = mode.topBarTitle(stufe),
         navigationAction = TopBarNavigationIcon.Back { onNavigateBack() },
         modifier = modifier,

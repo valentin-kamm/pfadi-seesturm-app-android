@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class SeesturmAppTheme {
-    Dark,
     Light,
+    Dark,
     System;
 
     val description: String

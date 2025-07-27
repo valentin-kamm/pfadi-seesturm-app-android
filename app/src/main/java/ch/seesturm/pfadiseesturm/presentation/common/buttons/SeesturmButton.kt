@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
-import com.patrykandpatrick.vico.compose.common.fill
 
 @Composable
 fun SeesturmButton(
@@ -46,7 +45,8 @@ fun SeesturmButton(
     isLoading: Boolean = false,
     enabled: Boolean = !isLoading,
     disabledAlpha: Float = 0.6f,
-    iconSize: Dp = 18.dp
+    iconSize: Dp = 18.dp,
+    allowHorizontalTextShrink: Boolean = true
 ) {
 
     when (type) {
@@ -133,7 +133,8 @@ fun SeesturmButton(
                     contentColor = type.contentColor,
                     title = title,
                     isLoading = isLoading,
-                    iconSize = iconSize
+                    iconSize = iconSize,
+                    allowHorizontalTextShrink = allowHorizontalTextShrink
                 )
             }
         }
@@ -161,7 +162,8 @@ fun SeesturmButton(
                     contentColor = type.contentColor,
                     title = title,
                     isLoading = isLoading,
-                    iconSize = iconSize
+                    iconSize = iconSize,
+                    allowHorizontalTextShrink = allowHorizontalTextShrink
                 )
             }
         }
@@ -174,7 +176,8 @@ private fun SeesturmButtonContent(
     contentColor: Color,
     title: String?,
     isLoading: Boolean,
-    iconSize: Dp
+    iconSize: Dp,
+    allowHorizontalTextShrink: Boolean
 ) {
 
     Box(
@@ -199,7 +202,15 @@ private fun SeesturmButtonContent(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     modifier = Modifier
-                        .weight(1f, fill = false)
+                        .then(
+                            if (allowHorizontalTextShrink) {
+                                Modifier
+                                    .weight(1f, fill = false)
+                            }
+                            else {
+                                Modifier
+                            }
+                        )
                 )
             }
             when (icon) {

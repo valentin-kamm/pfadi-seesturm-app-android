@@ -35,16 +35,22 @@ fun SeesturmHTMLAddLinkView(
     val text = rememberSaveable { mutableStateOf("") }
     val url = rememberSaveable { mutableStateOf("") }
     val isUrlError = rememberSaveable { mutableStateOf(false) }
+    val isTextError = rememberSaveable { mutableStateOf(false) }
     
     fun onSubmit() {
-        if (url.value.isValidUrl) {
+        if (url.value.isValidUrl && text.value.trim().isNotEmpty()) {
             state.addLink(text.value.trim(), url.value.trim())
             onDismiss()
             text.value = ""
             url.value = ""
         }
         else {
-            isUrlError.value = true
+            if (!url.value.isValidUrl) {
+                isUrlError.value = true
+            }
+            if (text.value.trim().isEmpty()) {
+                isTextError.value = true
+            }
         }
     }
 
@@ -68,6 +74,7 @@ fun SeesturmHTMLAddLinkView(
                         value = text.value,
                         textStyle = MaterialTheme.typography.bodyMedium,
                         onValueChange = {
+                            isTextError.value = false
                             text.value = it
                         },
                         label = { Text("Text") },
@@ -77,6 +84,12 @@ fun SeesturmHTMLAddLinkView(
                                 contentDescription = null,
                                 tint = Color.SEESTURM_GREEN
                             )
+                        },
+                        isError = isTextError.value,
+                        supportingText = {
+                            if (isTextError.value) {
+                                Text("Der Text darf nicht leer sein")
+                            }
                         },
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next

@@ -48,7 +48,7 @@ fun AktuellLoadingCardView(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
                 RedactedText(
                     3,

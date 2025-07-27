@@ -38,12 +38,12 @@ fun SchoepflialarmDto.toSchoepflialarm(users: List<FirebaseHitobitoUser>, reacti
         modified = modifiedDate,
         createdFormatted = DateTimeUtil.shared.formatDate(
             date = createdDate,
-            format = "dd. MMM, HH:mm 'Uhr'",
+            format = "EEEE, dd. MMMM, HH:mm 'Uhr'",
             type = DateFormattingType.Relative(true)
         ),
         modifiedFormatted = DateTimeUtil.shared.formatDate(
             date = modifiedDate,
-            format = "dd. MMM, HH:mm 'Uhr'",
+            format = "EEEE, dd. MMMM, HH:mm 'Uhr'",
             type = DateFormattingType.Relative(true)
         ),
         message = message,
