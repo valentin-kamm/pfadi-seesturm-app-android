@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.util
 
+import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventStartEndDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.WeatherDto
@@ -22,6 +23,7 @@ import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.types.FirebaseHitobitoUserRole
 import ch.seesturm.pfadiseesturm.util.types.SchoepflialarmReactionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import com.google.firebase.Timestamp
 import com.google.gson.Gson
 import kotlinx.serialization.json.Json
 import java.time.Instant
@@ -39,47 +41,47 @@ object DummyData {
     val mediumDateFormatted = DateTimeUtil.shared.formatDate(date = mediumDate, format = "dd.MM.yyyy", type = DateFormattingType.Absolute)
     val newDateFormatted = DateTimeUtil.shared.formatDate(date = newDate, format = "dd.MM.yyyy", type = DateFormattingType.Absolute)
 
-    val user1 = FirebaseHitobitoUser(
-        userId = "123",
-        vorname = "Peter",
-        nachname = "Müller",
-        pfadiname = "Tarantula",
-        email = "test@test.ch",
-        role = FirebaseHitobitoUserRole.User,
-        profilePictureUrl = null,
-        created = oldDate,
-        createdFormatted = oldDateFormatted,
-        modified = oldDate,
-        modifiedFormatted = oldDateFormatted,
-        fcmToken = null
+    val user1 = FirebaseHitobitoUser.create(
+        FirebaseHitobitoUserDto(
+            id = "123",
+            firstname = "Peter",
+            lastname = "Müller",
+            pfadiname = "Tarantula",
+            email = "test@test.ch",
+            role = FirebaseHitobitoUserRole.User.role,
+            profilePictureUrl = null,
+            created = Timestamp(oldDate.toInstant()),
+            modified = Timestamp(oldDate.toInstant()),
+            fcmToken = null
+        )
     )
-    val user2 = FirebaseHitobitoUser(
-        userId = "456",
-        vorname = "Maia",
-        nachname = "Tanner",
-        pfadiname = null,
-        email = "test@test2.ch",
-        role = FirebaseHitobitoUserRole.User,
-        profilePictureUrl = null,
-        created = mediumDate,
-        createdFormatted = mediumDateFormatted,
-        modified = mediumDate,
-        modifiedFormatted = mediumDateFormatted,
-        fcmToken = null
+    val user2 = FirebaseHitobitoUser.create(
+        FirebaseHitobitoUserDto(
+            id = "456",
+            firstname = "Maia",
+            lastname = "Tanner",
+            pfadiname = null,
+            email = "test@test2.ch",
+            role = FirebaseHitobitoUserRole.User.role,
+            profilePictureUrl = null,
+            created = Timestamp(mediumDate.toInstant()),
+            modified = Timestamp(mediumDate.toInstant()),
+            fcmToken = null
+        )
     )
-    val user3 = FirebaseHitobitoUser(
-        userId = "789",
-        vorname = "Hans",
-        nachname = "Blatter",
-        pfadiname = "Elch",
-        email = "test@test3.ch",
-        role = FirebaseHitobitoUserRole.User,
-        profilePictureUrl = "https://s3.eu-west-2.amazonaws.com/img.creativepool.com/files/candidate/portfolio/_w680/641887.jpg",
-        created = newDate,
-        createdFormatted = newDateFormatted,
-        modified = newDate,
-        modifiedFormatted = newDateFormatted,
-        fcmToken = null
+    val user3 = FirebaseHitobitoUser.create(
+            FirebaseHitobitoUserDto(
+            id = "789",
+            firstname = "Hans",
+            lastname = "Blatter",
+            pfadiname = "Elch",
+            email = "test@test3.ch",
+            role = FirebaseHitobitoUserRole.User.role,
+            profilePictureUrl = "https://s3.eu-west-2.amazonaws.com/img.creativepool.com/files/candidate/portfolio/_w680/641887.jpg",
+            created = Timestamp(newDate.toInstant()),
+            modified = Timestamp(newDate.toInstant()),
+            fcmToken = null
+        )
     )
 
     val documents = Json.decodeFromString<List<WordpressDocumentDto>>(

@@ -61,9 +61,7 @@ class FCMRepositoryImpl(
             type = FirebaseHitobitoUserDto::class.java,
             forceNewCreatedDate = false,
             update = { oldUser ->
-                oldUser.copy(
-                    fcmToken = newToken
-                )
+                FirebaseHitobitoUserDto.copyAndUpdateFcmToken(oldUser, newToken)
             }
         )
     }

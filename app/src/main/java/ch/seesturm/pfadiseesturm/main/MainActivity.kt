@@ -23,7 +23,6 @@ import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.authModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.dataStoreModule
-import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.wordpressModule
 import ch.seesturm.pfadiseesturm.presentation.common.UpdateRequiredView
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
@@ -47,8 +46,7 @@ class MainActivity : ComponentActivity() {
                 themeService = dataStoreModule.selectedThemeService,
                 onboardingService = dataStoreModule.onboardingService,
                 wordpressApi = wordpressModule.wordpressApi,
-                currentAppBuild = getCurrentAppBuild(),
-                fcmService = fcmModule.fcmService
+                currentAppBuild = getCurrentAppBuild()
             )
         }
     }

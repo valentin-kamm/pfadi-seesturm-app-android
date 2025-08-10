@@ -17,6 +17,8 @@ import ch.seesturm.pfadiseesturm.di.FCMModule
 import ch.seesturm.pfadiseesturm.di.FCMModuleImpl
 import ch.seesturm.pfadiseesturm.di.FirestoreModule
 import ch.seesturm.pfadiseesturm.di.FirestoreModuleImpl
+import ch.seesturm.pfadiseesturm.di.StorageModule
+import ch.seesturm.pfadiseesturm.di.StorageModuleImpl
 import ch.seesturm.pfadiseesturm.di.WordpressModule
 import ch.seesturm.pfadiseesturm.di.WordpressModuleImpl
 import com.google.firebase.FirebaseApp
@@ -32,6 +34,7 @@ class SeesturmApplication: Application() {
         lateinit var wordpressModule: WordpressModule
         lateinit var dataStoreModule: DataStoreModule
         lateinit var fcmModule: FCMModule
+        lateinit var storageModule: StorageModule
         lateinit var authModule: AuthModule
         lateinit var accountModule: AccountModule
     }
@@ -67,6 +70,7 @@ class SeesturmApplication: Application() {
             dataStore = dataStoreModule.dataStore,
             firestoreRepository = firestoreModule.firestoreRepository
         )
+        storageModule = StorageModuleImpl()
         authModule = AuthModuleImpl(
             appContext = this,
             cloudFunctionsRepository = fcfModule.fcfRepository,
@@ -79,7 +83,8 @@ class SeesturmApplication: Application() {
             firestoreRepository = firestoreModule.firestoreRepository,
             selectedStufenRepository = dataStoreModule.selectedStufenRepository,
             cloudFunctionsRepository = fcfModule.fcfRepository,
-            fcmService = fcmModule.fcmService
+            fcmService = fcmModule.fcmService,
+            storageRepository = storageModule.storageRepository
         )
     }
 

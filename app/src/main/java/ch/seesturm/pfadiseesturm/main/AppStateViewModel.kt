@@ -9,8 +9,6 @@ import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.OnboardingService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.SelectedThemeService
-import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
-import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.presentation.account.auth.AuthIntentController
 import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
@@ -21,6 +19,7 @@ import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +32,6 @@ import kotlinx.coroutines.launch
 class AppStateViewModel(
     private val authService: AuthService,
     private val themeService: SelectedThemeService,
-    private val fcmService: FCMService,
     private val onboardingService: OnboardingService,
     private val wordpressApi: WordpressApi,
     private val currentAppBuild: Int?
@@ -41,6 +39,8 @@ class AppStateViewModel(
 
     private val _state = MutableStateFlow(AppState())
     val state = _state.asStateFlow()
+
+    private var userListeningJob: Job? = null
 
     init {
         runOnAppStart()
@@ -57,20 +57,13 @@ class AppStateViewModel(
             val versionCheckJob = async { checkMinimumRequiredAppBuild() }
 
             awaitAll(reauthJob, versionCheckJob)
-
-            // re-subscribe to schöepflialarm topic in the background after re-auth is complete
-            val isHitobitoUser = authService.isCurrentUserHitobitoUser()
-            if (isHitobitoUser) {
-                fcmService.subscribe(
-                    topic = SeesturmFCMNotificationTopic.Schoepflialarm,
-                    requestPermission = { true }
-                )
-            }
         }
     }
 
     fun startAuthFlow() {
+
         updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
+
         viewModelScope.launch {
             when (val result = authService.startAuthFlow()) {
                 is SeesturmResult.Error -> {
@@ -99,6 +92,7 @@ class AppStateViewModel(
                 }
                 is SeesturmResult.Success -> {
                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user = result.data, state = ActionState.Idle))
+                    startListeningToUser(userId = result.data.userId)
                 }
             }
         }
@@ -107,7 +101,7 @@ class AppStateViewModel(
     private suspend fun reauthenticateOnAppStart() {
 
         updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
-        when (val result = authService.reauthenticateOnAppStart()) {
+        when (val result = authService.reauthenticate(resubscribeToSchoepflialarm = true)) {
             is SeesturmResult.Error -> {
                 updateAuthState(
                     SeesturmAuthState.SignedOut(
@@ -122,6 +116,7 @@ class AppStateViewModel(
                         state = ActionState.Idle
                     )
                 )
+                startListeningToUser(userId = result.data.userId)
             }
         }
     }
@@ -129,9 +124,12 @@ class AppStateViewModel(
     fun signOut(user: FirebaseHitobitoUser) {
 
         updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, state = ActionState.Loading(Unit)))
+        stopListeningToUser()
+
         viewModelScope.launch {
             when (val result = authService.signOut()) {
                 is SeesturmResult.Error -> {
+                    startListeningToUser(userId = user.userId)
                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
                     viewModelScope.launch {
                         SnackbarController.sendEvent(
@@ -158,9 +156,12 @@ class AppStateViewModel(
     fun deleteAccount(user: FirebaseHitobitoUser) {
 
         updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Loading(Unit)))
+        stopListeningToUser()
+
         viewModelScope.launch {
             when (val result = authService.deleteAccount(user)) {
                 is SeesturmResult.Error -> {
+                    startListeningToUser(userId = user.userId)
                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
                     SnackbarController.sendEvent(
                         event = SeesturmSnackbarEvent(
@@ -183,6 +184,7 @@ class AppStateViewModel(
     }
 
     fun resetAuthState() {
+        stopListeningToUser()
         updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Idle))
     }
 
@@ -192,6 +194,30 @@ class AppStateViewModel(
                 authState = newAuthState
             )
         }
+    }
+
+    private fun startListeningToUser(userId: String) {
+
+        stopListeningToUser()
+
+        userListeningJob = viewModelScope.launch {
+            authService.listenToUser(userId).collect { result ->
+                when (result) {
+                    is SeesturmResult.Error -> {
+                        updateAuthState(SeesturmAuthState.SignedOut(ActionState.Error(Unit, "Der Benutzer konnte nicht von der Datenbank gelesen werden.")))
+                    }
+                    is SeesturmResult.Success -> {
+                        updateAuthState(SeesturmAuthState.SignedInWithHitobito(result.data, ActionState.Idle))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun stopListeningToUser() {
+
+        userListeningJob?.cancel()
+        userListeningJob = null
     }
 
     val isSheetVisibile: Boolean

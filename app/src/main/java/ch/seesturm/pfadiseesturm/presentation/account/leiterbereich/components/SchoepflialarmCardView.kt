@@ -129,7 +129,7 @@ private fun SchoepflialarmCardViewPreview() {
         SchoepflialarmCardView(
             schoepflialarm = DummyData.schoepflialarm.copy(
                 createdFormatted = "Sonntag, 22. Juni, 00:00 Uhr",
-                user = DummyData.user1.copy(pfadiname = "Ein ganz langer Pfadiname")
+                user = DummyData.user1
             ),
             user = DummyData.user1,
             onClick = {},

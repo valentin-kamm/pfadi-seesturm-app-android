@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.data.auth.dto
 
-import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import com.google.gson.annotations.SerializedName
 
 data class HitobitoUserInfoDto(
@@ -21,14 +20,3 @@ data class HitobitoUserInfoDto(
     @SerializedName("kantonalverband_id") val kantonalverbandId: Int?,
     val roles: List<HitobitoUserRoleDto?>?
 )
-
-fun HitobitoUserInfoDto.toFirebaseHitobitoUserDto(role: String): FirebaseHitobitoUserDto {
-    return FirebaseHitobitoUserDto(
-        id = sub,
-        email = email,
-        firstname = firstName,
-        lastname = lastName,
-        pfadiname = nickname,
-        role = role
-    )
-}

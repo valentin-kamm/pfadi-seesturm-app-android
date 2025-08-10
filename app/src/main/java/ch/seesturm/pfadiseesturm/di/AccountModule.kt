@@ -8,6 +8,7 @@ import ch.seesturm.pfadiseesturm.domain.data_store.repository.SelectedStufenRepo
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
 import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
+import ch.seesturm.pfadiseesturm.domain.storage.repository.StorageRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
 
 interface AccountModule {
@@ -23,14 +24,16 @@ class AccountModuleImpl(
     private val firestoreRepository: FirestoreRepository,
     private val selectedStufenRepository: SelectedStufenRepository,
     private val cloudFunctionsRepository: CloudFunctionsRepository,
-    private val fcmService: FCMService
+    private val fcmService: FCMService,
+    private val storageRepository: StorageRepository
 ) : AccountModule {
 
     override val leiterbereichService: LeiterbereichService by lazy {
         LeiterbereichService(
             termineRepository = anlaesseRepository,
             firestoreRepository = firestoreRepository,
-            selectedStufenRepository = selectedStufenRepository
+            selectedStufenRepository = selectedStufenRepository,
+            storageRepository = storageRepository
         )
     }
     override val stufenbereichService: StufenbereichService by lazy {

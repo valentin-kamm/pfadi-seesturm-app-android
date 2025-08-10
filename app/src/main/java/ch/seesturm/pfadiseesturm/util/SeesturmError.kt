@@ -113,6 +113,7 @@ sealed class PfadiSeesturmAppError(override val message: String): Exception(mess
     class Cancelled(message: String): PfadiSeesturmAppError(message)
     class UnknownNotificationTopic(message: String): PfadiSeesturmAppError(message)
     class UnknownSchoepflialarmReactionType(message: String): PfadiSeesturmAppError(message)
+    class JpgConversionFailed(message: String): PfadiSeesturmAppError(message)
 }
 
 sealed class SchoepflialarmLocalizedError(override val message: String): Exception(message) {

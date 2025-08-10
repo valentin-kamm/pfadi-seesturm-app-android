@@ -65,6 +65,7 @@ firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-functions = { module = "com.google.firebase:firebase-functions" }
+firebase-storage = { module = "com.google.firebase:firebase-storage" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }

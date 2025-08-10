@@ -1,15 +1,11 @@
 package ch.seesturm.pfadiseesturm.data.firestore.dto
 
-import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
-import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.types.FirebaseHitobitoUserRole
+import ch.seesturm.pfadiseesturm.data.auth.dto.HitobitoUserInfoDto
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
-import java.util.UUID
 
-data class FirebaseHitobitoUserDto(
+data class FirebaseHitobitoUserDto (
 
     @DocumentId override var id: String? = null,
     @ServerTimestamp override var created: Timestamp? = null,
@@ -23,6 +19,48 @@ data class FirebaseHitobitoUserDto(
     val fcmToken: String? = null
 ): FirestoreDto {
 
+    companion object {
+        fun create(dto: HitobitoUserInfoDto, role: String, fcmToken: String): FirebaseHitobitoUserDto {
+            return FirebaseHitobitoUserDto(
+                id = dto.sub,
+                email = dto.email,
+                firstname = dto.firstName,
+                lastname = dto.lastName,
+                pfadiname = dto.nickname,
+                role = role,
+                fcmToken = fcmToken
+            )
+        }
+        fun copyAndUpdateFcmToken(oldDto: FirebaseHitobitoUserDto, newToken: String): FirebaseHitobitoUserDto {
+            return FirebaseHitobitoUserDto(
+                id = oldDto.id,
+                created = oldDto.created,
+                modified = null,
+                email = oldDto.email,
+                firstname = oldDto.firstname,
+                lastname = oldDto.lastname,
+                pfadiname = oldDto.pfadiname,
+                role = oldDto.role,
+                profilePictureUrl = oldDto.profilePictureUrl,
+                fcmToken = newToken
+            )
+        }
+        fun copyAndUpdateProfilePicture(oldDto: FirebaseHitobitoUserDto, newProfilePictureUrl: String): FirebaseHitobitoUserDto {
+            return FirebaseHitobitoUserDto(
+                id = oldDto.id,
+                created = oldDto.created,
+                modified = null,
+                email = oldDto.email,
+                firstname = oldDto.firstname,
+                lastname = oldDto.lastname,
+                pfadiname = oldDto.pfadiname,
+                role = oldDto.role,
+                profilePictureUrl = newProfilePictureUrl,
+                fcmToken = oldDto.fcmToken
+            )
+        }
+    }
+
     override fun <T : FirestoreDto> contentEquals(other: T): Boolean {
         if (other !is FirebaseHitobitoUserDto) return false
         return id == other.id &&
@@ -34,33 +72,4 @@ data class FirebaseHitobitoUserDto(
                 profilePictureUrl == other.profilePictureUrl &&
                 fcmToken == other.fcmToken
     }
-}
-
-fun FirebaseHitobitoUserDto.toFirebaseHitobitoUser(): FirebaseHitobitoUser {
-
-    val createdDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(created)
-    val modifiedDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(modified)
-
-    return FirebaseHitobitoUser(
-        userId = id ?: UUID.randomUUID().toString(),
-        vorname = firstname,
-        nachname = lastname,
-        pfadiname = pfadiname,
-        email = email,
-        role = FirebaseHitobitoUserRole.fromRole(role),
-        profilePictureUrl = profilePictureUrl,
-        created = createdDate,
-        createdFormatted = DateTimeUtil.shared.formatDate(
-            date = createdDate,
-            format = "EEEE, d. MMMM yyyy 'Uhr'",
-            type = DateFormattingType.Relative(true)
-        ),
-        modified = modifiedDate,
-        modifiedFormatted = DateTimeUtil.shared.formatDate(
-            date = modifiedDate,
-            format = "EEEE, d. MMMM yyyy 'Uhr'",
-            type = DateFormattingType.Relative(true)
-        ),
-        fcmToken = fcmToken
-    )
 }

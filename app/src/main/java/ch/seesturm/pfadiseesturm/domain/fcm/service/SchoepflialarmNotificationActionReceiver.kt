@@ -34,7 +34,7 @@ class SchoepflialarmNotificationActionReceiver: BroadcastReceiver() {
 
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
 
-            when (val authResult = authModule.authService.reauthenticateOnAppStart()) {
+            when (val authResult = authModule.authService.reauthenticate(resubscribeToSchoepflialarm = false)) {
                 is SeesturmResult.Error -> {
                     return@launch
                 }
