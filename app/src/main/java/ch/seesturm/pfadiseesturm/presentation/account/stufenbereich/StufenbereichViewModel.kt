@@ -1,13 +1,12 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich
 
-import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.account.service.StufenbereichService
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.toAktivitaetWithAnAbmeldungen
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
@@ -173,12 +172,9 @@ class StufenbereichViewModel(
                             deleteAbmeldungenState = ActionState.Error(aktivitaet, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -186,7 +182,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -197,12 +194,9 @@ class StufenbereichViewModel(
                             deleteAbmeldungenState = ActionState.Success(aktivitaet, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -210,7 +204,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -234,12 +229,9 @@ class StufenbereichViewModel(
                             sendPushNotificationState = ActionState.Error(aktivitaet, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -247,7 +239,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -258,12 +251,9 @@ class StufenbereichViewModel(
                             sendPushNotificationState = ActionState.Success(aktivitaet, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -271,7 +261,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -302,12 +293,9 @@ class StufenbereichViewModel(
                             deleteAllAbmeldungenState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -315,7 +303,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -326,12 +315,9 @@ class StufenbereichViewModel(
                             deleteAllAbmeldungenState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -339,7 +325,8 @@ class StufenbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }

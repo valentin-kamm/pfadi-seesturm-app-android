@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Comment
@@ -19,13 +18,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
@@ -46,33 +43,6 @@ import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
 fun AktivitaetAnAbmeldenView(
-    viewModel: AktivitaetDetailViewModel,
-    stufe: SeesturmStufe,
-    modifier: Modifier = Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    AktivitaetAnAbmeldenContentView(
-        stufe = stufe,
-        selectedSheetMode = uiState.selectedSheetMode,
-        anAbmeldenState = uiState.anAbmeldenState,
-        vornameState = uiState.vornameState,
-        nachnameState = uiState.nachnameState,
-        pfadinameState = uiState.pfadinameState,
-        bemerkungState = uiState.bemerkungState,
-        onChangeSheetMode = { interaction ->
-            viewModel.changeSheetMode(interaction)
-        },
-        onSubmit = {
-            viewModel.sendAnAbmeldung()
-        },
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun AktivitaetAnAbmeldenContentView(
     stufe: SeesturmStufe,
     selectedSheetMode: AktivitaetInteractionType,
     anAbmeldenState: ActionState<AktivitaetInteractionType>,
@@ -82,7 +52,7 @@ private fun AktivitaetAnAbmeldenContentView(
     bemerkungState: SeesturmTextFieldState,
     onChangeSheetMode: (AktivitaetInteractionType) -> Unit,
     onSubmit: () -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState(),
 ) {
 
@@ -95,7 +65,6 @@ private fun AktivitaetAnAbmeldenContentView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             FormItem(
@@ -239,7 +208,7 @@ private fun AktivitaetAnAbmeldenContentView(
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview1() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
             anAbmeldenState = ActionState.Loading(AktivitaetInteractionType.ABMELDEN),
@@ -277,7 +246,7 @@ private fun AktivitaetAnAbmeldenViewPreview1() {
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview2() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
             anAbmeldenState = ActionState.Idle,
@@ -315,7 +284,7 @@ private fun AktivitaetAnAbmeldenViewPreview2() {
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview3() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ANMELDEN,
             anAbmeldenState = ActionState.Idle,

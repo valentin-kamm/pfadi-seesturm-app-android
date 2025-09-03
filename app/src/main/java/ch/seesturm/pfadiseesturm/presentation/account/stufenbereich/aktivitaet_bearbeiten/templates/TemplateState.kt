@@ -7,12 +7,33 @@ import ch.seesturm.pfadiseesturm.util.state.UiState
 import com.mohamedrejeb.richeditor.model.RichTextState
 
 data class TemplateState(
-    val templatesState: UiState<List<AktivitaetTemplate>> = UiState.Loading,
-    val isInEditingMode: Boolean = false,
-    val editState: ActionState<Unit> = ActionState.Idle,
-    val deleteState: ActionState<Unit> = ActionState.Idle,
+    val templatesState: UiState<List<AktivitaetTemplate>>,
+    val templateEditMode: TemplateEditMode,
+    val isInEditingMode: Boolean,
+    val editState: ActionState<Unit>,
+    val deleteState: ActionState<Unit>,
     val richTextState: SeesturmRichTextState = SeesturmRichTextState(
         state = RichTextState(),
         onValueChanged = {}
     )
-)
+) {
+    companion object {
+        fun create(
+            onSubmit: (String) -> Unit
+        ): TemplateState {
+            return TemplateState(
+                templatesState = UiState.Loading,
+                templateEditMode = TemplateEditMode.Insert(
+                    onSubmit = onSubmit
+                ),
+                isInEditingMode = false,
+                editState = ActionState.Idle,
+                deleteState = ActionState.Idle,
+                richTextState = SeesturmRichTextState(
+                    state = RichTextState(),
+                    onValueChanged = {}
+                )
+            )
+        }
+    }
+}

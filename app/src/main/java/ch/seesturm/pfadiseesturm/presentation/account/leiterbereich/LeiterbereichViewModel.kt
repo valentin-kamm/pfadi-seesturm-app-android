@@ -1,6 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich
 
-import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FoodOrderDto
@@ -12,9 +12,8 @@ import ch.seesturm.pfadiseesturm.domain.account.service.SchoepflialarmService
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.SchoepflialarmError
@@ -42,8 +41,7 @@ class LeiterbereichViewModel(
     private val fcmService: FCMService,
     private val userId: String,
     private val userDisplayNameShort: String,
-    private val calendar: SeesturmCalendar,
-    private val updateSheetContent: (BottomSheetContent?) -> Unit
+    private val calendar: SeesturmCalendar
 ): ViewModel() {
 
     private val _state = MutableStateFlow(LeiterbereichState.create(
@@ -55,6 +53,8 @@ class LeiterbereichViewModel(
         }
     ))
     val state = _state.asStateFlow()
+
+    val showFoodSheet = mutableStateOf(false)
 
     init {
         fetchNext3Events()
@@ -298,14 +298,12 @@ class LeiterbereichViewModel(
             val result = leiterbereichService.addStufe(stufe)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = "${stufe.stufenName} konnte nicht hinzugefügt werden. ${result.error.defaultMessage}",
-                        type = SeesturmSnackbarType.Error,
                         onDismiss = {},
-                        duration = SnackbarDuration.Short,
-                        allowManualDismiss = true,
-                        showInSheetIfPossible = false
+                        location = SeesturmSnackbarLocation.Default,
+                        allowManualDismiss = true
                     )
                 )
             }
@@ -317,14 +315,12 @@ class LeiterbereichViewModel(
             val result = leiterbereichService.deleteStufe(stufe)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = "${stufe.stufenName} konnte nicht entfernt werden. ${result.error.defaultMessage}",
-                        type = SeesturmSnackbarType.Error,
                         onDismiss = {},
-                        duration = SnackbarDuration.Short,
-                        allowManualDismiss = true,
-                        showInSheetIfPossible = false
+                        location = SeesturmSnackbarLocation.Default,
+                        allowManualDismiss = true
                     )
                 )
             }
@@ -353,10 +349,9 @@ class LeiterbereichViewModel(
                             addNewOrderState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            type = SeesturmSnackbarType.Error,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -364,24 +359,22 @@ class LeiterbereichViewModel(
                                     )
                                 }
                             },
-                            duration = SnackbarDuration.Long,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = true
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
                 is SeesturmResult.Success -> {
                     val message = "Bestellung erfolgreich gespeichert."
-                    updateSheetContent(null)
+                    showFoodSheet.value = false
                     _state.update {
                         it.copy(
                             addNewOrderState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            type = SeesturmSnackbarType.Success,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -389,9 +382,8 @@ class LeiterbereichViewModel(
                                     )
                                 }
                             },
-                            duration = SnackbarDuration.Short,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                     updateFoodItem("")
@@ -406,14 +398,12 @@ class LeiterbereichViewModel(
             val result = leiterbereichService.deleteFromExistingOrder(userId = userId, orderId = orderId)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = "Beim Entfernen der Bestellung ist ein Fehler aufgetreten. ${result.error.defaultMessage}",
-                        duration = SnackbarDuration.Indefinite,
-                        type = SeesturmSnackbarType.Error,
-                        allowManualDismiss = true,
                         onDismiss = {},
-                        showInSheetIfPossible = true
+                        location = SeesturmSnackbarLocation.Sheet,
+                        allowManualDismiss = true
                     )
                 )
             }
@@ -425,14 +415,12 @@ class LeiterbereichViewModel(
             val result = leiterbereichService.addToExistingOrder(userId = userId, orderId = orderId)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = "Beim Hinzufügen der Bestellung ist ein Fehler aufgetreten. ${result.error.defaultMessage}",
-                        duration = SnackbarDuration.Indefinite,
-                        type = SeesturmSnackbarType.Error,
-                        allowManualDismiss = true,
                         onDismiss = {},
-                        showInSheetIfPossible = true
+                        location = SeesturmSnackbarLocation.Sheet,
+                        allowManualDismiss = true
                     )
                 )
             }
@@ -460,12 +448,9 @@ class LeiterbereichViewModel(
                             deleteAllOrdersState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -473,7 +458,8 @@ class LeiterbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -484,12 +470,9 @@ class LeiterbereichViewModel(
                             deleteAllOrdersState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -497,7 +480,8 @@ class LeiterbereichViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -618,20 +602,18 @@ class LeiterbereichViewModel(
                                     sendSchoepflialarmState = ActionState.Error(Unit, result.error.defaultMessage)
                                 )
                             }
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Error(
                                     message = result.error.defaultMessage,
-                                    duration = SnackbarDuration.Long,
-                                    type = SeesturmSnackbarType.Error,
-                                    allowManualDismiss = true,
-                                    showInSheetIfPossible = true,
                                     onDismiss = {
                                         _state.update {
                                             it.copy(
                                                 sendSchoepflialarmState = ActionState.Idle
                                             )
                                         }
-                                    }
+                                    },
+                                    location = SeesturmSnackbarLocation.Sheet,
+                                    allowManualDismiss = true
                                 )
                             )
                         }
@@ -645,20 +627,18 @@ class LeiterbereichViewModel(
                             sendSchoepflialarmState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
                                         sendSchoepflialarmState = ActionState.Idle
                                     )
                                 }
-                            }
+                            },
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -687,20 +667,18 @@ class LeiterbereichViewModel(
                             sendSchoepflialarmReactionState = ActionState.Error(reaction, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
                                         sendSchoepflialarmReactionState = ActionState.Idle
                                     )
                                 }
-                            }
+                            },
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -711,20 +689,18 @@ class LeiterbereichViewModel(
                             sendSchoepflialarmReactionState = ActionState.Success(reaction, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
                                         sendSchoepflialarmReactionState = ActionState.Idle
                                     )
                                 }
-                            }
+                            },
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -876,12 +852,9 @@ class LeiterbereichViewModel(
                 .collect { new ->
                     when (new) {
                         is ActionState.Error -> {
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Error(
                                     message = new.message,
-                                    duration = SnackbarDuration.Short,
-                                    type = SeesturmSnackbarType.Error,
-                                    allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {
                                             it.copy(
@@ -889,17 +862,15 @@ class LeiterbereichViewModel(
                                             )
                                         }
                                     },
-                                    showInSheetIfPossible = true
+                                    location = SeesturmSnackbarLocation.Sheet,
+                                    allowManualDismiss = true
                                 )
                             )
                         }
                         is ActionState.Success -> {
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Success(
                                     message = new.message,
-                                    duration = SnackbarDuration.Short,
-                                    type = SeesturmSnackbarType.Success,
-                                    allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {
                                             it.copy(
@@ -907,7 +878,8 @@ class LeiterbereichViewModel(
                                             )
                                         }
                                     },
-                                    showInSheetIfPossible = true
+                                    location = SeesturmSnackbarLocation.Sheet,
+                                    allowManualDismiss = true
                                 )
                             )
                         }

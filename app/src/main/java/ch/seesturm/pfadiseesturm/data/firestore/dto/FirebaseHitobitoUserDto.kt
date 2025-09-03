@@ -45,7 +45,7 @@ data class FirebaseHitobitoUserDto (
                 fcmToken = newToken
             )
         }
-        fun copyAndUpdateProfilePicture(oldDto: FirebaseHitobitoUserDto, newProfilePictureUrl: String): FirebaseHitobitoUserDto {
+        fun copyAndUpdateProfilePicture(oldDto: FirebaseHitobitoUserDto, newProfilePictureUrl: String?): FirebaseHitobitoUserDto {
             return FirebaseHitobitoUserDto(
                 id = oldDto.id,
                 created = oldDto.created,

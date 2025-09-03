@@ -36,25 +36,6 @@ import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 
 @Composable
 fun GespeichertePersonHinzufuegenView(
-    viewModel: GespeichertePersonenViewModel,
-    modifier: Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    GespeichertePersonHinzufuegenContentView(
-        vornameState = uiState.vornameState,
-        nachnameState = uiState.nachnameState,
-        pfadinameState = uiState.pfadinameState,
-        onInsert = {
-            viewModel.insertPerson()
-        },
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun GespeichertePersonHinzufuegenContentView(
     vornameState: SeesturmTextFieldState,
     nachnameState: SeesturmTextFieldState,
     pfadinameState: SeesturmTextFieldState,
@@ -72,7 +53,6 @@ private fun GespeichertePersonHinzufuegenContentView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             FormItem(
@@ -131,7 +111,7 @@ private fun GespeichertePersonHinzufuegenContentView(
             )
             BasicListFooter(
                 mode = BasicListHeaderMode.Normal(
-                    "Füge die Angaben von Personen hinzu, die du of von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen."
+                    "Füge die Angaben von Personen hinzu, die du oft von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen."
                 ),
                 maxLines = Int.MAX_VALUE
             )
@@ -155,7 +135,7 @@ private fun GespeichertePersonHinzufuegenContentView(
 @Composable
 private fun GespeichertePersonHinzufuegenViewPreview1() {
     PfadiSeesturmTheme {
-        GespeichertePersonHinzufuegenContentView(
+        GespeichertePersonHinzufuegenView(
             vornameState = SeesturmTextFieldState(
                 text = "Sepp",
                 label = "Vorname",
@@ -183,7 +163,7 @@ private fun GespeichertePersonHinzufuegenViewPreview1() {
 @Composable
 private fun GespeichertePersonHinzufuegenViewPreview2() {
     PfadiSeesturmTheme {
-        GespeichertePersonHinzufuegenContentView(
+        GespeichertePersonHinzufuegenView(
             vornameState = SeesturmTextFieldState(
                 text = "Sepp",
                 label = "Vorname",

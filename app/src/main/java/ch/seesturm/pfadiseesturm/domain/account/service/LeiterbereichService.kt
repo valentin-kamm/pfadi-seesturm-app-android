@@ -1,7 +1,5 @@
 package ch.seesturm.pfadiseesturm.domain.account.service
 
-import android.content.Context
-import android.net.Uri
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FoodOrderDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvents
@@ -9,22 +7,20 @@ import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.data_store.repository.SelectedStufenRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
-import ch.seesturm.pfadiseesturm.domain.storage.model.StorageItem
+import ch.seesturm.pfadiseesturm.domain.storage.model.DeleteStorageItem
+import ch.seesturm.pfadiseesturm.domain.storage.model.JPGData
+import ch.seesturm.pfadiseesturm.domain.storage.model.UploadStorageItem
 import ch.seesturm.pfadiseesturm.domain.storage.repository.StorageRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.WordpressService
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
-import ch.seesturm.pfadiseesturm.util.state.ProgressActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 
 class LeiterbereichService(
@@ -182,39 +178,46 @@ class LeiterbereichService(
             )
         }
 
-    fun uploadProfilePicture(uri: Uri, user: FirebaseHitobitoUser, context: Context) = callbackFlow {
-        launch {
-            try {
-                val downloadUri = storageRepository.uploadData(
-                    item = StorageItem.ProfilePicture(
-                        user = user,
-                        uri = uri
-                    ),
-                    context = context,
-                    onProgress = { progress ->
-                        trySend(ProgressActionState.Loading(Unit, progress))
-                    }
+    suspend fun uploadProfilePicture(data: JPGData, userId: String): SeesturmResult<Unit, DataError.Storage> {
+
+        return try {
+            val downloadUri = storageRepository.uploadData(
+                item = UploadStorageItem.ProfilePicture(
+                    data = data,
+                    userId = userId
                 )
-                firestoreRepository.performTransaction(
-                    document = FirestoreRepository.SeesturmFirestoreDocument.User(user.userId),
-                    type = FirebaseHitobitoUserDto::class.java,
-                    forceNewCreatedDate = false,
-                    update = { oldUser ->
-                        FirebaseHitobitoUserDto.copyAndUpdateProfilePicture(oldUser, downloadUri.toString())
-                    }
-                )
-                trySend(ProgressActionState.Success(Unit, "Das Profilbild wurde erfolgreich gespeichert."))
-            }
-            catch (e: Exception) {
-                val message = when (e) {
-                    is PfadiSeesturmAppError -> e.message
-                    else -> "Beim Hochladen der Daten ist ein unbekannter Fehler aufgetreten."
+            )
+            firestoreRepository.performTransaction(
+                document = FirestoreRepository.SeesturmFirestoreDocument.User(userId),
+                type = FirebaseHitobitoUserDto::class.java,
+                forceNewCreatedDate = false,
+                update = { oldUser ->
+                    FirebaseHitobitoUserDto.copyAndUpdateProfilePicture(oldUser, downloadUri.toString())
                 }
-                trySend(ProgressActionState.Error(Unit, message))
-            }
-            finally {
-                close()
-            }
+            )
+            SeesturmResult.Success(Unit)
+        }
+        catch (e: Exception) {
+            SeesturmResult.Error(DataError.Storage.UPLOADING_ERROR)
+        }
+    }
+
+    suspend fun deleteProfilePicture(userId: String): SeesturmResult<Unit, DataError.Storage> {
+
+        return try {
+            storageRepository.deleteData(DeleteStorageItem.ProfilePicture(userId))
+            firestoreRepository.performTransaction(
+                document = FirestoreRepository.SeesturmFirestoreDocument.User(userId),
+                type = FirebaseHitobitoUserDto::class.java,
+                forceNewCreatedDate = false,
+                update = { oldUser ->
+                    FirebaseHitobitoUserDto.copyAndUpdateProfilePicture(oldUser, null)
+                }
+            )
+            SeesturmResult.Success(Unit)
+        }
+        catch (e: Exception) {
+            SeesturmResult.Error(DataError.Storage.DELETING_ERROR)
         }
     }
 }

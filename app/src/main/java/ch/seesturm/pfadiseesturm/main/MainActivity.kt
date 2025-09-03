@@ -42,11 +42,17 @@ class MainActivity : ComponentActivity() {
     private val appStateViewModel: AppStateViewModel by viewModels {
         viewModelFactoryHelper {
             AppStateViewModel(
-                authService = authModule.authService,
                 themeService = dataStoreModule.selectedThemeService,
                 onboardingService = dataStoreModule.onboardingService,
                 wordpressApi = wordpressModule.wordpressApi,
                 currentAppBuild = getCurrentAppBuild()
+            )
+        }
+    }
+    private val authViewModel: AuthViewModel by viewModels {
+        viewModelFactoryHelper {
+            AuthViewModel(
+                authService = authModule.authService
             )
         }
     }
@@ -110,6 +116,7 @@ class MainActivity : ComponentActivity() {
                 else {
                     SeesturmAppMain(
                         appStateViewModel = appStateViewModel,
+                        authViewModel = authViewModel,
                         overallNavController = overallNavController
                     )
                 }

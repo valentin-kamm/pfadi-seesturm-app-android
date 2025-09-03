@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -141,12 +141,9 @@ class PushNachrichtenVerwaltenViewModel(
                 .collect { newActionState ->
                     when (newActionState) {
                         is ActionState.Error -> {
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Error(
                                     message = newActionState.message,
-                                    duration = SnackbarDuration.Short,
-                                    type = SeesturmSnackbarType.Error,
-                                    allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {
                                             it.copy(
@@ -154,17 +151,15 @@ class PushNachrichtenVerwaltenViewModel(
                                             )
                                         }
                                     },
-                                    showInSheetIfPossible = false
+                                    location = SeesturmSnackbarLocation.Default,
+                                    allowManualDismiss = true
                                 )
                             )
                         }
                         is ActionState.Success -> {
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Success(
                                     message = newActionState.message,
-                                    duration = SnackbarDuration.Short,
-                                    type = SeesturmSnackbarType.Success,
-                                    allowManualDismiss = true,
                                     onDismiss = {
                                         _state.update {
                                             it.copy(
@@ -172,7 +167,8 @@ class PushNachrichtenVerwaltenViewModel(
                                             )
                                         }
                                     },
-                                    showInSheetIfPossible = false
+                                    location = SeesturmSnackbarLocation.Default,
+                                    allowManualDismiss = true
                                 )
                             )
                         }

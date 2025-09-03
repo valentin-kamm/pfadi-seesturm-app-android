@@ -9,6 +9,7 @@ import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
+import ch.seesturm.pfadiseesturm.domain.storage.repository.StorageRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -25,6 +26,7 @@ class AuthModuleImpl(
     private val cloudFunctionsRepository: CloudFunctionsRepository,
     private val firestoreRepository: FirestoreRepository,
     private val fcmRepository: FCMRepository,
+    private val storageRepository: StorageRepository,
     private val firebaseAuth: FirebaseAuth = Firebase.auth
 ): AuthModule {
 
@@ -44,7 +46,8 @@ class AuthModuleImpl(
             authRepository = authRepository,
             cloudFunctionsRepository = cloudFunctionsRepository,
             firestoreRepository = firestoreRepository,
-            fcmRepository = fcmRepository
+            fcmRepository = fcmRepository,
+            storageRepository = storageRepository
         )
     }
 }

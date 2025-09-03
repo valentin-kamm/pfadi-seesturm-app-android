@@ -8,6 +8,7 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.TimePickerState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,8 +19,8 @@ import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.getUnescapedHtml
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
@@ -89,6 +90,7 @@ class AktivitaetBearbeitenViewModel(
                 null
             }
         }
+    val aktivitaetForPreviewSheet = mutableStateOf<GoogleCalendarEvent?>(null)
 
     private val publishingValidationStatus: AktivitaetValidationStatus
         get() {
@@ -272,14 +274,12 @@ class AktivitaetBearbeitenViewModel(
                 when (val errorType = valStatus.type) {
                     is AktivitaetValidationStatusErrorType.Snackbar -> {
                         viewModelScope.launch {
-                            SnackbarController.sendEvent(
-                                event = SeesturmSnackbarEvent(
+                            SnackbarController.sendSnackbar(
+                                SeesturmSnackbar.Error(
                                     message = errorType.message,
-                                    duration = SnackbarDuration.Long,
-                                    type = SeesturmSnackbarType.Error,
-                                    allowManualDismiss = true,
                                     onDismiss = {},
-                                    showInSheetIfPossible = false
+                                    location = SeesturmSnackbarLocation.Default,
+                                    allowManualDismiss = true
                                 )
                             )
                         }
@@ -332,16 +332,14 @@ class AktivitaetBearbeitenViewModel(
                         "Beim Veröffentlichen der Aktivität ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
                     }
                     updatePublishAktivitaetState(ActionState.Error(Unit, message))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 updatePublishAktivitaetState(ActionState.Idle)
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -353,16 +351,14 @@ class AktivitaetBearbeitenViewModel(
                         "Aktivität erfolgreich veröffentlicht."
                     }
                     updatePublishAktivitaetState(ActionState.Success(Unit, message))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 updatePublishAktivitaetState(ActionState.Idle)
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -388,16 +384,14 @@ class AktivitaetBearbeitenViewModel(
                         "Beim Aktualisieren der Aktivität ist ein Fehler aufgetreten. ${result.error.defaultMessage}"
                     }
                     updatePublishAktivitaetState(ActionState.Error(Unit, message))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 updatePublishAktivitaetState(ActionState.Idle)
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -409,16 +403,14 @@ class AktivitaetBearbeitenViewModel(
                         "Aktivität erfolgreich aktualisiert."
                     }
                     updatePublishAktivitaetState(ActionState.Error(Unit, message))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 updatePublishAktivitaetState(ActionState.Idle)
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }

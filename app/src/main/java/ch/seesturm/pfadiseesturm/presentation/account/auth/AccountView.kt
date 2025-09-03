@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -19,11 +18,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffoldStaticSnackbarType
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHostType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
@@ -34,19 +31,19 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AccountView(
-    appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     leiterbereich: (FirebaseHitobitoUser) -> @Composable () -> Unit
 ) {
 
-    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
+    val authState by authViewModel.state.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
 
     val loginLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        appStateViewModel.finishAuthFlow(result)
+        authViewModel.finishAuthFlow(result)
     }
 
     ObserveAsEvents(
@@ -58,13 +55,13 @@ fun AccountView(
     }
 
     AccountContentView(
-        authState = appState.authState,
+        authState = authState,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         onAuthenticate = {
-            appStateViewModel.startAuthFlow()
+            authViewModel.startAuthFlow()
         },
         onResetAuthState = {
-            appStateViewModel.resetAuthState()
+            authViewModel.resetAuthState()
         },
         leiterbereich = { user ->
             leiterbereich(user)()
@@ -85,27 +82,14 @@ private fun AccountContentView(
 
     when (authState) {
         is SeesturmAuthState.SignedOut -> {
-
             TopBarScaffold(
                 topBarStyle = TopBarStyle.Large,
                 title = "Account",
-                staticSnackbar = when (authState.state) {
-                    is ActionState.Idle -> {
-                        TopBarScaffoldStaticSnackbarType.Show(
-                            snackbarEvent = SeesturmSnackbarEvent(
-                                message = "Die Anmeldung ist nur fürs Leitungsteam der Pfadi Seesturm möglich",
-                                duration = SnackbarDuration.Indefinite,
-                                type = SeesturmSnackbarType.Info,
-                                allowManualDismiss = false,
-                                onDismiss = {},
-                                showInSheetIfPossible = false
-                            ),
-                            additionalBottomPadding = bottomNavigationInnerPadding.calculateBottomPadding()
-                        )
-                    }
-                    else -> {
-                        TopBarScaffoldStaticSnackbarType.None
-                    }
+                snackbarType = when (authState.state) {
+                    ActionState.Idle -> SeesturmSnackbarHostType.StaticInfoSnackbar(
+                        message = "Die Anmeldung ist nur fürs Leitungsteam der Pfadi Seesturm möglich"
+                    )
+                    else -> SeesturmSnackbarHostType.Default
                 }
             ) { topBarInnerPadding ->
 

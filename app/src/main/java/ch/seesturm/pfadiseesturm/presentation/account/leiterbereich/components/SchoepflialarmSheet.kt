@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.Textsms
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,11 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
@@ -52,8 +49,6 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
@@ -72,50 +67,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
-@Composable
-fun SchoepflialarmSheet(
-    viewModel: LeiterbereichViewModel,
-    user: FirebaseHitobitoUser,
-    requestNotificationsPermission: suspend () -> Boolean,
-    modifier: Modifier = Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    SchoepflialarmSheetContentView(
-        schoepflialarmResult = viewModel.schoepflialarmResult,
-        user = user,
-        newSchoepflialarmMessage = uiState.schoepflialarmMessage,
-        onSubmit = {
-            viewModel.trySendSchoepflialarm()
-        },
-        onReaction = { reaction ->
-            viewModel.sendSchoepflialarmReaction(reaction)
-        },
-        isSubmitButtonLoading = uiState.sendSchoepflialarmState.isLoading,
-        isReactionButtonLoading = { reaction ->
-            when (val localState = uiState.sendSchoepflialarmReactionState) {
-                is ActionState.Loading -> {
-                    localState.action == reaction
-                }
-                else -> false
-            }
-        },
-        onPushNotificationToggle = { isSwitchingOn ->
-            viewModel.toggleNotificationTopic(
-                isSwitchingOn = isSwitchingOn,
-                requestPermission = requestNotificationsPermission
-            )
-        },
-        notificationTopicsReadingState = uiState.notificationTopicsReadingState,
-        togglePushNotificationState = uiState.toggleSchoepflialarmReactionsPushNotificationState,
-        modifier = modifier
-    )
-}
-
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-private fun SchoepflialarmSheetContentView(
+fun SchoepflialarmSheet(
     schoepflialarmResult: UiState<Schoepflialarm>,
     user: FirebaseHitobitoUser,
     newSchoepflialarmMessage: SeesturmTextFieldState,
@@ -166,7 +120,6 @@ private fun SchoepflialarmSheetContentView(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .then(
                     if (Build.VERSION.SDK_INT >= 30) {
                         Modifier
@@ -278,7 +231,7 @@ private fun SchoepflialarmSheetContentView(
                                         .fillMaxWidth()
                                 ) {
                                     CircleProfilePictureView(
-                                        user = user,
+                                        type = ProfilePictureType.User(schoepflialarmResult.data.user),
                                         size = 30.dp
                                     )
                                     Text(
@@ -361,7 +314,7 @@ private fun SchoepflialarmSheetContentView(
                                                         .fillMaxWidth()
                                                 ) {
                                                     CircleProfilePictureView(
-                                                        user = reaction.user,
+                                                        type = ProfilePictureType.User(reaction.user),
                                                         size = 20.dp
                                                     )
                                                     Text(
@@ -423,11 +376,16 @@ private fun SchoepflialarmSheetContentView(
                     item(
                         key = "SchoepflialarmSheetReactionSection"
                     ) {
-                        BasicListHeader(
-                            mode = BasicListHeaderMode.Normal("Reagieren"),
+                        Text(
+                            "Reagieren".uppercase(),
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .padding(horizontal = 16.dp)
+                                .padding(vertical = 8.dp, horizontal = 32.dp)
+                                .alpha(0.4f)
                                 .animateItem()
+                                .fillMaxWidth()
                         )
                         FormItem(
                             modifier = Modifier
@@ -493,7 +451,7 @@ private fun SchoepflialarmSheetContentView(
                             .hazeEffect(hazeState, style = CupertinoMaterials.thin())
                     } else {
                         Modifier
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .background(MaterialTheme.colorScheme.tertiaryContainer)
                     }
                 )
         ) {
@@ -536,7 +494,7 @@ private fun SchoepflialarmSheetContentView(
 @Composable
 private fun SchoepflialarmSheetPreview1() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Loading,
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(
@@ -559,7 +517,7 @@ private fun SchoepflialarmSheetPreview1() {
 @Composable
 private fun SchoepflialarmSheetPreview2() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Error("Schwerer Fehler"),
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(
@@ -582,7 +540,7 @@ private fun SchoepflialarmSheetPreview2() {
 @Composable
 private fun SchoepflialarmSheetPreview3() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Success(DummyData.schoepflialarm),
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(

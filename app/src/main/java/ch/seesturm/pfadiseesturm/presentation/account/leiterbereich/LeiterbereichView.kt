@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -23,18 +23,26 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -44,21 +52,23 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import ch.seesturm.pfadiseesturm.domain.account.service.LeiterbereichService
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichProfileHeaderView
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
+import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.CircleProfilePictureView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichStufeLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichStufenScrollView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichTopHorizontalScrollView
+import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.ProfilePictureType
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.SchoepflialarmCardView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.SchoepflialarmLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.SchoepflialarmSheet
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeader
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeaderType
@@ -67,11 +77,18 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
 import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.AllowedSheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsAction
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsActionType
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
+import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
@@ -84,13 +101,16 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 @Composable
 fun LeiterbereichView(
     viewModel: LeiterbereichViewModel,
+    leiterbereichService: LeiterbereichService,
     user: FirebaseHitobitoUser,
+    authViewModel: AuthViewModel,
     appStateViewModel: AppStateViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val authState by authViewModel.state.collectAsStateWithLifecycle()
     val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     // request permissions for notifications and location
@@ -176,7 +196,7 @@ fun LeiterbereichView(
         icon = Icons.Outlined.AccountBox,
         confirmButtonText = "Abmelden",
         onConfirm = {
-            appStateViewModel.signOut(user)
+            authViewModel.signOut(user)
         },
         onDismiss = {
             viewModel.updateSignOutAlertVisibility(false)
@@ -189,13 +209,65 @@ fun LeiterbereichView(
         icon = Icons.Outlined.AccountBox,
         confirmButtonText = "Löschen",
         onConfirm = {
-            appStateViewModel.deleteAccount(user)
+            authViewModel.deleteAccount(user)
         },
         onDismiss = {
             viewModel.updateDeleteAccountAlertVisibility(false)
         },
         isConfirmButtonCritical = true
     )
+
+    val showEditProfileSheet = rememberSaveable { mutableStateOf(false) }
+    val showSchoeflialarmSheet = rememberSaveable { mutableStateOf(false) }
+
+    SimpleModalBottomSheet(
+        show = showEditProfileSheet,
+        detents = AllowedSheetDetents.LargeOnly,
+        type = SheetScaffoldType.Title("Profil")
+    ) { dismiss, viewModelStoreOwner ->
+        EditProfileView(
+            viewModelStoreOwner = viewModelStoreOwner,
+            leiterbereichService = leiterbereichService,
+            leiterbereichViewModel = viewModel,
+            dismiss = dismiss,
+            user = user
+        )
+    }
+
+    SimpleModalBottomSheet(
+        show = showSchoeflialarmSheet,
+        detents = AllowedSheetDetents.All,
+        type = SheetScaffoldType.Title("Schöpflialarm")
+    ) { _, _ ->
+        SchoepflialarmSheet(
+            schoepflialarmResult = viewModel.schoepflialarmResult,
+            user = user,
+            newSchoepflialarmMessage = uiState.schoepflialarmMessage,
+            onSubmit = {
+                viewModel.trySendSchoepflialarm()
+            },
+            onReaction = { reaction ->
+                viewModel.sendSchoepflialarmReaction(reaction)
+            },
+            isSubmitButtonLoading = uiState.sendSchoepflialarmState.isLoading,
+            isReactionButtonLoading = { reaction ->
+                when (val localState = uiState.sendSchoepflialarmReactionState) {
+                    is ActionState.Loading -> {
+                        localState.action == reaction
+                    }
+                    else -> false
+                }
+            },
+            onPushNotificationToggle = { isSwitchingOn ->
+                viewModel.toggleNotificationTopic(
+                    isSwitchingOn = isSwitchingOn,
+                    requestPermission = requestNotificationsPermission
+                )
+            },
+            notificationTopicsReadingState = uiState.notificationTopicsReadingState,
+            togglePushNotificationState = uiState.toggleSchoepflialarmReactionsPushNotificationState
+        )
+    }
 
     LeiterbereichContentView(
         user = user,
@@ -204,13 +276,7 @@ fun LeiterbereichView(
         termineState = uiState.termineState,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         accountNavController = accountNavController,
-        isEditAccountButtonLoading = appState.authState.deleteAccountButtonLoading,
-        onDeleteAccount = {
-            viewModel.updateDeleteAccountAlertVisibility(true)
-        },
-        onSignOut = {
-            viewModel.updateSignOutAlertVisibility(true)
-        },
+        isEditAccountButtonLoading = authState.deleteAccountButtonLoading,
         onRetryEvents = {
             viewModel.fetchNext3Events()
         },
@@ -218,21 +284,8 @@ fun LeiterbereichView(
             viewModel.toggleStufe(stufe)
         },
         schoepflialarmState = viewModel.schoepflialarmResult,
-        onOpenSchoepflialarmSheet = {
-            appStateViewModel.updateSheetContent(
-                content = BottomSheetContent.Scaffold(
-                    title = "Schöpflialarm",
-                    content = {
-                        SchoepflialarmSheet(
-                            viewModel = viewModel,
-                            user = user,
-                            requestNotificationsPermission = requestNotificationsPermission
-                        )
-                    },
-                    sheetHeightPercentage = 0.75f
-                )
-            )
-        },
+        showEditProfileSheet = showEditProfileSheet,
+        showSchoepflialarmSheet = showSchoeflialarmSheet,
         isDarkTheme = appState.theme.isDarkTheme
     )
 }
@@ -245,14 +298,13 @@ private fun LeiterbereichContentView(
     foodState: UiState<List<FoodOrder>>,
     termineState: UiState<List<GoogleCalendarEvent>>,
     schoepflialarmState: UiState<Schoepflialarm>,
+    showSchoepflialarmSheet: MutableState<Boolean>,
+    showEditProfileSheet: MutableState<Boolean>,
     isEditAccountButtonLoading: Boolean,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,
-    onDeleteAccount: () -> Unit,
-    onSignOut: () -> Unit,
     onRetryEvents: () -> Unit,
     onToggleStufe: (SeesturmStufe) -> Unit,
-    onOpenSchoepflialarmSheet: () -> Unit,
     isDarkTheme: Boolean,
     calendar: SeesturmCalendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
     columnState: LazyListState = rememberLazyListState(),
@@ -289,14 +341,48 @@ private fun LeiterbereichContentView(
             item(
                 key = "LeiterbereichProfileHeader"
             ) {
-                LeiterbereichProfileHeaderView(
-                    user = user,
-                    isLoading = isEditAccountButtonLoading,
-                    onSignOut = onSignOut,
-                    onDeleteAccount = onDeleteAccount,
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                )
+                        .fillMaxWidth()
+                ) {
+                    CircleProfilePictureView(
+                        type = if (isEditAccountButtonLoading) {
+                            ProfilePictureType.Loading
+                        }
+                        else {
+                            ProfilePictureType.User(user)
+                        },
+                        size = 60.dp,
+                        onClick = {
+                            showEditProfileSheet.value = true
+                        },
+                        showEditBadge = true
+                    )
+                    Text(
+                        text = "Willkommen, ${user.displayNameShort}!",
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    if (user.email != null) {
+                        Text(
+                            text = user.email,
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodySmall,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                    }
+                }
             }
 
             item(
@@ -361,7 +447,7 @@ private fun LeiterbereichContentView(
                         SchoepflialarmCardView(
                             schoepflialarm = schoepflialarmState.data,
                             user = user,
-                            onClick = onOpenSchoepflialarmSheet,
+                            onClick = { showSchoepflialarmSheet.value = true },
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .animateItem()
@@ -551,12 +637,11 @@ private fun LeiterbereichViewPreview1() {
             isEditAccountButtonLoading = true,
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
-            onDeleteAccount = {},
-            onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
-            isDarkTheme = false
+            isDarkTheme = false,
+            showSchoepflialarmSheet = remember { mutableStateOf(false) },
+            showEditProfileSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -573,12 +658,11 @@ private fun LeiterbereichViewPreview2() {
             isEditAccountButtonLoading = false,
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
-            onDeleteAccount = {},
-            onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
-            isDarkTheme = false
+            isDarkTheme = false,
+            showSchoepflialarmSheet = remember { mutableStateOf(false) },
+            showEditProfileSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -595,12 +679,11 @@ private fun LeiterbereichViewPreview3() {
             isEditAccountButtonLoading = false,
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
-            onDeleteAccount = {},
-            onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
-            isDarkTheme = false
+            isDarkTheme = false,
+            showSchoepflialarmSheet = remember { mutableStateOf(false) },
+            showEditProfileSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -617,12 +700,11 @@ private fun LeiterbereichViewPreview4() {
             isEditAccountButtonLoading = false,
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
-            onDeleteAccount = {},
-            onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
-            isDarkTheme = false
+            isDarkTheme = false,
+            showSchoepflialarmSheet = remember { mutableStateOf(false) },
+            showEditProfileSheet = remember { mutableStateOf(false) }
         )
     }
 }

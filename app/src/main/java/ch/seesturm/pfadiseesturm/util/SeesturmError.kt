@@ -39,6 +39,12 @@ sealed interface DataError: SeesturmError {
         )
     }
 
+    sealed class Storage(override val defaultMessage: String): DataError {
+        data object UNKNOWN: Storage("Unbekannter Fehler beim Bearbeiten der Datei.")
+        data object DELETING_ERROR: Storage("Die Datei konnte nicht gelöscht werden.")
+        data object UPLOADING_ERROR: Storage("Beim Hochladen der Daten ist ein unbekannter Fehler aufgetreten.")
+    }
+
     sealed class Local(override val defaultMessage: String) : DataError {
         data object UNKNOWN : Local("Unbekannter Fehler beim Bearbeiten der Daten.")
         data object SAVING_ERROR : Local("Die Daten sind fehlerhaft und konnten nicht gespeichert werden.")

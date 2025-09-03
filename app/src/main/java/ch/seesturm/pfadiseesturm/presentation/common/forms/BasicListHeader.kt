@@ -36,6 +36,7 @@ fun BasicListHeader(
                 Text(
                     mode.text.uppercase(),
                     maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)

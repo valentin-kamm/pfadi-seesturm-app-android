@@ -42,17 +42,21 @@ import coil.request.ImageRequest
 
 @Composable
 fun CircleProfilePictureView(
-    user: FirebaseHitobitoUser?,
+    type: ProfilePictureType,
     size: Dp,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    isLoading: Boolean = false,
     showEditBadge: Boolean = false
 ) {
 
-    val borderColor = when {
-        isLoading || user?.profilePictureUrl == null -> MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-        else -> Color.Transparent
+    val borderColor = when(type) {
+        ProfilePictureType.Loading -> MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+        is ProfilePictureType.User -> if (type.user?.profilePictureUrl == null) {
+            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+        }
+        else {
+            Color.Transparent
+        }
     }
 
     Box(
@@ -77,72 +81,70 @@ fun CircleProfilePictureView(
                     }
                 )
         ) {
-            if (user?.profilePictureUrl == null) {
-                Image(
-                    painter = painterResource(R.drawable.logotabbar),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .alpha(
-                            if (isLoading) {
-                                0f
-                            } else {
-                                1f
-                            }
+            when (type) {
+                ProfilePictureType.Loading -> {
+                    CircularProgressIndicator(
+                        color = Color.SEESTURM_GREEN,
+                        modifier = Modifier
+                            .size(18.dp)
+                    )
+                }
+                is ProfilePictureType.User -> {
+                    if (type.user?.profilePictureUrl == null) {
+                        Image(
+                            painter = painterResource(R.drawable.logotabbar),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .fillMaxSize()
                         )
-                        .fillMaxSize()
-                )
-            }
-            else {
-                SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(user.profilePictureUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    when (painter.state) {
-                        AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .graphicsLayer()
-                                    .customLoadingBlinking()
-                                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                        }
-                        is AsyncImagePainter.State.Error -> {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.HideImage,
-                                    contentDescription = null,
-                                    tint = Color.SEESTURM_GREEN,
-                                    modifier = Modifier
-                                        .size(size / 2)
-                                )
+                    }
+                    else {
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(type.user.profilePictureUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Transparent)
+                        ) {
+                            when (painter.state) {
+                                AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer()
+                                            .customLoadingBlinking()
+                                            .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                                    )
+                                }
+                                is AsyncImagePainter.State.Error -> {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.HideImage,
+                                            contentDescription = null,
+                                            tint = Color.SEESTURM_GREEN,
+                                            modifier = Modifier
+                                                .size(size / 2)
+                                        )
+                                    }
+                                }
+                                is AsyncImagePainter.State.Success -> {
+                                    SubcomposeAsyncImageContent()
+                                }
                             }
-                        }
-                        is AsyncImagePainter.State.Success -> {
-                            SubcomposeAsyncImageContent()
                         }
                     }
                 }
-            }
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = Color.SEESTURM_GREEN,
-                    modifier = Modifier
-                        .size(18.dp)
-                )
             }
         }
         if (showEditBadge) {
@@ -168,16 +170,22 @@ fun CircleProfilePictureView(
     }
 }
 
+sealed class ProfilePictureType {
+    data object Loading: ProfilePictureType()
+    data class User(
+        val user: FirebaseHitobitoUser?
+    ): ProfilePictureType()
+}
+
 @Preview("Plain")
 @Composable
 private fun CircleProfilePictureViewPreview1() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user1,
+            type = ProfilePictureType.User(user = DummyData.user1),
             size = 60.dp,
             modifier = Modifier,
             onClick = {},
-            isLoading = false,
             showEditBadge = false
         )
     }
@@ -187,11 +195,10 @@ private fun CircleProfilePictureViewPreview1() {
 private fun CircleProfilePictureViewPreview2() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = ProfilePictureType.User(user = DummyData.user3),
             size = 60.dp,
             modifier = Modifier,
             onClick = {},
-            isLoading = false,
             showEditBadge = false
         )
     }
@@ -201,11 +208,10 @@ private fun CircleProfilePictureViewPreview2() {
 private fun CircleProfilePictureViewPreview3() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = ProfilePictureType.Loading,
             size = 60.dp,
             modifier = Modifier,
             onClick = {},
-            isLoading = false,
             showEditBadge = true
         )
     }
@@ -215,11 +221,10 @@ private fun CircleProfilePictureViewPreview3() {
 private fun CircleProfilePictureViewPreview4() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = ProfilePictureType.Loading,
             size = 60.dp,
             modifier = Modifier,
             onClick = {},
-            isLoading = true,
             showEditBadge = true
         )
     }

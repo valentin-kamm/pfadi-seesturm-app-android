@@ -7,24 +7,25 @@ import kotlinx.coroutines.tasks.await
 
 interface StorageApi {
 
-    suspend fun uploadData(reference: StorageReference, data: ByteArray, metadata: StorageMetadata? = null, onProgress: (Double) -> Unit): Uri
+    suspend fun uploadData(reference: StorageReference, data: ByteArray, metadata: StorageMetadata?): Uri
+    suspend fun deleteData(reference: StorageReference)
 }
 
 class StorageApiImpl: StorageApi {
 
-    override suspend fun uploadData(reference: StorageReference, data: ByteArray, metadata: StorageMetadata?, onProgress: (Double) -> Unit): Uri {
+    override suspend fun uploadData(reference: StorageReference, data: ByteArray, metadata: StorageMetadata?): Uri {
 
         if (metadata != null) {
-            reference.putBytes(data, metadata).addOnProgressListener {
-                onProgress(it.bytesTransferred.toDouble() / it.totalByteCount.toDouble())
-            }.await()
+            reference.putBytes(data, metadata).await()
         }
         else {
-            reference.putBytes(data).addOnProgressListener {
-                onProgress(it.bytesTransferred.toDouble() / it.totalByteCount.toDouble())
-            }.await()
+            reference.putBytes(data).await()
         }
 
         return reference.downloadUrl.await()
+    }
+
+    override suspend fun deleteData(reference: StorageReference) {
+        reference.delete().await()
     }
 }

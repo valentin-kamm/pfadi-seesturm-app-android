@@ -1,17 +1,17 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
 
-import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.account.service.StufenbereichService
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,16 +22,21 @@ import kotlinx.coroutines.launch
 
 class TemplateViewModel(
     private val stufe: SeesturmStufe,
-    private val service: StufenbereichService,
-    private val dismissSheet: () -> Unit
+    private val service: StufenbereichService
 ): ViewModel() {
 
-    private val _state = MutableStateFlow(TemplateState())
+    private val _state = MutableStateFlow(TemplateState.create(
+        onSubmit = { newDescription ->
+            insertTemplate(newDescription)
+        }
+    ))
     val state = _state.asStateFlow()
 
     init {
         observeTemplates()
     }
+
+    val showTemplateSheet = mutableStateOf(false)
 
     private val isTemplatesEmpty: Boolean
         get() = when (val localState = state.value.templatesState) {
@@ -141,12 +146,9 @@ class TemplateViewModel(
                             deleteState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -154,7 +156,8 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -172,12 +175,9 @@ class TemplateViewModel(
                             deleteState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -185,7 +185,8 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -204,12 +205,9 @@ class TemplateViewModel(
                         editState = ActionState.Error(Unit, message)
                     )
                 }
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = message,
-                        duration = SnackbarDuration.Short,
-                        type = SeesturmSnackbarType.Error,
-                        allowManualDismiss = true,
                         onDismiss = {
                             _state.update {
                                 it.copy(
@@ -217,7 +215,8 @@ class TemplateViewModel(
                                 )
                             }
                         },
-                        showInSheetIfPossible = true
+                        location = SeesturmSnackbarLocation.Sheet,
+                        allowManualDismiss = true
                     )
                 )
                 return@launch
@@ -237,12 +236,9 @@ class TemplateViewModel(
                             editState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -250,24 +246,22 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = true
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
                 is SeesturmResult.Success -> {
-                    dismissSheet()
+                    showTemplateSheet.value = false
                     val message = "Vorlage erfolgreich gespeichert."
                     _state.update {
                         it.copy(
                             editState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Success(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -275,7 +269,8 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -294,12 +289,9 @@ class TemplateViewModel(
                         editState = ActionState.Error(Unit, message)
                     )
                 }
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.sendSnackbar(
+                    SeesturmSnackbar.Error(
                         message = message,
-                        duration = SnackbarDuration.Short,
-                        type = SeesturmSnackbarType.Error,
-                        allowManualDismiss = true,
                         onDismiss = {
                             _state.update {
                                 it.copy(
@@ -307,7 +299,8 @@ class TemplateViewModel(
                                 )
                             }
                         },
-                        showInSheetIfPossible = true
+                        location = SeesturmSnackbarLocation.Sheet,
+                        allowManualDismiss = true
                     )
                 )
                 return@launch
@@ -327,12 +320,9 @@ class TemplateViewModel(
                             editState = ActionState.Error(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -340,24 +330,22 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = true
+                            location = SeesturmSnackbarLocation.Sheet,
+                            allowManualDismiss = true
                         )
                     )
                 }
                 is SeesturmResult.Success -> {
-                    dismissSheet()
+                    showTemplateSheet.value = false
                     val message = "Vorlage erfolgreich aktualisiert."
                     _state.update {
                         it.copy(
                             editState = ActionState.Success(Unit, message)
                         )
                     }
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = message,
-                            duration = SnackbarDuration.Short,
-                            type = SeesturmSnackbarType.Success,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -365,11 +353,20 @@ class TemplateViewModel(
                                     )
                                 }
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
             }
+        }
+    }
+
+    fun setSheetMode(mode: TemplateEditMode) {
+        _state.update {
+            it.copy(
+                templateEditMode = mode
+            )
         }
     }
 

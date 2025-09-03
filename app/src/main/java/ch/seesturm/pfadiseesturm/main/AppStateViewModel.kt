@@ -1,27 +1,15 @@
 package ch.seesturm.pfadiseesturm.main
 
-import androidx.activity.result.ActivityResult
-import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
-import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.OnboardingService
 import ch.seesturm.pfadiseesturm.domain.data_store.service.SelectedThemeService
-import ch.seesturm.pfadiseesturm.presentation.account.auth.AuthIntentController
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
-import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -30,7 +18,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AppStateViewModel(
-    private val authService: AuthService,
     private val themeService: SelectedThemeService,
     private val onboardingService: OnboardingService,
     private val wordpressApi: WordpressApi,
@@ -40,194 +27,12 @@ class AppStateViewModel(
     private val _state = MutableStateFlow(AppState())
     val state = _state.asStateFlow()
 
-    private var userListeningJob: Job? = null
 
     init {
-        runOnAppStart()
-    }
-
-    private fun runOnAppStart() {
-
         startListeningToSelectedTheme()
         navigateToOnboardingViewIfNecessary()
-
         viewModelScope.launch {
-
-            val reauthJob = async { reauthenticateOnAppStart() }
-            val versionCheckJob = async { checkMinimumRequiredAppBuild() }
-
-            awaitAll(reauthJob, versionCheckJob)
-        }
-    }
-
-    fun startAuthFlow() {
-
-        updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
-
-        viewModelScope.launch {
-            when (val result = authService.startAuthFlow()) {
-                is SeesturmResult.Error -> {
-                    updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Error(action = Unit, message = result.error.defaultMessage)))
-                }
-                is SeesturmResult.Success -> {
-                    AuthIntentController.launchIntent(result.data)
-                }
-            }
-        }
-    }
-
-    fun finishAuthFlow(activityResult: ActivityResult) {
-
-        viewModelScope.launch {
-            when (val result = authService.finishAuthFlow(activityResult)) {
-                is SeesturmResult.Error -> {
-                    when (result.error) {
-                        is DataError.AuthError.CANCELLED -> {
-                            resetAuthState()
-                        }
-                        else -> {
-                            updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Error(action = Unit, message = result.error.defaultMessage)))
-                        }
-                    }
-                }
-                is SeesturmResult.Success -> {
-                    updateAuthState(SeesturmAuthState.SignedInWithHitobito(user = result.data, state = ActionState.Idle))
-                    startListeningToUser(userId = result.data.userId)
-                }
-            }
-        }
-    }
-
-    private suspend fun reauthenticateOnAppStart() {
-
-        updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)))
-        when (val result = authService.reauthenticate(resubscribeToSchoepflialarm = true)) {
-            is SeesturmResult.Error -> {
-                updateAuthState(
-                    SeesturmAuthState.SignedOut(
-                        state = ActionState.Idle
-                    )
-                )
-            }
-            is SeesturmResult.Success -> {
-                updateAuthState(
-                    SeesturmAuthState.SignedInWithHitobito(
-                        user = result.data,
-                        state = ActionState.Idle
-                    )
-                )
-                startListeningToUser(userId = result.data.userId)
-            }
-        }
-    }
-
-    fun signOut(user: FirebaseHitobitoUser) {
-
-        updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, state = ActionState.Loading(Unit)))
-        stopListeningToUser()
-
-        viewModelScope.launch {
-            when (val result = authService.signOut()) {
-                is SeesturmResult.Error -> {
-                    startListeningToUser(userId = user.userId)
-                    updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
-                    viewModelScope.launch {
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
-                                message = result.error.defaultMessage,
-                                duration = SnackbarDuration.Indefinite,
-                                type = SeesturmSnackbarType.Error,
-                                allowManualDismiss = true,
-                                onDismiss = {
-                                    updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Idle))
-                                },
-                                showInSheetIfPossible = false
-                            )
-                        )
-                    }
-                }
-                is SeesturmResult.Success -> {
-                    updateAuthState(SeesturmAuthState.SignedOut(ActionState.Idle))
-                }
-            }
-        }
-    }
-
-    fun deleteAccount(user: FirebaseHitobitoUser) {
-
-        updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Loading(Unit)))
-        stopListeningToUser()
-
-        viewModelScope.launch {
-            when (val result = authService.deleteAccount(user)) {
-                is SeesturmResult.Error -> {
-                    startListeningToUser(userId = user.userId)
-                    updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
-                            message = result.error.defaultMessage,
-                            duration = SnackbarDuration.Indefinite,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
-                            onDismiss = {
-                                updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Idle))
-                            },
-                            showInSheetIfPossible = false
-                        )
-                    )
-                }
-                is SeesturmResult.Success -> {
-                    updateAuthState(SeesturmAuthState.SignedOut(ActionState.Idle))
-                }
-            }
-        }
-    }
-
-    fun resetAuthState() {
-        stopListeningToUser()
-        updateAuthState(SeesturmAuthState.SignedOut(state = ActionState.Idle))
-    }
-
-    private fun updateAuthState(newAuthState: SeesturmAuthState) {
-        _state.update {
-            it.copy(
-                authState = newAuthState
-            )
-        }
-    }
-
-    private fun startListeningToUser(userId: String) {
-
-        stopListeningToUser()
-
-        userListeningJob = viewModelScope.launch {
-            authService.listenToUser(userId).collect { result ->
-                when (result) {
-                    is SeesturmResult.Error -> {
-                        updateAuthState(SeesturmAuthState.SignedOut(ActionState.Error(Unit, "Der Benutzer konnte nicht von der Datenbank gelesen werden.")))
-                    }
-                    is SeesturmResult.Success -> {
-                        updateAuthState(SeesturmAuthState.SignedInWithHitobito(result.data, ActionState.Idle))
-                    }
-                }
-            }
-        }
-    }
-
-    private fun stopListeningToUser() {
-
-        userListeningJob?.cancel()
-        userListeningJob = null
-    }
-
-    val isSheetVisibile: Boolean
-        get() = state.value.sheetContent != null
-
-    fun updateSheetContent(content: BottomSheetContent?) {
-        _state.update {
-            it.copy(
-                sheetContent = content
-            )
+            checkMinimumRequiredAppBuild()
         }
     }
 
@@ -239,6 +44,7 @@ class AppStateViewModel(
             }
         }
     }
+
     fun setHasSeenOnboarding() {
         viewModelScope.launch {
             onboardingService.setMustShowOnboardingView(mustShow = false)
@@ -270,14 +76,12 @@ class AppStateViewModel(
         viewModelScope.launch {
             when (themeService.updateTheme(theme)) {
                 is SeesturmResult.Error -> {
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = "Das Erscheinungsbild konnte nicht geändert werden. Versuche es später erneut.",
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {},
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }

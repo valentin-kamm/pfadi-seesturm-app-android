@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -35,17 +37,24 @@ fun SeesturmHTMLEditor(
     textStyle: TextStyle = LocalTextStyle.current,
     label: (@Composable () -> Unit)? = null,
     placeholder: (@Composable () -> Unit)? = null,
-    colors: RichTextEditorColors = RichTextEditorDefaults.richTextEditorColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-        unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-        errorIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-        disabledIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-        placeholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-        disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-    ),
+    editorColor: Color = if (LocalScreenContext.current is ScreenContext.ModalBottomSheet) {
+        MaterialTheme.colorScheme.tertiaryContainer
+    }
+    else {
+        MaterialTheme.colorScheme.primaryContainer
+    },
     contentPadding: PaddingValues = if (label == null) { RichTextEditorDefaults.richTextEditorWithoutLabelPadding() } else { RichTextEditorDefaults.richTextEditorWithLabelPadding() }
 ) {
+
+    val colors: RichTextEditorColors = RichTextEditorDefaults.richTextEditorColors(
+        containerColor = editorColor,
+        focusedIndicatorColor = editorColor,
+        unfocusedIndicatorColor = editorColor,
+        errorIndicatorColor = editorColor,
+        disabledIndicatorColor = editorColor,
+        placeholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+        disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+    )
 
     LaunchedEffect(state.state.annotatedString) {
         state.onValueChanged()

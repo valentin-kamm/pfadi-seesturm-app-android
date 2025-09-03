@@ -18,8 +18,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,13 +30,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.AllowedSheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.GenericModalBottomSheet
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
@@ -60,85 +65,91 @@ fun AktivitaetDetailView(
 
     val showGespeichertePersonenDropdown = rememberSaveable { mutableStateOf(false) }
 
-    fun showSheet(interaction: AktivitaetInteractionType) {
+    SimpleModalBottomSheet(
+        show = viewModel.showAnAbmeldenSheet,
+        detents = AllowedSheetDetents.LargeOnly,
+        type = SheetScaffoldType.TitleAndAction(
+            title = stufe.aktivitaetDescription,
+            actions = {
+                if (location is AktivitaetDetailViewLocation.Home) {
+                    Box {
+                        IconButton(
+                            onClick = {
+                                showGespeichertePersonenDropdown.value = true
+                            },
+                            enabled = uiState.gespeichertePersonenState.isSuccess
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.PersonAddAlt,
+                                contentDescription = null
+                            )
+                        }
 
-        viewModel.changeSheetMode(interaction)
-        appStateViewModel.updateSheetContent(
-            content = BottomSheetContent.Scaffold(
-                title = stufe.aktivitaetDescription,
-                content = {
-                    AktivitaetAnAbmeldenView(
-                        viewModel = viewModel,
-                        stufe = stufe,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                },
-                actions = {
-                    if (location is AktivitaetDetailViewLocation.Home) {
-                        Box {
-                            IconButton(
-                                onClick = {
-                                    showGespeichertePersonenDropdown.value = true
-                                },
-                                enabled = uiState.gespeichertePersonenState.isSuccess
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.PersonAddAlt,
-                                    contentDescription = null
-                                )
-                            }
+                        val personenState = uiState.gespeichertePersonenState
 
-                            val personenState = uiState.gespeichertePersonenState
+                        if (personenState is UiState.Success) {
 
-                            if (personenState is UiState.Success) {
-
-                                ThemedDropdownMenu(
-                                    expanded = showGespeichertePersonenDropdown.value,
-                                    onDismissRequest = {
-                                        showGespeichertePersonenDropdown.value = false
-                                    }
-                                ) {
-                                    if (personenState.data.isNotEmpty()) {
-
-                                        personenState.data.forEach { person ->
-                                            ThemedDropdownMenuItem(
-                                                text = {
-                                                    Text(text = person.displayName)
-                                                },
-                                                onClick = {
-                                                    viewModel.setGespeichertePerson(person)
-                                                    showGespeichertePersonenDropdown.value = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                    HorizontalDivider()
-                                    ThemedDropdownMenuItem(
-                                        text = {
-                                            Text("Person hinzufügen")
-                                        },
-                                        onClick = {
-                                            showGespeichertePersonenDropdown.value = false
-                                            appStateViewModel.updateSheetContent(null)
-                                            location.onNavigateToGespeichertePersonen()
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                imageVector = Icons.Outlined.PersonAddAlt,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    )
+                            ThemedDropdownMenu(
+                                expanded = showGespeichertePersonenDropdown.value,
+                                onDismissRequest = {
+                                    showGespeichertePersonenDropdown.value = false
                                 }
+                            ) {
+                                if (personenState.data.isNotEmpty()) {
+
+                                    personenState.data.forEach { person ->
+                                        ThemedDropdownMenuItem(
+                                            text = {
+                                                Text(text = person.displayName)
+                                            },
+                                            onClick = {
+                                                viewModel.setGespeichertePerson(person)
+                                                showGespeichertePersonenDropdown.value = false
+                                            }
+                                        )
+                                    }
+                                }
+                                HorizontalDivider()
+                                ThemedDropdownMenuItem(
+                                    text = {
+                                        Text("Person hinzufügen")
+                                    },
+                                    onClick = {
+                                        showGespeichertePersonenDropdown.value = false
+                                        viewModel.showAnAbmeldenSheet.value = false
+                                        location.onNavigateToGespeichertePersonen()
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.PersonAddAlt,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
                             }
                         }
                     }
                 }
-            )
+            }
+        )
+    ) { _, _ ->
+        AktivitaetAnAbmeldenView(
+            stufe = stufe,
+            selectedSheetMode = uiState.selectedSheetMode,
+            anAbmeldenState = uiState.anAbmeldenState,
+            vornameState = uiState.vornameState,
+            nachnameState = uiState.nachnameState,
+            pfadinameState = uiState.pfadinameState,
+            bemerkungState = uiState.bemerkungState,
+            onChangeSheetMode = {
+                viewModel.changeSheetMode(it)
+            },
+            onSubmit = {
+                viewModel.sendAnAbmeldung()
+            }
         )
     }
-    
+
     AktivitaetDetailContentView(
         loadingState = uiState.loadingState,
         stufe = stufe,
@@ -148,8 +159,9 @@ fun AktivitaetDetailView(
         onRetry = {
             viewModel.getAktivitaet()
         },
-        onOpenSheet = { interaction ->
-            showSheet(interaction)
+        showSheet = viewModel.showAnAbmeldenSheet,
+        updateAktivitaetInteractionType = {
+            viewModel.changeSheetMode(it)
         },
         isDarkTheme = appState.theme.isDarkTheme,
         modifier = modifier
@@ -166,7 +178,8 @@ private fun AktivitaetDetailContentView(
     bottomNavigationInnerPadding: PaddingValues,
     onNavigateBack: () -> Unit,
     onRetry: () -> Unit,
-    onOpenSheet: (AktivitaetInteractionType) -> Unit,
+    showSheet: MutableState<Boolean>,
+    updateAktivitaetInteractionType: (AktivitaetInteractionType) -> Unit,
     isDarkTheme: Boolean,
     modifier: Modifier,
     columnState: LazyListState = rememberLazyListState()
@@ -247,7 +260,10 @@ private fun AktivitaetDetailContentView(
                                 is AktivitaetDetailViewLocation.Stufenbereich -> AktivitaetDetailViewMode.ViewOnly
                                 is AktivitaetDetailViewLocation.Home -> AktivitaetDetailViewMode.Interactive(
                                     onNavigateToPushNotifications = type.onNavigateToPushNotifications,
-                                    onOpenSheet = onOpenSheet
+                                    onOpenSheet = {
+                                        updateAktivitaetInteractionType(it)
+                                        showSheet.value = true
+                                    }
                                 )
                             },
                             isDarkTheme = isDarkTheme,
@@ -278,7 +294,8 @@ private fun AktivitaetDetailViewPreview1() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateBack = {},
             onRetry = {},
-            onOpenSheet = {},
+            showSheet = remember { mutableStateOf(false) },
+            updateAktivitaetInteractionType = {},
             modifier = Modifier,
             isDarkTheme = false
         )
@@ -300,7 +317,8 @@ private fun AktivitaetDetailViewPreview2() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateBack = {},
             onRetry = {},
-            onOpenSheet = {},
+            showSheet = remember { mutableStateOf(false) },
+            updateAktivitaetInteractionType = {},
             modifier = Modifier,
             isDarkTheme = false
         )
@@ -322,7 +340,8 @@ private fun AktivitaetDetailViewPreview3() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateBack = {},
             onRetry = {},
-            onOpenSheet = {},
+            showSheet = remember { mutableStateOf(false) },
+            updateAktivitaetInteractionType = {},
             modifier = Modifier,
             isDarkTheme = false
         )

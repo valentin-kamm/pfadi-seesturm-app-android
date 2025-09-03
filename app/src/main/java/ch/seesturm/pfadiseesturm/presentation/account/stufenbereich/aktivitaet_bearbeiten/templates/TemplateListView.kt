@@ -63,7 +63,15 @@ fun TemplateListView(
         contentPadding = contentPadding,
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .then(
+                if (mode is TemplateListViewMode.Edit) {
+                    Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                }
+                else {
+                    Modifier
+                }
+            )
     ) {
 
         when (state) {
@@ -180,6 +188,7 @@ fun TemplateListView(
                                         Text(
                                             text = "Keine Vorlagen",
                                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
                                                 .fillMaxWidth()

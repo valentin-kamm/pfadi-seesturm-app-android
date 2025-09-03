@@ -9,6 +9,8 @@ import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
+import ch.seesturm.pfadiseesturm.domain.storage.model.DeleteStorageItem
+import ch.seesturm.pfadiseesturm.domain.storage.repository.StorageRepository
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
@@ -23,7 +25,8 @@ class AuthService(
     private val authRepository: AuthRepository,
     private val cloudFunctionsRepository: CloudFunctionsRepository,
     private val firestoreRepository: FirestoreRepository,
-    private val fcmRepository: FCMRepository
+    private val fcmRepository: FCMRepository,
+    private val storageRepository: StorageRepository
 ) {
 
     suspend fun startAuthFlow(): SeesturmResult<Intent, DataError.AuthError> =
@@ -145,6 +148,7 @@ class AuthService(
         return try {
             fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.Schoepflialarm)
             fcmRepository.unsubscribeFromTopic(SeesturmFCMNotificationTopic.SchoepflialarmReaction)
+            storageRepository.deleteData(DeleteStorageItem.ProfilePicture(userId = user.userId))
             firestoreRepository.deleteDocument(FirestoreRepository.SeesturmFirestoreDocument.User(user.userId))
             authRepository.deleteFirebaseUserAccount()
             SeesturmResult.Success(Unit)

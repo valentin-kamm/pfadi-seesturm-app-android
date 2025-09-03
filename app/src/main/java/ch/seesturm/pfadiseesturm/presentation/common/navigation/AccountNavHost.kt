@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.accountModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.dataStoreModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
@@ -43,6 +44,7 @@ fun AccountNavHost(
     tabNavController: NavController,
     bottomNavigationInnerPadding: PaddingValues,
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     accountNavController: NavHostController = rememberNavController()
 ) {
 
@@ -74,7 +76,7 @@ fun AccountNavHost(
     ) {
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.AccountRoot> {
             AccountView(
-                appStateViewModel = appStateViewModel,
+                authViewModel = authViewModel,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 leiterbereich = { user ->
                     {
@@ -87,9 +89,6 @@ fun AccountNavHost(
                                     calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
                                     userId = user.userId,
                                     userDisplayNameShort = user.displayNameShort,
-                                    updateSheetContent = { content ->
-                                        appStateViewModel.updateSheetContent(content)
-                                    },
                                     fcmService = fcmModule.fcmService
                                 )
                             }
@@ -99,7 +98,9 @@ fun AccountNavHost(
                             bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                             accountNavController = accountNavController,
                             viewModel = leiterbereichViewModel,
-                            appStateViewModel = appStateViewModel
+                            appStateViewModel = appStateViewModel,
+                            authViewModel = authViewModel,
+                            leiterbereichService = accountModule.leiterbereichService
                         )
                     }
                 }
@@ -185,7 +186,6 @@ fun AccountNavHost(
                         gespeichertePersonenService = dataStoreModule.gespeichertePersonenService,
                         stufe = arguments.stufe,
                         type = type,
-                        dismissAnAbmeldenSheet = {},
                         userId = null
                     )
                 }
@@ -212,9 +212,6 @@ fun AccountNavHost(
                         calendar = arguments.calendar,
                         userId = arguments.userId,
                         userDisplayNameShort = arguments.userDisplayNameShort,
-                        updateSheetContent = { content ->
-                            appStateViewModel.updateSheetContent(content)
-                        },
                         fcmService = fcmModule.fcmService,
                     )
                 }
@@ -223,8 +220,7 @@ fun AccountNavHost(
                 userId = arguments.userId,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController,
-                viewModel = viewModel,
-                appStateViewModel = appStateViewModel
+                viewModel = viewModel
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet> {
@@ -274,14 +270,10 @@ fun AccountNavHost(
                     factory = viewModelFactoryHelper {
                         TemplateViewModel(
                             stufe = arguments.stufe,
-                            service = accountModule.stufenbereichService,
-                            dismissSheet = {
-                                appStateViewModel.updateSheetContent(null)
-                            }
+                            service = accountModule.stufenbereichService
                         )
                     }
                 ),
-                appStateViewModel = appStateViewModel,
                 stufe = arguments.stufe,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController

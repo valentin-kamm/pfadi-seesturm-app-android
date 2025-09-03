@@ -59,6 +59,20 @@ class FirebaseHitobitoUser private constructor(
 
     val displayNameShort: String
         get() = pfadiname ?: vorname ?: "Unbekannter Benutzer"
+
+    val displayNameFull: String
+        get() {
+            return if (pfadiname != null && vorname != null && nachname != null) {
+                "$vorname $nachname / $pfadiname"
+            }
+            else if (vorname != null && nachname != null) {
+                return "$vorname $nachname"
+            }
+            else vorname ?: "Unbekannter Benutzer"
+        }
+
+    val hasProfilePicture: Boolean
+        get() = profilePictureUrl != null
 }
 
 fun List<FirebaseHitobitoUser>.getUserById(uid: String): FirebaseHitobitoUser? {

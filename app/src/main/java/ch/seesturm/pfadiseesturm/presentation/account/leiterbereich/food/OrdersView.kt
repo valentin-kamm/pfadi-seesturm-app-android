@@ -26,9 +26,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,11 +43,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
-import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderCell
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderLoadingCell
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
@@ -56,6 +54,9 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.AllowedSheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.DummyData
@@ -68,7 +69,6 @@ import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 fun OrdersView(
     viewModel: LeiterbereichViewModel,
     userId: String,
-    appStateViewModel: AppStateViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController
 ) {
@@ -89,18 +89,27 @@ fun OrdersView(
         isConfirmButtonCritical = true
     )
 
+    SimpleModalBottomSheet(
+        show = viewModel.showFoodSheet,
+        detents = AllowedSheetDetents.LargeOnly,
+        type = SheetScaffoldType.Title("Bestellung hinzufügen")
+    ) { _, _ ->
+        AddOrderView(
+            foodItemFieldState = uiState.foodItemState,
+            onSubmit = { viewModel.addNewFoodOrder() },
+            onNumberPickerValueChange = { newValue ->
+                viewModel.updateFoodItemCount(newValue)
+            },
+            isButtonLoading = uiState.addNewOrderState.isLoading
+        )
+    }
+
     OrdersContentView(
         userId = userId,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         accountNavController = accountNavController,
         foodState = uiState.foodResult,
         deleteAllOrdersState = uiState.deleteAllOrdersState,
-        addOrderView = {
-            AddOrderView(
-                viewModel = viewModel,
-                modifier = Modifier
-            )
-        },
         onDeleteFromOrder = { orderId ->
             viewModel.deleteFromExistingOrder(orderId)
         },
@@ -110,9 +119,7 @@ fun OrdersView(
         onDeleteAllOrders = {
             viewModel.updateDeleteAllOrdersAlertVisibility(true)
         },
-        onUpdateSheetContent = { content ->
-            appStateViewModel.updateSheetContent(content)
-        }
+        showFoodSheet = viewModel.showFoodSheet
     )
 }
 
@@ -124,11 +131,10 @@ private fun OrdersContentView(
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,
     deleteAllOrdersState: ActionState<Unit>,
-    addOrderView: @Composable () -> Unit,
     onDeleteAllOrders: () -> Unit,
     onDeleteFromOrder: (String) -> Unit,
     onAddToOrder: (String) -> Unit,
-    onUpdateSheetContent: (BottomSheetContent?) -> Unit,
+    showFoodSheet: MutableState<Boolean>,
     columnState: LazyListState = rememberLazyListState()
 ) {
 
@@ -166,12 +172,7 @@ private fun OrdersContentView(
             }
             IconButton(
                 onClick = {
-                    onUpdateSheetContent(
-                        BottomSheetContent.Scaffold(
-                            title = "Bestellung hinzufügen",
-                            content = addOrderView
-                        )
-                    )
+                    showFoodSheet.value = true
                 }
             ) {
                 Icon(
@@ -299,12 +300,7 @@ private fun OrdersContentView(
                                         ),
                                         title = "Bestellung hinzufügen",
                                         onClick = {
-                                            onUpdateSheetContent(
-                                                BottomSheetContent.Scaffold(
-                                                    title = "Bestellung hinzufügen",
-                                                    content = addOrderView
-                                                )
-                                            )
+                                            showFoodSheet.value = true
                                         },
                                         isLoading = false
                                     )
@@ -328,11 +324,10 @@ private fun OrdersViewPreview1() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
             deleteAllOrdersState = ActionState.Idle,
-            addOrderView = {},
             onDeleteAllOrders = {},
             onDeleteFromOrder = {},
             onAddToOrder = {},
-            onUpdateSheetContent = {}
+            showFoodSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -346,11 +341,10 @@ private fun OrdersViewPreview2() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
             deleteAllOrdersState = ActionState.Idle,
-            addOrderView = {},
             onDeleteAllOrders = {},
             onDeleteFromOrder = {},
             onAddToOrder = {},
-            onUpdateSheetContent = {}
+            showFoodSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -364,11 +358,10 @@ private fun OrdersViewPreview3() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
             deleteAllOrdersState = ActionState.Idle,
-            addOrderView = {},
             onDeleteAllOrders = {},
             onDeleteFromOrder = {},
             onAddToOrder = {},
-            onUpdateSheetContent = {}
+            showFoodSheet = remember { mutableStateOf(false) }
         )
     }
 }
@@ -382,11 +375,10 @@ private fun OrdersViewPreview4() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             accountNavController = rememberNavController(),
             deleteAllOrdersState = ActionState.Idle,
-            addOrderView = {},
             onDeleteAllOrders = {},
             onDeleteFromOrder = {},
             onAddToOrder = {},
-            onUpdateSheetContent = {}
+            showFoodSheet = remember { mutableStateOf(false) }
         )
     }
 }

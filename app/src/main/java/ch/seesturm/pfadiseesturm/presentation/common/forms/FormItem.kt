@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.MehrHorizontalPhotoScrollView
@@ -50,6 +52,12 @@ fun <T>FormItem(
     onClick: (() -> Unit)? = null,
     trailingElement: FormItemTrailingElementType = FormItemTrailingElementType.Blank,
     separatorColor: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+    backgroundColor: Color = if (LocalScreenContext.current is ScreenContext.ModalBottomSheet) {
+        MaterialTheme.colorScheme.tertiaryContainer
+    }
+    else {
+        MaterialTheme.colorScheme.primaryContainer
+    },
     separatorWidth: Float = 0.87f
 ) {
 
@@ -73,7 +81,7 @@ fun <T>FormItem(
                         Modifier.clip(shape)
                     }
                 )
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(backgroundColor)
                 .fillMaxWidth()
                 .then(
                     if (onClick != null) {
@@ -123,7 +131,6 @@ fun <T>FormItem(
                             is FormItemTextContentColor.Custom -> {
                                 mainContent.textColor.color
                             }
-
                             FormItemTextContentColor.Default -> {
                                 MaterialTheme.colorScheme.onBackground
                             }

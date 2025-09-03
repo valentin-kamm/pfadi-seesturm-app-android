@@ -194,14 +194,10 @@ fun MehrNavHost(
                 viewModel = viewModel<GespeichertePersonenViewModel>(
                     factory = viewModelFactoryHelper {
                         GespeichertePersonenViewModel(
-                            service = dataStoreModule.gespeichertePersonenService,
-                            updateSheetContent = { content ->
-                                appStateViewModel.updateSheetContent(content)
-                            },
+                            service = dataStoreModule.gespeichertePersonenService
                         )
                     }
-                ),
-                appStateViewModel = appStateViewModel
+                )
             )
         }
         composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.PushNotifications> {

@@ -53,7 +53,7 @@ fun SchoepflialarmCardView(
                     .fillMaxWidth()
             ) {
                 CircleProfilePictureView(
-                    user = user,
+                    type = ProfilePictureType.User(schoepflialarm.user),
                     size = 30.dp
                 )
                 Text(

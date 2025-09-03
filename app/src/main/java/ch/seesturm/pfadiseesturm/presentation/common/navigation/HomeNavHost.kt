@@ -165,9 +165,6 @@ fun HomeNavHost(
                         service = wordpressModule.naechsteAktivitaetService,
                         gespeichertePersonenService = dataStoreModule.gespeichertePersonenService,
                         stufe = arguments.stufe,
-                        dismissAnAbmeldenSheet = {
-                            appStateViewModel.updateSheetContent(null)
-                        },
                         userId = authModule.authRepository.getCurrentUid(),
                         type = type
                     )
@@ -191,14 +188,10 @@ fun HomeNavHost(
                 viewModel = viewModel<GespeichertePersonenViewModel>(
                     factory = viewModelFactoryHelper {
                         GespeichertePersonenViewModel(
-                            service = dataStoreModule.gespeichertePersonenService,
-                            updateSheetContent = { content ->
-                                appStateViewModel.updateSheetContent(content)
-                            },
+                            service = dataStoreModule.gespeichertePersonenService
                         )
                     }
-                ),
-                appStateViewModel = appStateViewModel
+                )
             )
         }
     }

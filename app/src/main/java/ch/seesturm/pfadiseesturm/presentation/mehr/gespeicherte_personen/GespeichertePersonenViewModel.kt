@@ -1,14 +1,14 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen
 
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.data_store.service.GespeichertePersonenService
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -22,7 +22,6 @@ import java.util.UUID
 
 class GespeichertePersonenViewModel(
     private val service: GespeichertePersonenService,
-    private val updateSheetContent: (BottomSheetContent?) -> Unit
 ): ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -43,6 +42,8 @@ class GespeichertePersonenViewModel(
     init {
         startListeningToPersons()
     }
+
+    val showSheet = mutableStateOf(false)
 
     private val newPerson: GespeichertePerson
         get() = GespeichertePerson(
@@ -97,27 +98,23 @@ class GespeichertePersonenViewModel(
             if (newPersonCanBeSaved) {
                 when (val result = service.insertPerson(newPerson)) {
                     is SeesturmResult.Error -> {
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
+                        SnackbarController.sendSnackbar(
+                            SeesturmSnackbar.Error(
                                 message = "Person kann nicht gespeichert werden. ${result.error.defaultMessage}",
-                                type = SeesturmSnackbarType.Error,
                                 onDismiss = {},
-                                duration = SnackbarDuration.Long,
-                                allowManualDismiss = true,
-                                showInSheetIfPossible = true
+                                location = SeesturmSnackbarLocation.Sheet,
+                                allowManualDismiss = true
                             )
                         )
                     }
                     is SeesturmResult.Success -> {
-                        updateSheetContent(null)
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
+                        showSheet.value = false
+                        SnackbarController.sendSnackbar(
+                            SeesturmSnackbar.Success(
                                 message = "Person erfolgreich gespeichert.",
-                                type = SeesturmSnackbarType.Success,
                                 onDismiss = {},
-                                duration = SnackbarDuration.Short,
-                                allowManualDismiss = true,
-                                showInSheetIfPossible = false
+                                location = SeesturmSnackbarLocation.Default,
+                                allowManualDismiss = true
                             )
                         )
                         updateVorname("")
@@ -132,14 +129,12 @@ class GespeichertePersonenViewModel(
         viewModelScope.launch {
             when (service.deletePerson(id)) {
                 is SeesturmResult.Error -> {
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.sendSnackbar(
+                        SeesturmSnackbar.Error(
                             message = "Person kann nicht gelöscht werden.",
-                            type = SeesturmSnackbarType.Error,
                             onDismiss = {},
-                            duration = SnackbarDuration.Long,
-                            allowManualDismiss = true,
-                            showInSheetIfPossible = true
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }

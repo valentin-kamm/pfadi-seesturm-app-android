@@ -75,7 +75,8 @@ class SeesturmApplication: Application() {
             appContext = this,
             cloudFunctionsRepository = fcfModule.fcfRepository,
             firestoreRepository = firestoreModule.firestoreRepository,
-            fcmRepository = fcmModule.fcmRepository
+            fcmRepository = fcmModule.fcmRepository,
+            storageRepository = storageModule.storageRepository
         )
         accountModule = AccountModuleImpl(
             appContext = this,

@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.adaptive.navigation)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
+    implementation(libs.composables.core)
 
     // icons
     implementation(libs.androidx.material.icons.core)

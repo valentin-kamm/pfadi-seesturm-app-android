@@ -77,6 +77,7 @@ fun <T>PushNotificationToggle(
                         text = topic.topicName,
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.bodyLarge.copy(hyphens = Hyphens.Auto),
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
