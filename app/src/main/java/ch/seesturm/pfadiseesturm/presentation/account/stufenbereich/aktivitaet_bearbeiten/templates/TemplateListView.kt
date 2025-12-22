@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -63,15 +62,6 @@ fun TemplateListView(
         contentPadding = contentPadding,
         modifier = modifier
             .fillMaxSize()
-            .then(
-                if (mode is TemplateListViewMode.Edit) {
-                    Modifier
-                        .background(MaterialTheme.colorScheme.background)
-                }
-                else {
-                    Modifier
-                }
-            )
     ) {
 
         when (state) {

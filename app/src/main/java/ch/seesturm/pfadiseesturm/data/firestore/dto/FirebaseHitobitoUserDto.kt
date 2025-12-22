@@ -5,7 +5,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 
-data class FirebaseHitobitoUserDto (
+data class FirebaseHitobitoUserDto(
 
     @DocumentId override var id: String? = null,
     @ServerTimestamp override var created: Timestamp? = null,
