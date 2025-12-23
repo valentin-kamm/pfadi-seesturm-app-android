@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -19,6 +20,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -26,15 +28,20 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarContentView
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHostType
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import dev.chrisbanes.haze.HazeState
@@ -52,7 +59,6 @@ fun TopBarScaffold(
     title: String? = null,
     navigationAction: TopBarNavigationIcon = TopBarNavigationIcon.None,
     actions: @Composable RowScope.() -> Unit = {},
-    snackbarType: SeesturmSnackbarHostType = SeesturmSnackbarHostType.Default,
     floatingActionButton: @Composable () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
     content: @Composable (PaddingValues) -> Unit,
@@ -200,12 +206,6 @@ fun TopBarScaffold(
                     }
                 }
             }
-        },
-        snackbarHost = {
-            SeesturmSnackbarHost(
-                location = SeesturmSnackbarLocation.Default,
-                type = snackbarType
-            )
         },
         floatingActionButton = floatingActionButton,
         modifier = modifier

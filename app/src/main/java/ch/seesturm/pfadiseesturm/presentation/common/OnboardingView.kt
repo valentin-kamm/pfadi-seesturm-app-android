@@ -32,9 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -68,7 +66,6 @@ import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarContentView
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsAction
