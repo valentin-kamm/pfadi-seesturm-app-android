@@ -1,7 +1,6 @@
 package ch.seesturm.pfadiseesturm.main
 
 import androidx.activity.result.ActivityResult
-import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.data.wordpress.WordpressApi
@@ -12,9 +11,8 @@ import ch.seesturm.pfadiseesturm.domain.data_store.service.SelectedThemeService
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.service.FCMService
 import ch.seesturm.pfadiseesturm.presentation.account.auth.AuthIntentController
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -134,16 +132,14 @@ class AppStateViewModel(
                 is SeesturmResult.Error -> {
                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
                     viewModelScope.launch {
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
+                        SnackbarController.showSnackbar(
+                            SeesturmSnackbar.Error(
                                 message = result.error.defaultMessage,
-                                duration = SnackbarDuration.Indefinite,
-                                type = SeesturmSnackbarType.Error,
-                                allowManualDismiss = true,
                                 onDismiss = {
                                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Idle))
                                 },
-                                showInSheetIfPossible = false
+                                location = SeesturmSnackbarLocation.Default,
+                                allowManualDismiss = true
                             )
                         )
                     }
@@ -162,16 +158,14 @@ class AppStateViewModel(
             when (val result = authService.deleteAccount(user)) {
                 is SeesturmResult.Error -> {
                     updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Error(Unit, result.error.defaultMessage)))
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.showSnackbar(
+                        SeesturmSnackbar.Error(
                             message = result.error.defaultMessage,
-                            duration = SnackbarDuration.Indefinite,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {
                                 updateAuthState(SeesturmAuthState.SignedInWithHitobito(user, ActionState.Idle))
                             },
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }
@@ -190,17 +184,6 @@ class AppStateViewModel(
         _state.update {
             it.copy(
                 authState = newAuthState
-            )
-        }
-    }
-
-    val isSheetVisibile: Boolean
-        get() = state.value.sheetContent != null
-
-    fun updateSheetContent(content: BottomSheetContent?) {
-        _state.update {
-            it.copy(
-                sheetContent = content
             )
         }
     }
@@ -244,14 +227,12 @@ class AppStateViewModel(
         viewModelScope.launch {
             when (themeService.updateTheme(theme)) {
                 is SeesturmResult.Error -> {
-                    SnackbarController.sendEvent(
-                        event = SeesturmSnackbarEvent(
+                    SnackbarController.showSnackbar(
+                        SeesturmSnackbar.Error(
                             message = "Das Erscheinungsbild konnte nicht geändert werden. Versuche es später erneut.",
-                            duration = SnackbarDuration.Long,
-                            type = SeesturmSnackbarType.Error,
-                            allowManualDismiss = true,
                             onDismiss = {},
-                            showInSheetIfPossible = false
+                            location = SeesturmSnackbarLocation.Default,
+                            allowManualDismiss = true
                         )
                     )
                 }

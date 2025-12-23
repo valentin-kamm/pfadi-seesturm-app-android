@@ -34,32 +34,11 @@ import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 
 @Composable
 fun AddOrderView(
-    viewModel: LeiterbereichViewModel,
-    modifier: Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    AddOrderContentView(
-        foodItemFieldState = uiState.foodItemState,
-        modifier = modifier,
-        onSubmit = {
-            viewModel.addNewFoodOrder()
-        },
-        isButtonLoading = uiState.addNewOrderState.isLoading,
-        onNumberPickerValueChange = { newValue ->
-            viewModel.updateFoodItemCount(newValue)
-        }
-    )
-}
-
-@Composable
-private fun AddOrderContentView(
     foodItemFieldState: SeesturmTextFieldState,
     onSubmit: () -> Unit,
     onNumberPickerValueChange: (Int) -> Unit,
     isButtonLoading: Boolean,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState()
 ) {
     
@@ -131,7 +110,7 @@ private fun AddOrderContentView(
 @Composable
 private fun BestellungHinzufuegenViewPreview1() {
     PfadiSeesturmTheme {
-        AddOrderContentView(
+        AddOrderView(
             foodItemFieldState = SeesturmTextFieldState(
                 text = "Dürüm",
                 label = "Bestellung",
@@ -149,7 +128,7 @@ private fun BestellungHinzufuegenViewPreview1() {
 @Composable
 private fun BestellungHinzufuegenViewPreview2() {
     PfadiSeesturmTheme {
-        AddOrderContentView(
+        AddOrderView(
             foodItemFieldState = SeesturmTextFieldState(
                 text = "Dürüm",
                 label = "Bestellung",
@@ -167,7 +146,7 @@ private fun BestellungHinzufuegenViewPreview2() {
 @Composable
 private fun BestellungHinzufuegenViewPreview3() {
     PfadiSeesturmTheme {
-        AddOrderContentView(
+        AddOrderView(
             foodItemFieldState = SeesturmTextFieldState(
                 text = "Dürüm",
                 label = "Bestellung",

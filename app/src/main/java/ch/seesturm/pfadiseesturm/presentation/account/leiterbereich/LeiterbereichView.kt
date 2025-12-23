@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -28,8 +27,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -58,7 +60,6 @@ import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.S
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.SchoepflialarmSheet
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeader
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeaderType
@@ -67,11 +68,15 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
 import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsAction
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsActionType
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
+import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
@@ -197,6 +202,44 @@ fun LeiterbereichView(
         isConfirmButtonCritical = true
     )
 
+    val showEditProfileSheet = rememberSaveable { mutableStateOf(false) }
+    val showSchoepflialarmSheet = rememberSaveable { mutableStateOf(false) }
+
+    SimpleModalBottomSheet(
+        show = showSchoepflialarmSheet,
+        detents = SheetDetents.All,
+        type = SheetScaffoldType.Title("Schöpflialarm")
+    ) { _, _ ->
+        SchoepflialarmSheet(
+            schoepflialarmResult = viewModel.schoepflialarmResult,
+            user = user,
+            newSchoepflialarmMessage = uiState.schoepflialarmMessage,
+            onSubmit = {
+                viewModel.trySendSchoepflialarm()
+            },
+            onReaction = { reaction ->
+                viewModel.sendSchoepflialarmReaction(reaction)
+            },
+            isSubmitButtonLoading = uiState.sendSchoepflialarmState.isLoading,
+            isReactionButtonLoading = { reaction ->
+                when (val localState = uiState.sendSchoepflialarmReactionState) {
+                    is ActionState.Loading -> {
+                        localState.action == reaction
+                    }
+                    else -> false
+                }
+            },
+            onPushNotificationToggle = { isSwitchingOn ->
+                viewModel.toggleNotificationTopic(
+                    isSwitchingOn = isSwitchingOn,
+                    requestPermission = requestNotificationsPermission
+                )
+            },
+            notificationTopicsReadingState = uiState.notificationTopicsReadingState,
+            togglePushNotificationState = uiState.toggleSchoepflialarmReactionsPushNotificationState
+        )
+    }
+
     LeiterbereichContentView(
         user = user,
         selectedStufen = uiState.selectedStufen,
@@ -218,21 +261,7 @@ fun LeiterbereichView(
             viewModel.toggleStufe(stufe)
         },
         schoepflialarmState = viewModel.schoepflialarmResult,
-        onOpenSchoepflialarmSheet = {
-            appStateViewModel.updateSheetContent(
-                content = BottomSheetContent.Scaffold(
-                    title = "Schöpflialarm",
-                    content = {
-                        SchoepflialarmSheet(
-                            viewModel = viewModel,
-                            user = user,
-                            requestNotificationsPermission = requestNotificationsPermission
-                        )
-                    },
-                    sheetHeightPercentage = 0.75f
-                )
-            )
-        },
+        showSchoeflialarmSheet = showSchoepflialarmSheet,
         isDarkTheme = appState.theme.isDarkTheme
     )
 }
@@ -252,7 +281,7 @@ private fun LeiterbereichContentView(
     onSignOut: () -> Unit,
     onRetryEvents: () -> Unit,
     onToggleStufe: (SeesturmStufe) -> Unit,
-    onOpenSchoepflialarmSheet: () -> Unit,
+    showSchoeflialarmSheet: MutableState<Boolean>,
     isDarkTheme: Boolean,
     calendar: SeesturmCalendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
     columnState: LazyListState = rememberLazyListState(),
@@ -361,7 +390,7 @@ private fun LeiterbereichContentView(
                         SchoepflialarmCardView(
                             schoepflialarm = schoepflialarmState.data,
                             user = user,
-                            onClick = onOpenSchoepflialarmSheet,
+                            onClick = { showSchoeflialarmSheet.value = true },
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .animateItem()
@@ -555,7 +584,7 @@ private fun LeiterbereichViewPreview1() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
+            showSchoeflialarmSheet = mutableStateOf(false),
             isDarkTheme = false
         )
     }
@@ -577,7 +606,7 @@ private fun LeiterbereichViewPreview2() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
+            showSchoeflialarmSheet = mutableStateOf(false),
             isDarkTheme = false
         )
     }
@@ -599,7 +628,7 @@ private fun LeiterbereichViewPreview3() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
+            showSchoeflialarmSheet = mutableStateOf(false),
             isDarkTheme = false
         )
     }
@@ -621,7 +650,7 @@ private fun LeiterbereichViewPreview4() {
             onSignOut = {},
             onRetryEvents = {},
             onToggleStufe = {},
-            onOpenSchoepflialarmSheet = {},
+            showSchoeflialarmSheet = mutableStateOf(false),
             isDarkTheme = false
         )
     }

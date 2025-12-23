@@ -1,10 +1,11 @@
 [versions]
 activityKtx = "1.10.1"
 adaptiveNavigation = "1.1.0"
-agp = "8.10.1"
+agp = "8.13.2"
 appauth = "0.11.1"
 browser = "1.8.0"
 coilCompose = "2.4.0"
+composeunstyled = "1.49.3"
 coreSplashscreen = "1.0.1"
 firebaseBom = "34.0.0"
 jsoup = "1.17.2"
@@ -54,6 +55,7 @@ androidx-runtime = { module = "androidx.compose.runtime:runtime", version.ref = 
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
+composeunstyled = { module = "com.composables:composeunstyled", version.ref = "composeunstyled" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-appcheck = { module = "com.google.firebase:firebase-appcheck" }

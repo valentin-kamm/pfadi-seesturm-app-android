@@ -18,16 +18,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @Composable
 fun TemplateEditListView(
@@ -43,17 +45,20 @@ fun TemplateEditListView(
 
     fun showTemplateSheet(mode: TemplateEditMode) {
         viewModel.updateRichTextState(mode)
-        appStateViewModel.updateSheetContent(
-            content = BottomSheetContent.Scaffold(
-                title = mode.navigationTitle,
-                content = {
-                    TemplateEditView(
-                        mode = mode,
-                        editState = uiState.editState,
-                        richTextState = uiState.richTextState
-                    )
-                }
-            )
+        viewModel.showTemplateSheet.value = false
+        viewModel.setSheetMode(mode)
+        viewModel.showTemplateSheet.value = true
+    }
+
+    SimpleModalBottomSheet(
+        show = viewModel.showTemplateSheet,
+        detents = SheetDetents.LargeOnly,
+        type = SheetScaffoldType.Title(uiState.templateEditMode.navigationTitle)
+    ) { _, _ ->
+        TemplateEditView(
+            mode = uiState.templateEditMode,
+            editState = uiState.editState,
+            richTextState = uiState.richTextState
         )
     }
 

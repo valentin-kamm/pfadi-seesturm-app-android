@@ -44,35 +44,9 @@ import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
+
 @Composable
 fun AktivitaetAnAbmeldenView(
-    viewModel: AktivitaetDetailViewModel,
-    stufe: SeesturmStufe,
-    modifier: Modifier = Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    AktivitaetAnAbmeldenContentView(
-        stufe = stufe,
-        selectedSheetMode = uiState.selectedSheetMode,
-        anAbmeldenState = uiState.anAbmeldenState,
-        vornameState = uiState.vornameState,
-        nachnameState = uiState.nachnameState,
-        pfadinameState = uiState.pfadinameState,
-        bemerkungState = uiState.bemerkungState,
-        onChangeSheetMode = { interaction ->
-            viewModel.changeSheetMode(interaction)
-        },
-        onSubmit = {
-            viewModel.sendAnAbmeldung()
-        },
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun AktivitaetAnAbmeldenContentView(
     stufe: SeesturmStufe,
     selectedSheetMode: AktivitaetInteractionType,
     anAbmeldenState: ActionState<AktivitaetInteractionType>,
@@ -82,7 +56,7 @@ private fun AktivitaetAnAbmeldenContentView(
     bemerkungState: SeesturmTextFieldState,
     onChangeSheetMode: (AktivitaetInteractionType) -> Unit,
     onSubmit: () -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState(),
 ) {
 
@@ -239,7 +213,7 @@ private fun AktivitaetAnAbmeldenContentView(
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview1() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
             anAbmeldenState = ActionState.Loading(AktivitaetInteractionType.ABMELDEN),
@@ -277,7 +251,7 @@ private fun AktivitaetAnAbmeldenViewPreview1() {
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview2() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
             anAbmeldenState = ActionState.Idle,
@@ -315,7 +289,7 @@ private fun AktivitaetAnAbmeldenViewPreview2() {
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview3() {
     PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenContentView(
+        AktivitaetAnAbmeldenView(
             stufe = SeesturmStufe.Biber,
             selectedSheetMode = AktivitaetInteractionType.ANMELDEN,
             anAbmeldenState = ActionState.Idle,

@@ -1,14 +1,16 @@
 package ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail
 
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.data.firestore.dto.AktivitaetAnAbmeldungDto
 import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.data_store.service.GespeichertePersonenService
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.NaechsteAktivitaetService
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
@@ -28,7 +30,6 @@ class AktivitaetDetailViewModel(
     private val gespeichertePersonenService: GespeichertePersonenService,
     private val stufe: SeesturmStufe,
     private val type: AktivitaetDetailViewLocation,
-    private val dismissAnAbmeldenSheet: () -> Unit,
     private val userId: String?
 ): ViewModel() {
 
@@ -49,6 +50,8 @@ class AktivitaetDetailViewModel(
         )
     )
     val state = _state.asStateFlow()
+
+    val showAnAbmeldenSheet = mutableStateOf(false)
 
     private val newAnAbmeldung: AktivitaetAnAbmeldungDto
         get() = AktivitaetAnAbmeldungDto(
@@ -130,10 +133,9 @@ class AktivitaetDetailViewModel(
                                 anAbmeldenState = ActionState.Error(action = state.value.selectedSheetMode, "${state.value.selectedSheetMode.nomen} konnte nicht gespeichert werden. ${result.error.defaultMessage}")
                             )
                         }
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
+                        SnackbarController.showSnackbar(
+                            snackbar = SeesturmSnackbar.Error(
                                 message = "${state.value.selectedSheetMode.nomen} konnte nicht gespeichert werden. ${result.error.defaultMessage}",
-                                type = SeesturmSnackbarType.Error,
                                 onDismiss = {
                                     _state.update {
                                         it.copy(
@@ -141,23 +143,21 @@ class AktivitaetDetailViewModel(
                                         )
                                     }
                                 },
-                                duration = SnackbarDuration.Long,
-                                allowManualDismiss = true,
-                                showInSheetIfPossible = true
+                                location = SeesturmSnackbarLocation.Sheet,
+                                allowManualDismiss = true
                             )
                         )
                     }
                     is SeesturmResult.Success -> {
-                        dismissAnAbmeldenSheet()
+                        showAnAbmeldenSheet.value = false
                         _state.update {
                             it.copy(
                                 anAbmeldenState = ActionState.Success(action = state.value.selectedSheetMode, "${state.value.selectedSheetMode.nomen} erfolgreich gespeichert.")
                             )
                         }
-                        SnackbarController.sendEvent(
-                            event = SeesturmSnackbarEvent(
+                        SnackbarController.showSnackbar(
+                            snackbar = SeesturmSnackbar.Success(
                                 message = "${state.value.selectedSheetMode.nomen} erfolgreich gespeichert.",
-                                type = SeesturmSnackbarType.Success,
                                 onDismiss = {
                                     _state.update {
                                         it.copy(
@@ -165,9 +165,8 @@ class AktivitaetDetailViewModel(
                                         )
                                     }
                                 },
-                                duration = SnackbarDuration.Short,
-                                allowManualDismiss = true,
-                                showInSheetIfPossible = false
+                                location = SeesturmSnackbarLocation.Default,
+                                allowManualDismiss = true
                             )
                         )
                         updateVorname("")

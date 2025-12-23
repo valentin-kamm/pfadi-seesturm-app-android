@@ -194,10 +194,7 @@ fun MehrNavHost(
                 viewModel = viewModel<GespeichertePersonenViewModel>(
                     factory = viewModelFactoryHelper {
                         GespeichertePersonenViewModel(
-                            service = dataStoreModule.gespeichertePersonenService,
-                            updateSheetContent = { content ->
-                                appStateViewModel.updateSheetContent(content)
-                            },
+                            service = dataStoreModule.gespeichertePersonenService
                         )
                     }
                 ),

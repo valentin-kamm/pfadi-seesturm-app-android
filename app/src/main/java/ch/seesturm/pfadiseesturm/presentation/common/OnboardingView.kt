@@ -33,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -63,9 +64,10 @@ import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarContentView
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -152,23 +154,9 @@ fun OnboardingView(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState
-            ) { snackbarData ->
-                val snackbarEvent = snackbarData.visuals as? SeesturmSnackbarEvent
-                if (snackbarEvent != null) {
-                    SeesturmSnackbarView(
-                        snackbarData = snackbarData,
-                        event = snackbarEvent
-                    )
-                }
-                else {
-                    Snackbar(
-                        snackbarData = snackbarData,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                }
-            }
+            SeesturmSnackbarHost(
+                location = SeesturmSnackbarLocation.Default
+            )
         }
     ) { innerPadding ->
         OnboardingContentView(
@@ -459,9 +447,14 @@ private fun OnboardingContentView(
                         additionalBottomContent = if (hadPreviousAppVersionInstalled) {
                             {
                                 SeesturmSnackbarContentView(
-                                    type = SeesturmSnackbarType.Info,
+                                    snackbar = SeesturmSnackbar.Info(
+                                        message = "Push-Nachrichten müssen neu abonniert werden, da eine neue App Version installiert wurde.",
+                                        onDismiss = {},
+                                        location = SeesturmSnackbarLocation.Default,
+                                        allowManualDismiss = false,
+                                        duration = SnackbarDuration.Indefinite
+                                    ),
                                     onClick = null,
-                                    message = "Push-Nachrichten müssen neu abonniert werden, da eine neue App Version installiert wurde.",
                                     modifier = Modifier
                                         .padding(vertical = 16.dp)
                                 )

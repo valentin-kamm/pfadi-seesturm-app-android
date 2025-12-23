@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.presentation.home
 
-import androidx.compose.material3.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
@@ -8,8 +7,8 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.service.AktuellService
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.AnlaesseService
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.NaechsteAktivitaetService
 import ch.seesturm.pfadiseesturm.domain.wordpress.service.WeatherService
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -200,14 +199,12 @@ class HomeViewModel(
             val result = naechsteAktivitaetService.addStufe(stufe)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.showSnackbar(
+                    snackbar = SeesturmSnackbar.Error(
                         message = "${stufe.stufenName} konnte nicht hinzugefügt werden. ${result.error.defaultMessage}",
-                        type = SeesturmSnackbarType.Error,
                         onDismiss = {},
-                        duration = SnackbarDuration.Short,
-                        allowManualDismiss = true,
-                        showInSheetIfPossible = false
+                        location = SeesturmSnackbarLocation.Default,
+                        allowManualDismiss = true
                     )
                 )
             }
@@ -220,14 +217,12 @@ class HomeViewModel(
             val result = naechsteAktivitaetService.deleteStufe(stufe)
 
             if (result is SeesturmResult.Error) {
-                SnackbarController.sendEvent(
-                    event = SeesturmSnackbarEvent(
+                SnackbarController.showSnackbar(
+                    snackbar = SeesturmSnackbar.Error(
                         message = "${stufe.stufenName} konnte nicht entfernt werden. ${result.error.defaultMessage}",
-                        type = SeesturmSnackbarType.Error,
                         onDismiss = {},
-                        duration = SnackbarDuration.Short,
-                        allowManualDismiss = true,
-                        showInSheetIfPossible = false
+                        location = SeesturmSnackbarLocation.Default,
+                        allowManualDismiss = true
                     )
                 )
             }

@@ -155,4 +155,7 @@ dependencies {
 
     // zooming on images
     implementation(libs.zoomable)
+
+    // compose unstyled
+    implementation(libs.composeunstyled)
 }

@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,7 +46,6 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateListView
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateListViewMode
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
@@ -64,19 +64,23 @@ import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmDatePicker
 import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmTimePicker
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmHTMLEditor
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetWithItem
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
+import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import com.mohamedrejeb.richeditor.model.RichTextState
 import java.time.ZonedDateTime
 
@@ -148,6 +152,37 @@ fun AktivitaetBearbeitenView(
         }
     )
 
+    ModalBottomSheetWithItem(
+        item = viewModel.aktivitaetForPreviewSheet,
+        detents = SheetDetents.All,
+        type = SheetScaffoldType.Title("Vorschau ${stufe.aktivitaetDescription}")
+    ) { event, _, _ ->
+        AktivitaetBearbeitenPreviewView(
+            aktivitaet = event,
+            stufe = stufe,
+            isDarkTheme = appState.theme.isDarkTheme
+        )
+    }
+
+    val showTemplatesSheet = rememberSaveable { mutableStateOf(false) }
+
+    SimpleModalBottomSheet(
+        show = showTemplatesSheet,
+        detents = SheetDetents.MediumOnly,
+        type = SheetScaffoldType.Title("Vorlagen ${stufe.stufenName}")
+    ) { _, _ ->
+        TemplateListView(
+            state = uiState.templatesState,
+            mode = TemplateListViewMode.Use,
+            contentPadding = PaddingValues(16.dp),
+            onClick = { template ->
+                viewModel.useTemplate(template)
+                showTemplatesSheet.value = false
+            },
+            isInEditingMode = false
+        )
+    }
+
     AktivitaetBearbeitenContentView(
         uiState = uiState,
         modifier = modifier,
@@ -177,44 +212,10 @@ fun AktivitaetBearbeitenView(
         onErrorRetry = {
             viewModel.fetchAktivitaetIfNecessary()
         },
-        onOpenPreview = { event ->
-            appStateViewModel.updateSheetContent(
-                content = BottomSheetContent.Scaffold(
-                    title = "Vorschau ${stufe.aktivitaetDescription}",
-                    sheetHeightPercentage = 0.95f,
-                    actions = null,
-                    content = {
-                        AktivitaetBearbeitenPreviewView(
-                            aktivitaet = event,
-                            stufe = stufe,
-                            isDarkTheme = appState.theme.isDarkTheme
-                        )
-                    }
-                )
-            )
-        },
+        aktivitaetForPreviewSheet = viewModel.aktivitaetForPreviewSheet,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         mode = mode,
-        onOpenTemplates = {
-            appStateViewModel.updateSheetContent(
-                content = BottomSheetContent.Scaffold(
-                    title = "Vorlagen ${stufe.stufenName}",
-                    content = {
-                        TemplateListView(
-                            state = uiState.templatesState,
-                            mode = TemplateListViewMode.Use,
-                            contentPadding = PaddingValues(16.dp),
-                            onClick = { template ->
-                                viewModel.useTemplate(template)
-                                appStateViewModel.updateSheetContent(null)
-                            },
-                            isInEditingMode = false
-                        )
-                    },
-                    sheetHeightPercentage = 0.5f
-                )
-            )
-        },
+        showTemplatesSheet = showTemplatesSheet,
         onNavigateToTemplates = {
             accountNavController.navigate(
                 AppDestination.MainTabView.Destinations.Account.Destinations.Templates(
@@ -246,8 +247,8 @@ private fun AktivitaetBearbeitenContentView(
     onErrorRetry: () -> Unit,
     onNavigateBack: () -> Unit,
     stufe: SeesturmStufe,
-    onOpenPreview: (GoogleCalendarEvent) -> Unit,
-    onOpenTemplates: () -> Unit,
+    aktivitaetForPreviewSheet: MutableState<GoogleCalendarEvent?>,
+    showTemplatesSheet: MutableState<Boolean>,
     onNavigateToTemplates: () -> Unit,
     isDarkTheme: Boolean,
     modifier: Modifier = Modifier,
@@ -646,7 +647,7 @@ private fun AktivitaetBearbeitenContentView(
                             ),
                             trailingElement = FormItemTrailingElementType.Blank,
                             onClick = if (!uiState.publishAktivitaetState.isLoading) {
-                                onOpenTemplates
+                                { showTemplatesSheet.value = true }
                             }
                             else {
                                 null
@@ -669,7 +670,7 @@ private fun AktivitaetBearbeitenContentView(
                                 ),
                                 trailingElement = FormItemTrailingElementType.Blank,
                                 onClick = if (!uiState.publishAktivitaetState.isLoading) {
-                                    { onOpenPreview(aktivitaetForPreview) }
+                                    { aktivitaetForPreviewSheet.value = aktivitaetForPreview }
                                 }
                                 else {
                                     null
@@ -792,8 +793,8 @@ private fun AktivitaetBearbeitenViewPreview1() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Wolf,
-            onOpenPreview = {},
-            onOpenTemplates = {},
+            aktivitaetForPreviewSheet = mutableStateOf(null),
+            showTemplatesSheet = mutableStateOf(false),
             onNavigateToTemplates = {},
             modifier = Modifier,
             isDarkTheme = false
@@ -858,8 +859,8 @@ private fun AktivitaetBearbeitenViewPreview2() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Wolf,
-            onOpenPreview = {},
-            onOpenTemplates = {},
+            aktivitaetForPreviewSheet = mutableStateOf(null),
+            showTemplatesSheet = mutableStateOf(false),
             onNavigateToTemplates = {},
             modifier = Modifier,
             isDarkTheme = false
@@ -924,8 +925,8 @@ private fun AktivitaetBearbeitenViewPreview3() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Biber,
-            onOpenPreview = {},
-            onOpenTemplates = {},
+            aktivitaetForPreviewSheet = mutableStateOf(null),
+            showTemplatesSheet = mutableStateOf(false),
             onNavigateToTemplates = {},
             modifier = Modifier,
             isDarkTheme = false

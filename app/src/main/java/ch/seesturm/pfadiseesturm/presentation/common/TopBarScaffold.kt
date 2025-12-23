@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -21,28 +19,22 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarView
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHostType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import dev.chrisbanes.haze.HazeState
@@ -50,7 +42,6 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -61,34 +52,13 @@ fun TopBarScaffold(
     title: String? = null,
     navigationAction: TopBarNavigationIcon = TopBarNavigationIcon.None,
     actions: @Composable RowScope.() -> Unit = {},
-    staticSnackbar: TopBarScaffoldStaticSnackbarType = TopBarScaffoldStaticSnackbarType.None,
+    snackbarType: SeesturmSnackbarHostType = SeesturmSnackbarHostType.Default,
     floatingActionButton: @Composable () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
     content: @Composable (PaddingValues) -> Unit,
 ) {
 
     val hazeState = remember { HazeState() }
-
-    val snackbarHostState = remember {
-        SnackbarHostState()
-    }
-
-    if (staticSnackbar is TopBarScaffoldStaticSnackbarType.Show) {
-        val coroutineScope = rememberCoroutineScope()
-        LaunchedEffect(Unit) {
-            coroutineScope.launch {
-                // dismiss current snackbar
-                snackbarHostState.currentSnackbarData?.dismiss()
-                // show new snackbar
-                val snackbarResult = snackbarHostState.showSnackbar(
-                    visuals = staticSnackbar.snackbarEvent
-                )
-                if (snackbarResult == SnackbarResult.Dismissed) {
-                    staticSnackbar.snackbarEvent.onDismiss
-                }
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -232,32 +202,10 @@ fun TopBarScaffold(
             }
         },
         snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .padding(
-                        bottom = if (staticSnackbar is TopBarScaffoldStaticSnackbarType.Show) {
-                            staticSnackbar.additionalBottomPadding
-                        }
-                        else {
-                            0.dp
-                        }
-                    )
-            ) { snackbarData ->
-                val snackbarEvent = snackbarData.visuals as? SeesturmSnackbarEvent
-                if (snackbarEvent != null) {
-                    SeesturmSnackbarView(
-                        snackbarData = snackbarData,
-                        event = snackbarEvent
-                    )
-                }
-                else {
-                    Snackbar(
-                        snackbarData = snackbarData,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                }
-            }
+            SeesturmSnackbarHost(
+                location = SeesturmSnackbarLocation.Default,
+                type = snackbarType
+            )
         },
         floatingActionButton = floatingActionButton,
         modifier = modifier

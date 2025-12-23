@@ -33,7 +33,6 @@ fun TabNavigationHost(
 
     BottomNavigationScaffold(
         tabNavController = tabNavController,
-        appStateViewModel = appStateViewModel,
         content = { innerPadding ->
             NavHost(
                 navController = tabNavController,

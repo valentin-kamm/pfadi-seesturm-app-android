@@ -87,9 +87,6 @@ fun AccountNavHost(
                                     calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
                                     userId = user.userId,
                                     userDisplayNameShort = user.displayNameShort,
-                                    updateSheetContent = { content ->
-                                        appStateViewModel.updateSheetContent(content)
-                                    },
                                     fcmService = fcmModule.fcmService
                                 )
                             }
@@ -185,7 +182,6 @@ fun AccountNavHost(
                         gespeichertePersonenService = dataStoreModule.gespeichertePersonenService,
                         stufe = arguments.stufe,
                         type = type,
-                        dismissAnAbmeldenSheet = {},
                         userId = null
                     )
                 }
@@ -212,9 +208,6 @@ fun AccountNavHost(
                         calendar = arguments.calendar,
                         userId = arguments.userId,
                         userDisplayNameShort = arguments.userDisplayNameShort,
-                        updateSheetContent = { content ->
-                            appStateViewModel.updateSheetContent(content)
-                        },
                         fcmService = fcmModule.fcmService,
                     )
                 }
@@ -223,8 +216,7 @@ fun AccountNavHost(
                 userId = arguments.userId,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController,
-                viewModel = viewModel,
-                appStateViewModel = appStateViewModel
+                viewModel = viewModel
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet> {
@@ -274,10 +266,7 @@ fun AccountNavHost(
                     factory = viewModelFactoryHelper {
                         TemplateViewModel(
                             stufe = arguments.stufe,
-                            service = accountModule.stufenbereichService,
-                            dismissSheet = {
-                                appStateViewModel.updateSheetContent(null)
-                            }
+                            service = accountModule.stufenbereichService
                         )
                     }
                 ),

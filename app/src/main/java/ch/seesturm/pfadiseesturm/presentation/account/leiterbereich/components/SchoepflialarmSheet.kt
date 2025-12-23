@@ -72,50 +72,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
-@Composable
-fun SchoepflialarmSheet(
-    viewModel: LeiterbereichViewModel,
-    user: FirebaseHitobitoUser,
-    requestNotificationsPermission: suspend () -> Boolean,
-    modifier: Modifier = Modifier
-) {
-
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    SchoepflialarmSheetContentView(
-        schoepflialarmResult = viewModel.schoepflialarmResult,
-        user = user,
-        newSchoepflialarmMessage = uiState.schoepflialarmMessage,
-        onSubmit = {
-            viewModel.trySendSchoepflialarm()
-        },
-        onReaction = { reaction ->
-            viewModel.sendSchoepflialarmReaction(reaction)
-        },
-        isSubmitButtonLoading = uiState.sendSchoepflialarmState.isLoading,
-        isReactionButtonLoading = { reaction ->
-            when (val localState = uiState.sendSchoepflialarmReactionState) {
-                is ActionState.Loading -> {
-                    localState.action == reaction
-                }
-                else -> false
-            }
-        },
-        onPushNotificationToggle = { isSwitchingOn ->
-            viewModel.toggleNotificationTopic(
-                isSwitchingOn = isSwitchingOn,
-                requestPermission = requestNotificationsPermission
-            )
-        },
-        notificationTopicsReadingState = uiState.notificationTopicsReadingState,
-        togglePushNotificationState = uiState.toggleSchoepflialarmReactionsPushNotificationState,
-        modifier = modifier
-    )
-}
-
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-private fun SchoepflialarmSheetContentView(
+fun SchoepflialarmSheet(
     schoepflialarmResult: UiState<Schoepflialarm>,
     user: FirebaseHitobitoUser,
     newSchoepflialarmMessage: SeesturmTextFieldState,
@@ -536,7 +495,7 @@ private fun SchoepflialarmSheetContentView(
 @Composable
 private fun SchoepflialarmSheetPreview1() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Loading,
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(
@@ -559,7 +518,7 @@ private fun SchoepflialarmSheetPreview1() {
 @Composable
 private fun SchoepflialarmSheetPreview2() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Error("Schwerer Fehler"),
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(
@@ -582,7 +541,7 @@ private fun SchoepflialarmSheetPreview2() {
 @Composable
 private fun SchoepflialarmSheetPreview3() {
     PfadiSeesturmTheme {
-        SchoepflialarmSheetContentView(
+        SchoepflialarmSheet(
             schoepflialarmResult = UiState.Success(DummyData.schoepflialarm),
             user = DummyData.user1,
             newSchoepflialarmMessage = SeesturmTextFieldState(

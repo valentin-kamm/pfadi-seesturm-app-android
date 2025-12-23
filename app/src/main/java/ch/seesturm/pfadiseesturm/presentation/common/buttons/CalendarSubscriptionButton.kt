@@ -30,8 +30,8 @@ import androidx.core.net.toUri
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarEvent
-import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarType
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
+import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
@@ -58,14 +58,12 @@ fun CalendarSubscriptionButton(
 
     fun showError() {
         coroutineScope.launch {
-            SnackbarController.sendEvent(
-                event = SeesturmSnackbarEvent(
-                    message = "Beim hinzufügen des Kalenders ist ein unbekannter Fehler aufgetreten.",
-                    duration = SnackbarDuration.Long,
-                    type = SeesturmSnackbarType.Error,
-                    allowManualDismiss = true,
+            SnackbarController.showSnackbar(
+                snackbar = SeesturmSnackbar.Error(
+                    message = "Beim Hinzufügen des Kalenders ist ein unbekannter Fehler aufgetreten.",
                     onDismiss = {},
-                    showInSheetIfPossible = false
+                    location = SeesturmSnackbarLocation.Default,
+                    allowManualDismiss = true
                 )
             )
         }

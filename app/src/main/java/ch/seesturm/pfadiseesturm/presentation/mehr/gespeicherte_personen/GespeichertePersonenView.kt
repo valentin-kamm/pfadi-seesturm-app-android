@@ -24,7 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +41,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.common.BottomSheetContent
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
@@ -54,13 +55,16 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.SwipeableFormItem
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @Composable
 fun GespeichertePersonenView(
@@ -72,6 +76,23 @@ fun GespeichertePersonenView(
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
+    SimpleModalBottomSheet(
+        show = viewModel.showSheet,
+        detents = SheetDetents.LargeOnly,
+        type = SheetScaffoldType.Title("Person hinzufügen")
+    ) { _, _ ->
+        GespeichertePersonHinzufuegenView(
+            vornameState = uiState.vornameState,
+            nachnameState = uiState.nachnameState,
+            pfadinameState = uiState.pfadinameState,
+            onInsert = {
+                viewModel.insertPerson()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+
     GespeichertePersonenContentView(
         personenState = uiState.readingResult,
         isInEditingMode = uiState.isInEditingMode,
@@ -79,20 +100,7 @@ fun GespeichertePersonenView(
         onToggleEditingMode = {
             viewModel.toggleEditingMode()
         },
-        onUpdateSheetContent = {
-            appStateViewModel.updateSheetContent(
-                content = BottomSheetContent.Scaffold(
-                    title = "Person hinzufügen",
-                    content = {
-                        GespeichertePersonHinzufuegenView(
-                            viewModel = viewModel,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    }
-                )
-            )
-        },
+        showSheet = viewModel.showSheet,
         onToggleSwipeActions = { personId ->
             viewModel.toggleSwipeActions(personId)
         },
@@ -110,7 +118,7 @@ private fun GespeichertePersonenContentView(
     isInEditingMode: Boolean,
     navController: NavController,
     onToggleEditingMode: () -> Unit,
-    onUpdateSheetContent: () -> Unit,
+    showSheet: MutableState<Boolean>,
     onToggleSwipeActions: (String) -> Unit,
     onDeletePerson: (String) -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
@@ -138,7 +146,7 @@ private fun GespeichertePersonenContentView(
                 }
             }
             IconButton(
-                onClick = onUpdateSheetContent
+                onClick = { showSheet.value = true }
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -288,7 +296,9 @@ private fun GespeichertePersonenContentView(
                                             )
                                         ),
                                         title = "Person hinzufügen",
-                                        onClick = onUpdateSheetContent,
+                                        onClick = {
+                                            showSheet.value = true
+                                        },
                                         isLoading = false
                                     )
                                 }
@@ -310,7 +320,7 @@ private fun GespeichertePersonenViewPreview1() {
             isInEditingMode = false,
             navController = rememberNavController(),
             onToggleEditingMode = {},
-            onUpdateSheetContent = {},
+            showSheet = mutableStateOf(false),
             onToggleSwipeActions = {},
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
@@ -326,7 +336,7 @@ private fun GespeichertePersonenViewPreview2() {
             isInEditingMode = false,
             navController = rememberNavController(),
             onToggleEditingMode = {},
-            onUpdateSheetContent = {},
+            showSheet = mutableStateOf(false),
             onToggleSwipeActions = {},
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
@@ -342,7 +352,7 @@ private fun GespeichertePersonenViewPreview3() {
             isInEditingMode = false,
             navController = rememberNavController(),
             onToggleEditingMode = {},
-            onUpdateSheetContent = {},
+            showSheet = mutableStateOf(false),
             onToggleSwipeActions = {},
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
@@ -362,7 +372,7 @@ private fun GespeichertePersonenViewPreview4() {
             isInEditingMode = false,
             navController = rememberNavController(),
             onToggleEditingMode = {},
-            onUpdateSheetContent = {},
+            showSheet = mutableStateOf(false),
             onToggleSwipeActions = {},
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
