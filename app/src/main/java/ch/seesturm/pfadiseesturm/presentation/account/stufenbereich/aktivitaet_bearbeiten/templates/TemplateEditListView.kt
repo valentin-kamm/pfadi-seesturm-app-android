@@ -34,7 +34,6 @@ import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 @Composable
 fun TemplateEditListView(
     viewModel: TemplateViewModel,
-    appStateViewModel: AppStateViewModel,
     stufe: SeesturmStufe,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,

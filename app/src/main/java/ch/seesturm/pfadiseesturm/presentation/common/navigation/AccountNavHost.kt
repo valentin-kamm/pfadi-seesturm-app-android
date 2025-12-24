@@ -270,7 +270,6 @@ fun AccountNavHost(
                         )
                     }
                 ),
-                appStateViewModel = appStateViewModel,
                 stufe = arguments.stufe,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController

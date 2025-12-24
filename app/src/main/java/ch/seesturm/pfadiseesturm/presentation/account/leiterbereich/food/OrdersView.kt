@@ -42,7 +42,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
-import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderCell
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderLoadingCell
@@ -91,12 +90,13 @@ fun OrdersView(
 
     SimpleModalBottomSheet(
         show = viewModel.showFoodSheet,
-        detents = SheetDetents.LargeOnly,
+        detents = SheetDetents.MediumOnly,
         type = SheetScaffoldType.Title("Bestellung hinzufügen")
     ) { _, _ ->
         AddOrderView(
             foodItemFieldState = uiState.foodItemState,
             onSubmit = { viewModel.addNewFoodOrder() },
+            selectedNumberOfItems = uiState.newFoodItemCount,
             onNumberPickerValueChange = { newValue ->
                 viewModel.updateFoodItemCount(newValue)
             },

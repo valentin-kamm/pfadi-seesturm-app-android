@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.TagFaces
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +31,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListFooter
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -53,7 +57,6 @@ fun GespeichertePersonHinzufuegenView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             FormItem(
@@ -112,7 +115,7 @@ fun GespeichertePersonHinzufuegenView(
             )
             BasicListFooter(
                 mode = BasicListHeaderMode.Normal(
-                    "Füge die Angaben von Personen hinzu, die du of von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen."
+                    "Füge die Angaben von Personen hinzu, die du oft von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen."
                 ),
                 maxLines = Int.MAX_VALUE
             )
@@ -132,59 +135,71 @@ fun GespeichertePersonHinzufuegenView(
     }
 }
 
-@Preview("Error")
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun GespeichertePersonHinzufuegenViewPreview1() {
-    PfadiSeesturmTheme {
-        GespeichertePersonHinzufuegenView(
-            vornameState = SeesturmTextFieldState(
-                text = "Sepp",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Error("Fehler"),
-                onValueChanged = {}
-            ),
-            nachnameState = SeesturmTextFieldState(
-                text = "Müller",
-                label = "Nachname",
-                state = SeesturmBinaryUiState.Error("Fehler"),
-                onValueChanged = {}
-            ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "Quasli",
-                label = "Pfadiname",
-                state = SeesturmBinaryUiState.Error("Fehler"),
-                onValueChanged = {}
-            ),
-            onInsert = {},
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            GespeichertePersonHinzufuegenView(
+                vornameState = SeesturmTextFieldState(
+                    text = "Sepp",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Error("Fehler"),
+                    onValueChanged = {}
+                ),
+                nachnameState = SeesturmTextFieldState(
+                    text = "Müller",
+                    label = "Nachname",
+                    state = SeesturmBinaryUiState.Error("Fehler"),
+                    onValueChanged = {}
+                ),
+                pfadinameState = SeesturmTextFieldState(
+                    text = "Quasli",
+                    label = "Pfadiname",
+                    state = SeesturmBinaryUiState.Error("Fehler"),
+                    onValueChanged = {}
+                ),
+                onInsert = {},
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Normal")
+@Preview("Normal", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Normal", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun GespeichertePersonHinzufuegenViewPreview2() {
-    PfadiSeesturmTheme {
-        GespeichertePersonHinzufuegenView(
-            vornameState = SeesturmTextFieldState(
-                text = "Sepp",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            nachnameState = SeesturmTextFieldState(
-                text = "Müller",
-                label = "Nachname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "Quasli",
-                label = "Pfadiname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onInsert = {},
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            GespeichertePersonHinzufuegenView(
+                vornameState = SeesturmTextFieldState(
+                    text = "Sepp",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                nachnameState = SeesturmTextFieldState(
+                    text = "Müller",
+                    label = "Nachname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                pfadinameState = SeesturmTextFieldState(
+                    text = "Quasli",
+                    label = "Pfadiname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onInsert = {},
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }

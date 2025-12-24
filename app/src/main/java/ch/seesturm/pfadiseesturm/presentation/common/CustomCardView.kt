@@ -13,13 +13,20 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 
 @Composable
 fun CustomCardView(
     modifier: Modifier = Modifier,
     shadowColor: Color = MaterialTheme.colorScheme.inverseSurface,
-    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    backgroundColor: Color = if (LocalScreenContext.current is ScreenContext.ModalBottomSheet) {
+        MaterialTheme.colorScheme.tertiaryContainer
+    }
+    else {
+        MaterialTheme.colorScheme.primaryContainer
+    },
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {

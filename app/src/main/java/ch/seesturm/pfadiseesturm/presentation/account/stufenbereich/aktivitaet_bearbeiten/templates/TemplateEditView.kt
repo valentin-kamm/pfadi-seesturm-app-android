@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
@@ -23,6 +25,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmHTMLEditor
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.getUnescapedHtml
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import com.mohamedrejeb.richeditor.model.RichTextState
@@ -41,7 +45,6 @@ fun TemplateEditView(
         contentPadding = PaddingValues(16.dp),
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             SeesturmHTMLEditor(
@@ -86,38 +89,53 @@ fun TemplateEditView(
     }
 }
 
-@Preview("Loading")
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TemplateEditViewPreview1() {
-    PfadiSeesturmTheme {
-        TemplateEditView(
-            mode = TemplateEditMode.Insert(
-                onSubmit = {}
-            ),
-            richTextState = SeesturmRichTextState(
-                state = RichTextState(),
-                onValueChanged = {},
-                annotatedString = AnnotatedString("")
-            ),
-            editState = ActionState.Loading(Unit)
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateEditView(
+                mode = TemplateEditMode.Insert(
+                    onSubmit = {}
+                ),
+                richTextState = SeesturmRichTextState(
+                    state = RichTextState(),
+                    onValueChanged = {},
+                    annotatedString = AnnotatedString("")
+                ),
+                editState = ActionState.Loading(Unit),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Idle")
+
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TemplateEditViewPreview2() {
-    PfadiSeesturmTheme {
-        TemplateEditView(
-            mode = TemplateEditMode.Update(
-                description = "",
-                onSubmit = {}
-            ),
-            richTextState = SeesturmRichTextState(
-                state = RichTextState(),
-                onValueChanged = {},
-                annotatedString = AnnotatedString("")
-            ),
-            editState = ActionState.Loading(Unit)
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateEditView(
+                mode = TemplateEditMode.Update(
+                    description = "",
+                    onSubmit = {}
+                ),
+                richTextState = SeesturmRichTextState(
+                    state = RichTextState(),
+                    onValueChanged = {},
+                    annotatedString = AnnotatedString("")
+                ),
+                editState = ActionState.Idle,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }

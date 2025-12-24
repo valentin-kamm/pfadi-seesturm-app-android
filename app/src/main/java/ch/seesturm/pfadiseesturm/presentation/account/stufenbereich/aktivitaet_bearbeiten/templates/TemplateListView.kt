@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,11 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
@@ -35,8 +38,12 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.SwipeableFormItem
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.state.UiState
 
 @Composable
@@ -63,7 +70,6 @@ fun TemplateListView(
         contentPadding = contentPadding,
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
     ) {
 
         when (state) {
@@ -206,6 +212,130 @@ fun TemplateListView(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview1() {
+    PfadiSeesturmTheme {
+        TemplateListView(
+            state = UiState.Loading,
+            mode = TemplateListViewMode.Use,
+            contentPadding = PaddingValues(16.dp),
+            onClick = {},
+            isInEditingMode = false,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+        )
+    }
+}
+
+@Preview("Loading in Sheet", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading in Sheet", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview2() {
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateListView(
+                state = UiState.Loading,
+                mode = TemplateListViewMode.Use,
+                contentPadding = PaddingValues(16.dp),
+                onClick = {},
+                isInEditingMode = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
+    }
+}
+
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview3() {
+    PfadiSeesturmTheme {
+        TemplateListView(
+            state = UiState.Error("Ein ganz schlimmer Fehler"),
+            mode = TemplateListViewMode.Use,
+            contentPadding = PaddingValues(16.dp),
+            onClick = {},
+            isInEditingMode = false,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+        )
+    }
+}
+
+@Preview("Error in Sheet", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error in Sheet", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview4() {
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateListView(
+                state = UiState.Error("Ein ganz schlimmer Fehler"),
+                mode = TemplateListViewMode.Use,
+                contentPadding = PaddingValues(16.dp),
+                onClick = {},
+                isInEditingMode = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
+    }
+}
+
+@Preview("Success", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Success", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview5() {
+    PfadiSeesturmTheme {
+        TemplateListView(
+            state = UiState.Success(
+                data = listOf(
+                    DummyData.aktivitaetTemplate1,
+                    DummyData.aktivitaetTemplate2
+                )
+            ),
+            mode = TemplateListViewMode.Use,
+            contentPadding = PaddingValues(16.dp),
+            onClick = {},
+            isInEditingMode = false,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+        )
+    }
+}
+
+@Preview("Success in Sheet", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Success in Sheet", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview6() {
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateListView(
+                state = UiState.Success(
+                    data = listOf(
+                        DummyData.aktivitaetTemplate1,
+                        DummyData.aktivitaetTemplate2
+                    )
+                ),
+                mode = TemplateListViewMode.Use,
+                contentPadding = PaddingValues(16.dp),
+                onClick = {},
+                isInEditingMode = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
         }
     }
 }

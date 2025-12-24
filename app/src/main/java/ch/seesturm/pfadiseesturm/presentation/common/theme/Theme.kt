@@ -15,8 +15,10 @@ private val LightColorScheme = lightColorScheme(
     primary = Color.SEESTURM_GREEN,
     background = Color(242, 242, 247),
     onBackground = Color.Black,
+    surface = Color(242, 242, 247), // sheet background
     primaryContainer = Color.White, // color for card views
     secondaryContainer = Color(229, 229, 234), // color for gray card views
+    tertiaryContainer = Color.White, // card views in sheets
     onSurfaceVariant = Color(214, 214, 214), // Color for placeholder text etc.
     inverseSurface = Color.SEESTURM_GREEN // default shadow for card views
 )
@@ -25,8 +27,10 @@ private val DarkColorScheme = darkColorScheme(
     primary = Color.SEESTURM_GREEN,
     background = Color.Black,
     onBackground = Color.White,
+    surface = Color(28, 28, 30), // sheet background
     primaryContainer = Color(28, 28, 30), // Color for card views
     secondaryContainer = Color(44, 44, 46), // color for gray card views
+    tertiaryContainer = Color(44, 44, 46), // card views in sheets
     onSurfaceVariant = Color(64, 64, 64), // Color for placeholder text etc.
     inverseSurface = Color.Transparent // default shadow for card views
 )

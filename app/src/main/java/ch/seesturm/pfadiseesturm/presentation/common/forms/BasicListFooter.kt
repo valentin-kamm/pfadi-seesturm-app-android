@@ -38,6 +38,7 @@ fun BasicListFooter(
                     mode.text,
                     maxLines = maxLines,
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)
                         .alpha(0.4f)

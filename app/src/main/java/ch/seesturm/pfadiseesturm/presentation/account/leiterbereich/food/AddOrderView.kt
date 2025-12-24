@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,22 +12,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
+import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
-import ch.seesturm.pfadiseesturm.presentation.common.picker.NumberPickerView
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -36,6 +40,7 @@ import ch.seesturm.pfadiseesturm.util.state.SeesturmBinaryUiState
 fun AddOrderView(
     foodItemFieldState: SeesturmTextFieldState,
     onSubmit: () -> Unit,
+    selectedNumberOfItems: Int,
     onNumberPickerValueChange: (Int) -> Unit,
     isButtonLoading: Boolean,
     modifier: Modifier = Modifier,
@@ -51,7 +56,6 @@ fun AddOrderView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             FormItem(
@@ -80,13 +84,30 @@ fun AddOrderView(
                 ),
                 trailingElement = FormItemTrailingElementType.Custom(
                     content = {
-                        NumberPickerView(
-                            minValue = 1,
-                            maxValue = 10,
-                            initialValue = 1
-                        ) { value ->
-                            onNumberPickerValueChange(value)
-                        }
+                        DropdownButton(
+                            title = "$selectedNumberOfItems",
+                            buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            dropdown = { isShown, dismiss ->
+                                ThemedDropdownMenu(
+                                    expanded = isShown,
+                                    onDismissRequest = {
+                                        dismiss()
+                                    }
+                                ) {
+                                    (1..10).forEach { anzahl ->
+                                        ThemedDropdownMenuItem(
+                                            text = {
+                                                Text("$anzahl")
+                                            },
+                                            onClick = {
+                                                onNumberPickerValueChange(anzahl)
+                                                dismiss()
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        )
                     }
                 )
             )
@@ -106,57 +127,78 @@ fun AddOrderView(
     }
 }
 
-@Preview("Idle")
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun BestellungHinzufuegenViewPreview1() {
-    PfadiSeesturmTheme {
-        AddOrderView(
-            foodItemFieldState = SeesturmTextFieldState(
-                text = "Dürüm",
-                label = "Bestellung",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onNumberPickerValueChange = {},
-            isButtonLoading = false,
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AddOrderView(
+                foodItemFieldState = SeesturmTextFieldState(
+                    text = "Dürüm",
+                    label = "Bestellung",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                selectedNumberOfItems = 1,
+                onNumberPickerValueChange = {},
+                isButtonLoading = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Error")
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun BestellungHinzufuegenViewPreview2() {
-    PfadiSeesturmTheme {
-        AddOrderView(
-            foodItemFieldState = SeesturmTextFieldState(
-                text = "Dürüm",
-                label = "Bestellung",
-                state = SeesturmBinaryUiState.Error("Schlimmer Fehler"),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onNumberPickerValueChange = {},
-            isButtonLoading = false,
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AddOrderView(
+                foodItemFieldState = SeesturmTextFieldState(
+                    text = "Dürüm",
+                    label = "Bestellung",
+                    state = SeesturmBinaryUiState.Error("Schlimmer Fehler"),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                selectedNumberOfItems = 1,
+                onNumberPickerValueChange = {},
+                isButtonLoading = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Loading")
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun BestellungHinzufuegenViewPreview3() {
-    PfadiSeesturmTheme {
-        AddOrderView(
-            foodItemFieldState = SeesturmTextFieldState(
-                text = "Dürüm",
-                label = "Bestellung",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onNumberPickerValueChange = {},
-            isButtonLoading = true,
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AddOrderView(
+                foodItemFieldState = SeesturmTextFieldState(
+                    text = "Dürüm",
+                    label = "Bestellung",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                selectedNumberOfItems = 1,
+                onNumberPickerValueChange = {},
+                isButtonLoading = true,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }

@@ -50,6 +50,7 @@ fun ErrorCardView(
             Text(
                 text = errorTitle,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -57,6 +58,7 @@ fun ErrorCardView(
             Text(
                 text = errorDescription,
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()

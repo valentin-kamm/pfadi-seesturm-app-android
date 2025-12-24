@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +24,7 @@ import androidx.compose.material.icons.outlined.Textsms
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,11 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
-import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
@@ -52,10 +51,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -125,7 +124,6 @@ fun SchoepflialarmSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .then(
                     if (Build.VERSION.SDK_INT >= 30) {
                         Modifier
@@ -382,11 +380,16 @@ fun SchoepflialarmSheet(
                     item(
                         key = "SchoepflialarmSheetReactionSection"
                     ) {
-                        BasicListHeader(
-                            mode = BasicListHeaderMode.Normal("Reagieren"),
+                        Text(
+                            text = "Reagieren".uppercase(),
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .padding(horizontal = 16.dp)
+                                .padding(vertical = 8.dp, horizontal = 32.dp)
+                                .alpha(0.4f)
                                 .animateItem()
+                                .fillMaxWidth()
                         )
                         FormItem(
                             modifier = Modifier
@@ -452,7 +455,7 @@ fun SchoepflialarmSheet(
                             .hazeEffect(hazeState, style = CupertinoMaterials.thin())
                     } else {
                         Modifier
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .background(MaterialTheme.colorScheme.tertiaryContainer)
                     }
                 )
         ) {
@@ -491,72 +494,93 @@ fun SchoepflialarmSheet(
     }
 }
 
-@Preview("Loading", showBackground = true)
+@Preview("Loading", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SchoepflialarmSheetPreview1() {
-    PfadiSeesturmTheme {
-        SchoepflialarmSheet(
-            schoepflialarmResult = UiState.Loading,
-            user = DummyData.user1,
-            newSchoepflialarmMessage = SeesturmTextFieldState(
-                text = "Hallo",
-                label = "Schöpflialarm",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onReaction = {},
-            isSubmitButtonLoading = false,
-            isReactionButtonLoading = { false },
-            onPushNotificationToggle = {},
-            notificationTopicsReadingState = UiState.Loading,
-            togglePushNotificationState = ActionState.Idle
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            SchoepflialarmSheet(
+                schoepflialarmResult = UiState.Loading,
+                user = DummyData.user1,
+                newSchoepflialarmMessage = SeesturmTextFieldState(
+                    text = "Hallo",
+                    label = "Schöpflialarm",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                onReaction = {},
+                isSubmitButtonLoading = false,
+                isReactionButtonLoading = { false },
+                onPushNotificationToggle = {},
+                notificationTopicsReadingState = UiState.Loading,
+                togglePushNotificationState = ActionState.Idle,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Error", showBackground = true)
+@Preview("Error", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SchoepflialarmSheetPreview2() {
-    PfadiSeesturmTheme {
-        SchoepflialarmSheet(
-            schoepflialarmResult = UiState.Error("Schwerer Fehler"),
-            user = DummyData.user1,
-            newSchoepflialarmMessage = SeesturmTextFieldState(
-                text = "Hallo",
-                label = "Schöpflialarm",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onReaction = {},
-            isSubmitButtonLoading = false,
-            isReactionButtonLoading = { false },
-            onPushNotificationToggle = {},
-            notificationTopicsReadingState = UiState.Error("Schwerer Fehler"),
-            togglePushNotificationState = ActionState.Idle
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            SchoepflialarmSheet(
+                schoepflialarmResult = UiState.Error("Schwerer Fehler"),
+                user = DummyData.user1,
+                newSchoepflialarmMessage = SeesturmTextFieldState(
+                    text = "Hallo",
+                    label = "Schöpflialarm",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                onReaction = {},
+                isSubmitButtonLoading = false,
+                isReactionButtonLoading = { false },
+                onPushNotificationToggle = {},
+                notificationTopicsReadingState = UiState.Error("Schwerer Fehler"),
+                togglePushNotificationState = ActionState.Idle,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Success", showBackground = true)
+@Preview("Success", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Success", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SchoepflialarmSheetPreview3() {
-    PfadiSeesturmTheme {
-        SchoepflialarmSheet(
-            schoepflialarmResult = UiState.Success(DummyData.schoepflialarm),
-            user = DummyData.user1,
-            newSchoepflialarmMessage = SeesturmTextFieldState(
-                text = "Hallo",
-                label = "Schöpflialarm",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onSubmit = {},
-            onReaction = {},
-            isSubmitButtonLoading = false,
-            isReactionButtonLoading = { false },
-            onPushNotificationToggle = {},
-            notificationTopicsReadingState = UiState.Success(setOf(SeesturmFCMNotificationTopic.SchoepflialarmReaction)),
-            togglePushNotificationState = ActionState.Idle
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            SchoepflialarmSheet(
+                schoepflialarmResult = UiState.Success(DummyData.schoepflialarm),
+                user = DummyData.user1,
+                newSchoepflialarmMessage = SeesturmTextFieldState(
+                    text = "Hallo",
+                    label = "Schöpflialarm",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onSubmit = {},
+                onReaction = {},
+                isSubmitButtonLoading = false,
+                isReactionButtonLoading = { false },
+                onPushNotificationToggle = {},
+                notificationTopicsReadingState = UiState.Success(setOf(SeesturmFCMNotificationTopic.SchoepflialarmReaction)),
+                togglePushNotificationState = ActionState.Idle,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }

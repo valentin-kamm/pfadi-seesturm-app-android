@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,13 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
@@ -36,6 +36,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextFieldState
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -69,7 +71,6 @@ fun AktivitaetAnAbmeldenView(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             FormItem(
@@ -165,6 +166,7 @@ fun AktivitaetAnAbmeldenView(
                         DropdownButton(
                             title = selectedSheetMode.nomen,
                             contentColor = selectedSheetMode.color,
+                            buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             dropdown = { isShown, dismiss ->
                                 ThemedDropdownMenu(
                                     expanded = isShown,
@@ -209,117 +211,135 @@ fun AktivitaetAnAbmeldenView(
     }
 }
 
-@Preview("Loading")
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Loading", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview1() {
-    PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenView(
-            stufe = SeesturmStufe.Biber,
-            selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
-            anAbmeldenState = ActionState.Loading(AktivitaetInteractionType.ABMELDEN),
-            vornameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            nachnameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            bemerkungState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onChangeSheetMode = {},
-            onSubmit = {},
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AktivitaetAnAbmeldenView(
+                stufe = SeesturmStufe.Biber,
+                selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
+                anAbmeldenState = ActionState.Loading(AktivitaetInteractionType.ABMELDEN),
+                vornameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                nachnameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                pfadinameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                bemerkungState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onChangeSheetMode = {},
+                onSubmit = {},
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Error")
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Error", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview2() {
-    PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenView(
-            stufe = SeesturmStufe.Biber,
-            selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
-            anAbmeldenState = ActionState.Idle,
-            vornameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
-                onValueChanged = {}
-            ),
-            nachnameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
-                onValueChanged = {}
-            ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
-                onValueChanged = {}
-            ),
-            bemerkungState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
-                onValueChanged = {}
-            ),
-            onChangeSheetMode = {},
-            onSubmit = {},
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AktivitaetAnAbmeldenView(
+                stufe = SeesturmStufe.Biber,
+                selectedSheetMode = AktivitaetInteractionType.ABMELDEN,
+                anAbmeldenState = ActionState.Idle,
+                vornameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                    onValueChanged = {}
+                ),
+                nachnameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                    onValueChanged = {}
+                ),
+                pfadinameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                    onValueChanged = {}
+                ),
+                bemerkungState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Error("Schwerer Fehler"),
+                    onValueChanged = {}
+                ),
+                onChangeSheetMode = {},
+                onSubmit = {},
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }
-@Preview("Idle")
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Idle", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetAnAbmeldenViewPreview3() {
-    PfadiSeesturmTheme {
-        AktivitaetAnAbmeldenView(
-            stufe = SeesturmStufe.Biber,
-            selectedSheetMode = AktivitaetInteractionType.ANMELDEN,
-            anAbmeldenState = ActionState.Idle,
-            vornameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            nachnameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            pfadinameState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            bemerkungState = SeesturmTextFieldState(
-                text = "",
-                label = "Vorname",
-                state = SeesturmBinaryUiState.Success(Unit),
-                onValueChanged = {}
-            ),
-            onChangeSheetMode = {},
-            onSubmit = {},
-            modifier = Modifier
-        )
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            AktivitaetAnAbmeldenView(
+                stufe = SeesturmStufe.Biber,
+                selectedSheetMode = AktivitaetInteractionType.ANMELDEN,
+                anAbmeldenState = ActionState.Idle,
+                vornameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                nachnameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                pfadinameState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                bemerkungState = SeesturmTextFieldState(
+                    text = "",
+                    label = "Vorname",
+                    state = SeesturmBinaryUiState.Success(Unit),
+                    onValueChanged = {}
+                ),
+                onChangeSheetMode = {},
+                onSubmit = {},
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+            )
+        }
     }
 }

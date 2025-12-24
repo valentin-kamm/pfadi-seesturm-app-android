@@ -80,6 +80,7 @@ fun AktivitaetDetailCardView(
                     ) {
                         Text(
                             text = aktivitaet.title,
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                             textAlign = TextAlign.Start
                         )
@@ -197,6 +198,7 @@ fun AktivitaetDetailCardView(
                         }
                     ),
                     imageVector = Icons.Outlined.AccessTime,
+                    textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                     iconTint = stufe.highContrastColor(isDarkTheme),
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
@@ -231,6 +233,7 @@ fun AktivitaetDetailCardView(
                             }
                         ),
                         imageVector = Icons.Outlined.LocationOn,
+                        textColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                         iconTint = stufe.highContrastColor(isDarkTheme),
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier
@@ -301,6 +304,7 @@ fun AktivitaetDetailCardView(
                     Text(
                         text = stufe.stufenName,
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+                        color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .weight(1f)

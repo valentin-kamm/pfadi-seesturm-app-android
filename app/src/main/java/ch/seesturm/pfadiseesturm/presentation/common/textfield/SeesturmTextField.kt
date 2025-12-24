@@ -69,6 +69,7 @@ fun SeesturmTextField(
             unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
             errorContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            errorSupportingTextColor = Color.SEESTURM_RED
         )
     )
 }
