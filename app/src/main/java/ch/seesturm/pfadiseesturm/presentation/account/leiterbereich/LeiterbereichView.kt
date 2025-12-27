@@ -68,6 +68,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
 import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
@@ -208,7 +209,9 @@ fun LeiterbereichView(
     SimpleModalBottomSheet(
         show = showSchoepflialarmSheet,
         detents = SheetDetents.All,
-        type = SheetScaffoldType.Title("Schöpflialarm")
+        type = SheetScaffoldType.Title("Schöpflialarm"),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.ScrollContent
     ) { _, _ ->
         SchoepflialarmSheet(
             schoepflialarmResult = viewModel.schoepflialarmResult,

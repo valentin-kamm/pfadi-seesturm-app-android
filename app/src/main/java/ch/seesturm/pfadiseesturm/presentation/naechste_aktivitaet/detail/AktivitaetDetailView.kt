@@ -35,6 +35,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
@@ -129,7 +130,9 @@ fun AktivitaetDetailView(
                     }
                 }
             }
-        )
+        ),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.ScrollContent
     ) { _, _ ->
         AktivitaetAnAbmeldenView(
             stufe = stufe,

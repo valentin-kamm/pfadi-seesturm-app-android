@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
+import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmHTMLEditor
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.getUnescapedHtml
@@ -47,15 +49,25 @@ fun TemplateEditView(
             .fillMaxSize()
     ) {
         item {
-            SeesturmHTMLEditor(
-                state = richTextState,
-                enabled = !editState.isLoading,
-                label = {
-                    Text("Vorlage")
-                },
-                placeholder = { 
-                    Text("Vorlage")
-                },
+            FormItem(
+                items = (0..0).toList(),
+                index = 0,
+                mainContent = FormItemContentType.Custom(
+                    content = {
+                        SeesturmHTMLEditor(
+                            state = richTextState,
+                            enabled = !editState.isLoading,
+                            label = {
+                                Text("Vorlage")
+                            },
+                            placeholder = {
+                                Text("Vorlage")
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)

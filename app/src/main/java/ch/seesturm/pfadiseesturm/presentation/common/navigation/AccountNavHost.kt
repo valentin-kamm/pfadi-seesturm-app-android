@@ -216,7 +216,8 @@ fun AccountNavHost(
                 userId = arguments.userId,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                appStateViewModel = appStateViewModel
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet> {
@@ -270,6 +271,7 @@ fun AccountNavHost(
                         )
                     }
                 ),
+                appStateViewModel = appStateViewModel,
                 stufe = arguments.stufe,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 accountNavController = accountNavController

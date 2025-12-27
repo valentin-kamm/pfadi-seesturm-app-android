@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -64,6 +65,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmDatePicker
 import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmTimePicker
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmHTMLEditor
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetWithItem
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
@@ -155,7 +157,9 @@ fun AktivitaetBearbeitenView(
     ModalBottomSheetWithItem(
         item = viewModel.aktivitaetForPreviewSheet,
         detents = SheetDetents.All,
-        type = SheetScaffoldType.Title("Vorschau ${stufe.aktivitaetDescription}")
+        type = SheetScaffoldType.Title("Vorschau ${stufe.aktivitaetDescription}"),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.None
     ) { event, _, _ ->
         AktivitaetBearbeitenPreviewView(
             aktivitaet = event,
@@ -169,7 +173,9 @@ fun AktivitaetBearbeitenView(
     SimpleModalBottomSheet(
         show = showTemplatesSheet,
         detents = SheetDetents.MediumOnly,
-        type = SheetScaffoldType.Title("Vorlagen ${stufe.stufenName}")
+        type = SheetScaffoldType.Title("Vorlagen ${stufe.stufenName}"),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.None
     ) { _, _ ->
         TemplateListView(
             state = uiState.templatesState,
@@ -308,6 +314,7 @@ private fun AktivitaetBearbeitenContentView(
             userScrollEnabled = !uiState.aktivitaetState.isLoading,
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .background(MaterialTheme.colorScheme.background)
         ) {
 

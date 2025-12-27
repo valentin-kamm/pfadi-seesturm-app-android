@@ -1,11 +1,13 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
@@ -34,6 +37,7 @@ import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 @Composable
 fun TemplateEditListView(
     viewModel: TemplateViewModel,
+    appStateViewModel: AppStateViewModel,
     stufe: SeesturmStufe,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController,
@@ -52,7 +56,9 @@ fun TemplateEditListView(
     SimpleModalBottomSheet(
         show = viewModel.showTemplateSheet,
         detents = SheetDetents.LargeOnly,
-        type = SheetScaffoldType.Title(uiState.templateEditMode.navigationTitle)
+        type = SheetScaffoldType.Title(uiState.templateEditMode.navigationTitle),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.ScrollContent
     ) { _, _ ->
         TemplateEditView(
             mode = uiState.templateEditMode,
@@ -171,7 +177,9 @@ private fun TemplateEditListContentView(
             onClick = { template ->
                 onElementClick(template)
             },
-            isInEditingMode = isInEditingMode
+            isInEditingMode = isInEditingMode,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
         )
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -30,12 +31,14 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsControllerCompat
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import com.composables.core.BottomSheetScope
@@ -45,6 +48,7 @@ import com.composables.core.ModalSheetProperties
 import com.composables.core.Scrim
 import com.composables.core.Sheet
 import com.composables.core.rememberModalBottomSheetState
+import com.composeunstyled.LocalModalWindow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +60,8 @@ fun ModalBottomSheetContentView(
     onDismiss: () -> Unit,
     modifier: Modifier,
     enabled: Boolean,
+    isDarkMode: Boolean,
+    keyboardResponse: ModalBottomSheetKeyboardResponse,
     snackbarHost: @Composable () -> Unit,
     content: @Composable BottomSheetScope.() -> Unit
 ) {
@@ -77,13 +83,22 @@ fun ModalBottomSheetContentView(
                     )
             ) {
                 Sheet(
-                    modifier = modifier
-                        .fillMaxWidth(),
                     enabled = enabled,
                     shape = BottomSheetDefaults.ExpandedShape,
                     backgroundColor = MaterialTheme.colorScheme.surface,
-                    imeAware = true
+                    imeAware = keyboardResponse is ModalBottomSheetKeyboardResponse.GrowSheet,
+                    modifier = modifier
+                        .fillMaxWidth()
                 ) {
+
+                    // customize system navigation buttons
+                    val window = LocalModalWindow.current
+                    val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+                    SideEffect {
+                        windowInsetsController.isAppearanceLightNavigationBars = !isDarkMode
+                        windowInsetsController.isAppearanceLightStatusBars = !isDarkMode
+                    }
+
                     when (type) {
                         SheetScaffoldType.Blank -> {
                             Column(
@@ -92,6 +107,15 @@ fun ModalBottomSheetContentView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .fillMaxHeight(detents.largestDetentMultiplier)
+                                    .then(
+                                        if (keyboardResponse is ModalBottomSheetKeyboardResponse.ScrollContent) {
+                                            Modifier
+                                                .imePadding()
+                                        }
+                                        else {
+                                            Modifier
+                                        }
+                                    )
                             ) {
                                 BottomSheetDefaults.DragHandle()
                                 Scaffold(
@@ -119,6 +143,15 @@ fun ModalBottomSheetContentView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .fillMaxHeight(detents.largestDetentMultiplier)
+                                    .then(
+                                        if (keyboardResponse is ModalBottomSheetKeyboardResponse.ScrollContent) {
+                                            Modifier
+                                                .imePadding()
+                                        }
+                                        else {
+                                            Modifier
+                                        }
+                                    )
                             ) {
                                 Scaffold(
                                     topBar = {
@@ -177,6 +210,8 @@ private fun SimpleModalBottomSheetPreview1() {
             modifier = Modifier,
             enabled = true,
             snackbarHost = {},
+            isDarkMode = false,
+            keyboardResponse = ModalBottomSheetKeyboardResponse.None,
             content = {
                 LazyColumn(
                     modifier = Modifier
@@ -212,6 +247,8 @@ private fun SimpleModalBottomSheetPreview2() {
             modifier = Modifier,
             enabled = true,
             snackbarHost = {},
+            isDarkMode = false,
+            keyboardResponse = ModalBottomSheetKeyboardResponse.None,
             content = {
                 LazyColumn(
                     modifier = Modifier
@@ -254,6 +291,8 @@ private fun SimpleModalBottomSheetPreview3() {
             modifier = Modifier,
             enabled = true,
             snackbarHost = {},
+            isDarkMode = false,
+            keyboardResponse = ModalBottomSheetKeyboardResponse.None,
             content = {
                 LazyColumn(
                     modifier = Modifier

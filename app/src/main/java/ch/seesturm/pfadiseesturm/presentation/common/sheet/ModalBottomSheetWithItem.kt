@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import com.composables.core.BottomSheetScope
@@ -27,6 +29,8 @@ fun <D> ModalBottomSheetWithItem(
     item: MutableState<D?>,
     detents: SheetDetents,
     type: SheetScaffoldType,
+    appStateViewModel: AppStateViewModel,
+    keyboardResponse: ModalBottomSheetKeyboardResponse,
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     dismissOnBackPress: Boolean = true,
@@ -34,6 +38,8 @@ fun <D> ModalBottomSheetWithItem(
     enabled: Boolean = true,
     content: @Composable BottomSheetScope.(item: D, dismiss: () -> Unit, viewModelStoreOwner: ViewModelStoreOwner) -> Unit
 ) {
+
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
 
@@ -88,6 +94,7 @@ fun <D> ModalBottomSheetWithItem(
             },
             modifier = modifier,
             enabled = enabled,
+            isDarkMode = appState.theme.isDarkTheme,
             snackbarHost = {
                 SeesturmSnackbarHost(
                     location = SeesturmSnackbarLocation.Sheet,
@@ -109,7 +116,8 @@ fun <D> ModalBottomSheetWithItem(
                         viewModelStoreOwner
                     )
                 }
-            }
+            },
+            keyboardResponse = keyboardResponse
         )
     }
 }

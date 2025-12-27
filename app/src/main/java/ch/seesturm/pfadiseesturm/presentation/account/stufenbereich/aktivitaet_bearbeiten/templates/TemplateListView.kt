@@ -186,6 +186,7 @@ fun TemplateListView(
                                         Text(
                                             text = "Keine Vorlagen",
                                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
                                                 .fillMaxWidth()

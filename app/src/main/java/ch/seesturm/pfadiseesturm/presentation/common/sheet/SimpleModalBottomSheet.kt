@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
 import com.composables.core.BottomSheetScope
@@ -21,6 +24,8 @@ fun SimpleModalBottomSheet(
     show: MutableState<Boolean>,
     detents: SheetDetents,
     type: SheetScaffoldType,
+    appStateViewModel: AppStateViewModel,
+    keyboardResponse: ModalBottomSheetKeyboardResponse,
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     dismissOnBackPress: Boolean = true,
@@ -28,6 +33,8 @@ fun SimpleModalBottomSheet(
     enabled: Boolean = true,
     content: @Composable BottomSheetScope.(dismiss: () -> Unit, viewModelStoreOwner: ViewModelStoreOwner) -> Unit
 ) {
+
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     val viewModelStore = remember { ViewModelStore() }
 
@@ -71,6 +78,7 @@ fun SimpleModalBottomSheet(
             onDismiss = { dismiss() },
             modifier = modifier,
             enabled = enabled,
+            isDarkMode = appState.theme.isDarkTheme,
             snackbarHost = {
                 SeesturmSnackbarHost(
                     location = SeesturmSnackbarLocation.Sheet,
@@ -89,7 +97,8 @@ fun SimpleModalBottomSheet(
                     { dismiss() },
                     viewModelStoreOwner
                 )
-            }
+            },
+            keyboardResponse = keyboardResponse
         )
     }
 }

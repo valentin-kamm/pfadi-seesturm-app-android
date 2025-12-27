@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.LeiterbereichViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderCell
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.components.FoodOrderLoadingCell
@@ -53,6 +54,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
@@ -67,6 +69,7 @@ import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 @Composable
 fun OrdersView(
     viewModel: LeiterbereichViewModel,
+    appStateViewModel: AppStateViewModel,
     userId: String,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController
@@ -91,7 +94,9 @@ fun OrdersView(
     SimpleModalBottomSheet(
         show = viewModel.showFoodSheet,
         detents = SheetDetents.MediumOnly,
-        type = SheetScaffoldType.Title("Bestellung hinzufügen")
+        type = SheetScaffoldType.Title("Bestellung hinzufügen"),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.GrowSheet
     ) { _, _ ->
         AddOrderView(
             foodItemFieldState = uiState.foodItemState,

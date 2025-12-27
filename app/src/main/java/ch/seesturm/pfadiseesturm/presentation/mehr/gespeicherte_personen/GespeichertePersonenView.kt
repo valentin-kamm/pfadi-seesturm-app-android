@@ -55,6 +55,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.SwipeableFormItem
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
@@ -79,7 +80,9 @@ fun GespeichertePersonenView(
     SimpleModalBottomSheet(
         show = viewModel.showSheet,
         detents = SheetDetents.LargeOnly,
-        type = SheetScaffoldType.Title("Person hinzufügen")
+        type = SheetScaffoldType.Title("Person hinzufügen"),
+        appStateViewModel = appStateViewModel,
+        keyboardResponse = ModalBottomSheetKeyboardResponse.ScrollContent
     ) { _, _ ->
         GespeichertePersonHinzufuegenView(
             vornameState = uiState.vornameState,
