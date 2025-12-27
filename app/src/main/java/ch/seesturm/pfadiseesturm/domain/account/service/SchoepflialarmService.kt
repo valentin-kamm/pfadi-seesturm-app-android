@@ -16,7 +16,7 @@ import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import ch.seesturm.pfadiseesturm.util.Constants
 import ch.seesturm.pfadiseesturm.util.DataError
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import ch.seesturm.pfadiseesturm.util.SchoepflialarmError
 import ch.seesturm.pfadiseesturm.util.SchoepflialarmLocalizedError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
@@ -116,9 +116,9 @@ class SchoepflialarmService(
         catch (e: SchoepflialarmLocalizedError) {
             SeesturmResult.Error(e.toSchoepflialarmError())
         }
-        catch (e: PfadiSeesturmAppError) {
+        catch (e: PfadiSeesturmError) {
             when (e) {
-                is PfadiSeesturmAppError.MessagingPermissionError -> {
+                is PfadiSeesturmError.MessagingPermissionError -> {
                     SeesturmResult.Error(SchoepflialarmError.MessagingPermissionMissing)
                 }
                 else -> {

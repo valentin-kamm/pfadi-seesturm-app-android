@@ -8,7 +8,7 @@ import ch.seesturm.pfadiseesturm.data.auth.dto.HitobitoUserInfoDto
 import ch.seesturm.pfadiseesturm.data.auth.dto.OAuthApplicationConfig
 import ch.seesturm.pfadiseesturm.domain.auth.repository.HitobitoAccessToken
 import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
@@ -72,7 +72,7 @@ class AuthApiImpl(
 
         val accessToken = tokenResponse.accessToken
         if (accessToken == null || accessToken.trim().isEmpty()) {
-            throw PfadiSeesturmAppError.AuthError("Hitobito Access Token ist leer.")
+            throw PfadiSeesturmError.AuthError("Hitobito Access Token ist leer.")
         }
         return accessToken
     }
@@ -86,7 +86,7 @@ class AuthApiImpl(
                     continuation.resumeWithException(exception)
                 }
                 else if (tokenResponse == null) {
-                    continuation.resumeWithException(PfadiSeesturmAppError.AuthError("Code kann nicht gegen Token eingetauscht werden. Unbekannter Fehler."))
+                    continuation.resumeWithException(PfadiSeesturmError.AuthError("Code kann nicht gegen Token eingetauscht werden. Unbekannter Fehler."))
                 }
                 else {
                     continuation.resume(tokenResponse)
@@ -98,15 +98,15 @@ class AuthApiImpl(
     override fun processActivityResult(activityResult: ActivityResult): AuthorizationResponse {
 
         if (activityResult.resultCode == Activity.RESULT_CANCELED) {
-            throw PfadiSeesturmAppError.Cancelled("Die Operation wurde durch den Benutzer abgebrochen.")
+            throw PfadiSeesturmError.Cancelled("Die Operation wurde durch den Benutzer abgebrochen.")
         }
         val intent = activityResult.data
         if (activityResult.resultCode != Activity.RESULT_OK || intent == null) {
-            throw PfadiSeesturmAppError.AuthError("Die Daten aus der Weiterleitung sind ungültig.")
+            throw PfadiSeesturmError.AuthError("Die Daten aus der Weiterleitung sind ungültig.")
         }
 
         val response = AuthorizationResponse.fromIntent(intent)
-            ?: throw PfadiSeesturmAppError.AuthError("Die Daten aus der Weiterleitung sind ungültig.")
+            ?: throw PfadiSeesturmError.AuthError("Die Daten aus der Weiterleitung sind ungültig.")
 
         return response
     }
@@ -136,7 +136,7 @@ class AuthApiImpl(
                     continuation.resumeWithException(exception)
                 }
                 else if (serviceConfig == null) {
-                    continuation.resumeWithException(PfadiSeesturmAppError.AuthError("OIDC provider (db.scout.ch) nicht erreichbar. Unbekannter Fehler."))
+                    continuation.resumeWithException(PfadiSeesturmError.AuthError("OIDC provider (db.scout.ch) nicht erreichbar. Unbekannter Fehler."))
                 }
                 else {
                     val updatedConfig = serviceConfig.setCustomTokenEndpoint()
@@ -156,7 +156,7 @@ class AuthApiImpl(
 
     override suspend fun authenticateWithFirebase(firebaseToken: String): FirebaseUser =
         firebaseAuth.signInWithCustomToken(firebaseToken).await().user
-            ?: throw PfadiSeesturmAppError.AuthError("Bei der Anmeldung ist ein Fehler aufgetreten. Der Firebase-User ist leer.")
+            ?: throw PfadiSeesturmError.AuthError("Bei der Anmeldung ist ein Fehler aufgetreten. Der Firebase-User ist leer.")
 
     override fun signOutFromFirebase() =
         firebaseAuth.signOut()

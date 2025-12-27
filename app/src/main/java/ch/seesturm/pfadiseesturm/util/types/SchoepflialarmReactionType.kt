@@ -1,6 +1,5 @@
 package ch.seesturm.pfadiseesturm.util.types
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -12,7 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -77,7 +76,7 @@ enum class SchoepflialarmReactionType {
                 "notComing" -> NotComing
                 "alreadyThere" -> AlreadyThere
                 else -> {
-                    throw PfadiSeesturmAppError.UnknownSchoepflialarmReactionType("Unbekannte Reaktions-Art für Schöpflialarm")
+                    throw PfadiSeesturmError.UnknownSchoepflialarmReactionType("Unbekannte Reaktions-Art für Schöpflialarm")
                 }
             }
         }

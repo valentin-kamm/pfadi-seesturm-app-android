@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarContentView
@@ -49,19 +50,19 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AccountView(
-    appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     leiterbereich: (FirebaseHitobitoUser) -> @Composable () -> Unit
 ) {
 
-    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
+    val authState by authViewModel.state.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
 
     val loginLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        appStateViewModel.finishAuthFlow(result)
+        authViewModel.finishAuthFlow(result)
     }
 
     ObserveAsEvents(
@@ -73,13 +74,13 @@ fun AccountView(
     }
 
     AccountContentView(
-        authState = appState.authState,
+        authState = authState,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         onAuthenticate = {
-            appStateViewModel.startAuthFlow()
+            authViewModel.startAuthFlow()
         },
         onResetAuthState = {
-            appStateViewModel.resetAuthState()
+            authViewModel.resetAuthState()
         },
         leiterbereich = { user ->
             leiterbereich(user)()

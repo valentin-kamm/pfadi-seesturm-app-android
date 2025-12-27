@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.BottomNavigationScaffold
 import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 
@@ -15,6 +16,7 @@ import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 @Composable
 fun TabNavigationHost(
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     tabNavController: NavHostController = rememberNavController()
 ) {
 
@@ -66,7 +68,8 @@ fun TabNavigationHost(
                     AccountNavHost(
                         bottomNavigationInnerPadding = innerPadding,
                         tabNavController = tabNavController,
-                        appStateViewModel = appStateViewModel
+                        appStateViewModel = appStateViewModel,
+                        authViewModel = authViewModel
                     )
                 }
             }

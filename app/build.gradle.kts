@@ -104,6 +104,7 @@ dependencies {
     implementation(libs.firebase.appcheck.debug)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.storage)
 
     // my dependencies
     implementation(libs.ui)

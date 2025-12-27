@@ -1,7 +1,7 @@
 package ch.seesturm.pfadiseesturm.util.types
 
 import ch.seesturm.pfadiseesturm.R
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 
 enum class WeatherCondition(
     val conditionCode: String,
@@ -218,6 +218,6 @@ enum class WeatherCondition(
 val String.getWeatherCondition: WeatherCondition
     get() {
         return requireNotNull(WeatherCondition.entries.find { it.conditionCode == this }) {
-            throw PfadiSeesturmAppError.WeatherConditionError("Die Wetterbedingung ist unbekannt.")
+            throw PfadiSeesturmError.WeatherConditionError("Die Wetterbedingung ist unbekannt.")
         }
     }

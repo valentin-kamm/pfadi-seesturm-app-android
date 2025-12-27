@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.accountModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.dataStoreModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
@@ -43,6 +44,7 @@ fun AccountNavHost(
     tabNavController: NavController,
     bottomNavigationInnerPadding: PaddingValues,
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     accountNavController: NavHostController = rememberNavController()
 ) {
 
@@ -74,7 +76,7 @@ fun AccountNavHost(
     ) {
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.AccountRoot> {
             AccountView(
-                appStateViewModel = appStateViewModel,
+                authViewModel = authViewModel,
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 leiterbereich = { user ->
                     {
@@ -96,7 +98,8 @@ fun AccountNavHost(
                             bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                             accountNavController = accountNavController,
                             viewModel = leiterbereichViewModel,
-                            appStateViewModel = appStateViewModel
+                            appStateViewModel = appStateViewModel,
+                            authViewModel = authViewModel
                         )
                     }
                 }

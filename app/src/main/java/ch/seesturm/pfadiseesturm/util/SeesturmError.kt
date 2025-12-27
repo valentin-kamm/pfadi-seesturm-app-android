@@ -100,19 +100,35 @@ sealed interface DataError: SeesturmError {
             val message: String
         ): CloudFunctionsError("Unbekannter Fehler: $message")
     }
+
+    sealed class Storage(override val defaultMessage: String): DataError {
+        data class UPLOAD(
+            val message: String
+        ): Storage(message)
+        data class DELETE(
+            val message: String
+        ): Storage(message)
+        data class UNAUTHENTICATED(
+            val message: String
+        ): Storage(message)
+        data class UNKNOWN(
+            val message: String
+        ): Storage(message)
+    }
 }
 
-sealed class PfadiSeesturmAppError(override val message: String): Exception(message) {
-    class DateError(message: String): PfadiSeesturmAppError(message)
-    class WeatherConditionError(message: String): PfadiSeesturmAppError(message)
-    class InvalidFormInput(message: String): PfadiSeesturmAppError(message)
-    class MessagingPermissionError(message: String): PfadiSeesturmAppError(message)
-    class UnknownStufe(message: String): PfadiSeesturmAppError(message)
-    class UnknownAktivitaetInteraction(message: String): PfadiSeesturmAppError(message)
-    class AuthError(message: String): PfadiSeesturmAppError(message)
-    class Cancelled(message: String): PfadiSeesturmAppError(message)
-    class UnknownNotificationTopic(message: String): PfadiSeesturmAppError(message)
-    class UnknownSchoepflialarmReactionType(message: String): PfadiSeesturmAppError(message)
+sealed class PfadiSeesturmError(override val message: String): Exception(message) {
+    class DateError(message: String): PfadiSeesturmError(message)
+    class WeatherConditionError(message: String): PfadiSeesturmError(message)
+    class InvalidFormInput(message: String): PfadiSeesturmError(message)
+    class MessagingPermissionError(message: String): PfadiSeesturmError(message)
+    class UnknownStufe(message: String): PfadiSeesturmError(message)
+    class UnknownAktivitaetInteraction(message: String): PfadiSeesturmError(message)
+    class AuthError(message: String): PfadiSeesturmError(message)
+    class Cancelled(message: String): PfadiSeesturmError(message)
+    class UnknownNotificationTopic(message: String): PfadiSeesturmError(message)
+    class UnknownSchoepflialarmReactionType(message: String): PfadiSeesturmError(message)
+    class JPGConversion(message: String): PfadiSeesturmError(message)
 }
 
 sealed class SchoepflialarmLocalizedError(override val message: String): Exception(message) {

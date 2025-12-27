@@ -58,6 +58,7 @@ compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
 composeunstyled = { module = "com.composables:composeunstyled", version.ref = "composeunstyled" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-storage = { module = "com.google.firebase:firebase-storage"}
 firebase-appcheck = { module = "com.google.firebase:firebase-appcheck" }
 firebase-appcheck-debug = { module = "com.google.firebase:firebase-appcheck-debug" }
 firebase-appcheck-playintegrity = { module = "com.google.firebase:firebase-appcheck-playintegrity" }

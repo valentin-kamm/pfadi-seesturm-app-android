@@ -1,13 +1,8 @@
 package ch.seesturm.pfadiseesturm.data.firestore.dto
 
-import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
-import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
-import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.types.FirebaseHitobitoUserRole
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
-import java.util.UUID
 
 data class FirebaseHitobitoUserDto(
 
@@ -34,33 +29,22 @@ data class FirebaseHitobitoUserDto(
                 profilePictureUrl == other.profilePictureUrl &&
                 fcmToken == other.fcmToken
     }
-}
 
-fun FirebaseHitobitoUserDto.toFirebaseHitobitoUser(): FirebaseHitobitoUser {
+    companion object {
 
-    val createdDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(created)
-    val modifiedDate = DateTimeUtil.shared.convertFirestoreTimestampToDate(modified)
-
-    return FirebaseHitobitoUser(
-        userId = id ?: UUID.randomUUID().toString(),
-        vorname = firstname,
-        nachname = lastname,
-        pfadiname = pfadiname,
-        email = email,
-        role = FirebaseHitobitoUserRole.fromRole(role),
-        profilePictureUrl = profilePictureUrl,
-        created = createdDate,
-        createdFormatted = DateTimeUtil.shared.formatDate(
-            date = createdDate,
-            format = "EEEE, d. MMMM yyyy 'Uhr'",
-            type = DateFormattingType.Relative(true)
-        ),
-        modified = modifiedDate,
-        modifiedFormatted = DateTimeUtil.shared.formatDate(
-            date = modifiedDate,
-            format = "EEEE, d. MMMM yyyy 'Uhr'",
-            type = DateFormattingType.Relative(true)
-        ),
-        fcmToken = fcmToken
-    )
+        fun from(oldUser: FirebaseHitobitoUserDto, newProfilePictureUrl: String?): FirebaseHitobitoUserDto {
+            return FirebaseHitobitoUserDto(
+                id = oldUser.id,
+                created = oldUser.created,
+                modified = null,
+                email = oldUser.email,
+                firstname = oldUser.firstname,
+                lastname = oldUser.lastname,
+                pfadiname = oldUser.pfadiname,
+                role = oldUser.role,
+                profilePictureUrl = newProfilePictureUrl,
+                fcmToken = oldUser.fcmToken
+            )
+        }
+    }
 }

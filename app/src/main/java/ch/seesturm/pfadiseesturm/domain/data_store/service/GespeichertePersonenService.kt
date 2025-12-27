@@ -5,7 +5,7 @@ import ch.seesturm.pfadiseesturm.data.data_store.dao.toGespeichertePersonDao
 import ch.seesturm.pfadiseesturm.domain.data_store.model.GespeichertePerson
 import ch.seesturm.pfadiseesturm.domain.data_store.repository.GespeichertePersonenRepository
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -28,10 +28,10 @@ class GespeichertePersonenService(
                             is SerializationException -> {
                                 DataError.Local.READING_ERROR
                             }
-                            is PfadiSeesturmAppError -> {
+                            is PfadiSeesturmError -> {
                                 when (e) {
-                                    is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
-                                    is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
+                                    is PfadiSeesturmError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
+                                    is PfadiSeesturmError.DateError -> DataError.Local.INVALID_DATE
                                     else -> {
                                         DataError.Local.UNKNOWN
                                     }
@@ -56,10 +56,10 @@ class GespeichertePersonenService(
                     is SerializationException -> {
                         DataError.Local.SAVING_ERROR
                     }
-                    is PfadiSeesturmAppError -> {
+                    is PfadiSeesturmError -> {
                         when (e) {
-                            is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
-                            is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
+                            is PfadiSeesturmError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
+                            is PfadiSeesturmError.DateError -> DataError.Local.INVALID_DATE
                             else -> {
                                 DataError.Local.UNKNOWN
                             }
@@ -83,10 +83,10 @@ class GespeichertePersonenService(
                     is SerializationException -> {
                         DataError.Local.DELETING_ERROR
                     }
-                    is PfadiSeesturmAppError -> {
+                    is PfadiSeesturmError -> {
                         when (e) {
-                            is PfadiSeesturmAppError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
-                            is PfadiSeesturmAppError.DateError -> DataError.Local.INVALID_DATE
+                            is PfadiSeesturmError.InvalidFormInput -> DataError.Local.INVALID_FORM_INPUT
+                            is PfadiSeesturmError.DateError -> DataError.Local.INVALID_DATE
                             else -> {
                                 DataError.Local.UNKNOWN
                             }

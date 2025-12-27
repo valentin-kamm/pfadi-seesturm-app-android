@@ -9,7 +9,7 @@ import ch.seesturm.pfadiseesturm.domain.auth.repository.AuthRepository
 import ch.seesturm.pfadiseesturm.domain.auth.repository.FirebaseAuthToken
 import ch.seesturm.pfadiseesturm.domain.auth.repository.HitobitoAccessToken
 import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import com.google.firebase.auth.FirebaseUser
 
 class AuthRepositoryImpl(
@@ -36,7 +36,7 @@ class AuthRepositoryImpl(
 
         val groupIdArray: List<Int> = userInfo.roles?.mapNotNull { it?.groupId } ?: emptyList()
         if (!groupIdArray.contains(Constants.HITOBITO_APP_GROUP_ID)) {
-            throw PfadiSeesturmAppError.AuthError("Du hast keine Berechtigung, um dich bei der Pfadi Seesturm App anzumelden. Wende dich an die MiData-Addressverwalter der Pfadi Seesturm.")
+            throw PfadiSeesturmError.AuthError("Du hast keine Berechtigung, um dich bei der Pfadi Seesturm App anzumelden. Wende dich an die MiData-Addressverwalter der Pfadi Seesturm.")
         }
     }
 

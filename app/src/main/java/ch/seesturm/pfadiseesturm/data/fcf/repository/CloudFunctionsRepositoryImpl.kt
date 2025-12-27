@@ -15,7 +15,7 @@ import ch.seesturm.pfadiseesturm.domain.auth.repository.FirebaseAuthToken
 import ch.seesturm.pfadiseesturm.domain.auth.repository.HitobitoAccessToken
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationType
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 
 class CloudFunctionsRepositoryImpl(
@@ -35,10 +35,10 @@ class CloudFunctionsRepositoryImpl(
             outputSerializer = CloudFunctionTokenResponseDto.serializer()
         )
         if (response.userId != userId) {
-            throw PfadiSeesturmAppError.AuthError("Ungültige Benutzer-ID im Authentifizierungs-Token.")
+            throw PfadiSeesturmError.AuthError("Ungültige Benutzer-ID im Authentifizierungs-Token.")
         }
         if (response.firebaseAuthToken.trim().isEmpty()) {
-            throw PfadiSeesturmAppError.AuthError("Authentifizierungs-Token ist leer.")
+            throw PfadiSeesturmError.AuthError("Authentifizierungs-Token ist leer.")
         }
         return response.firebaseAuthToken
     }

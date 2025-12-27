@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 
 enum class AktivitaetInteractionType(
     val id: Int,
@@ -38,7 +38,7 @@ enum class AktivitaetInteractionType(
     );
     companion object {
         fun fromId(id: Int): AktivitaetInteractionType {
-            return entries.find { it.id == id } ?: throw PfadiSeesturmAppError.UnknownAktivitaetInteraction(
+            return entries.find { it.id == id } ?: throw PfadiSeesturmError.UnknownAktivitaetInteraction(
                 "Unbekannte An-/Abmelde-Art."
             )
         }

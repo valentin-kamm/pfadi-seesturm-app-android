@@ -2,7 +2,6 @@ package ch.seesturm.pfadiseesturm.domain.account.service
 
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FoodOrderDto
-import ch.seesturm.pfadiseesturm.data.firestore.dto.toFirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.toGoogleCalendarEvents
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.data_store.repository.SelectedStufenRepository
@@ -50,7 +49,7 @@ class LeiterbereichService(
                         SeesturmResult.Error(result.error)
                     }
                     is SeesturmResult.Success -> {
-                        val users = result.data.map { it.toFirebaseHitobitoUser() }
+                        val users = result.data.map { FirebaseHitobitoUser.from(it) }
                         SeesturmResult.Success(users)
                     }
                 }

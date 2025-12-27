@@ -9,7 +9,7 @@ import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.domain.fcm.repository.FCMRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -34,7 +34,7 @@ class FCMService(
         catch (e: Exception) {
             SeesturmResult.Error(
                 when (e) {
-                    is PfadiSeesturmAppError.MessagingPermissionError -> {
+                    is PfadiSeesturmError.MessagingPermissionError -> {
                         DataError.Messaging.PERMISSION_ERROR
                     }
                     is SerializationException -> {
@@ -75,7 +75,7 @@ class FCMService(
         if (!hasNotificationPermission) {
             val isGranted = requestPermission()
             if (!isGranted) {
-                throw PfadiSeesturmAppError.MessagingPermissionError("Berechtigung für Push-Nachrichten nicht erteilt.")
+                throw PfadiSeesturmError.MessagingPermissionError("Berechtigung für Push-Nachrichten nicht erteilt.")
             }
         }
     }

@@ -17,6 +17,8 @@ import ch.seesturm.pfadiseesturm.di.FCMModule
 import ch.seesturm.pfadiseesturm.di.FCMModuleImpl
 import ch.seesturm.pfadiseesturm.di.FirestoreModule
 import ch.seesturm.pfadiseesturm.di.FirestoreModuleImpl
+import ch.seesturm.pfadiseesturm.di.StorageModule
+import ch.seesturm.pfadiseesturm.di.StorageModuleImpl
 import ch.seesturm.pfadiseesturm.di.WordpressModule
 import ch.seesturm.pfadiseesturm.di.WordpressModuleImpl
 import com.google.firebase.FirebaseApp
@@ -34,6 +36,8 @@ class SeesturmApplication: Application() {
         lateinit var fcmModule: FCMModule
         lateinit var authModule: AuthModule
         lateinit var accountModule: AccountModule
+
+        lateinit var storageModule: StorageModule
     }
 
     override fun onCreate() {
@@ -67,11 +71,15 @@ class SeesturmApplication: Application() {
             dataStore = dataStoreModule.dataStore,
             firestoreRepository = firestoreModule.firestoreRepository
         )
+        storageModule = StorageModuleImpl(
+            firestoreRepository = firestoreModule.firestoreRepository
+        )
         authModule = AuthModuleImpl(
             appContext = this,
             cloudFunctionsRepository = fcfModule.fcfRepository,
             firestoreRepository = firestoreModule.firestoreRepository,
-            fcmRepository = fcmModule.fcmRepository
+            fcmRepository = fcmModule.fcmRepository,
+            storageRepository = storageModule.storageRepository
         )
         accountModule = AccountModuleImpl(
             appContext = this,

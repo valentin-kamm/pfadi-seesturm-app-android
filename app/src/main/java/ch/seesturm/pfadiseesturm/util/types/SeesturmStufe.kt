@@ -9,7 +9,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_YELLOW
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -85,7 +85,7 @@ enum class SeesturmStufe(
     );
     companion object {
         fun fromId(id: Int): SeesturmStufe {
-            return SeesturmStufe.entries.find { it.id == id } ?: throw PfadiSeesturmAppError.UnknownStufe(
+            return SeesturmStufe.entries.find { it.id == id } ?: throw PfadiSeesturmError.UnknownStufe(
                 "Unbekannte Stufe."
             )
         }

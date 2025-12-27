@@ -51,6 +51,7 @@ import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
 import ch.seesturm.pfadiseesturm.domain.firestore.model.Schoepflialarm
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichProfileHeaderView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichStufeLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.LeiterbereichStufenScrollView
@@ -92,12 +93,14 @@ fun LeiterbereichView(
     viewModel: LeiterbereichViewModel,
     user: FirebaseHitobitoUser,
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     accountNavController: NavController
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val appState by appStateViewModel.state.collectAsStateWithLifecycle()
+    val authState by authViewModel.state.collectAsStateWithLifecycle()
 
     // request permissions for notifications and location
     val locationPermissionResult = remember {
@@ -182,7 +185,7 @@ fun LeiterbereichView(
         icon = Icons.Outlined.AccountBox,
         confirmButtonText = "Abmelden",
         onConfirm = {
-            appStateViewModel.signOut(user)
+            authViewModel.signOut(user)
         },
         onDismiss = {
             viewModel.updateSignOutAlertVisibility(false)
@@ -195,7 +198,7 @@ fun LeiterbereichView(
         icon = Icons.Outlined.AccountBox,
         confirmButtonText = "Löschen",
         onConfirm = {
-            appStateViewModel.deleteAccount(user)
+            authViewModel.deleteAccount(user)
         },
         onDismiss = {
             viewModel.updateDeleteAccountAlertVisibility(false)
@@ -250,7 +253,7 @@ fun LeiterbereichView(
         termineState = uiState.termineState,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         accountNavController = accountNavController,
-        isEditAccountButtonLoading = appState.authState.deleteAccountButtonLoading,
+        isEditAccountButtonLoading = authState.deleteAccountButtonLoading,
         onDeleteAccount = {
             viewModel.updateDeleteAccountAlertVisibility(true)
         },

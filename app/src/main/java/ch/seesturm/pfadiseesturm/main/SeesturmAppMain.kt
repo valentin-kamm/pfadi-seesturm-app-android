@@ -13,6 +13,7 @@ import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.PushNachri
 @Composable
 fun SeesturmAppMain(
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     overallNavController: NavHostController
 ) {
     NavHost(
@@ -21,7 +22,8 @@ fun SeesturmAppMain(
     ) {
         composable<AppDestination.MainTabView>{
             TabNavigationHost(
-                appStateViewModel = appStateViewModel
+                appStateViewModel = appStateViewModel,
+                authViewModel = authViewModel
             )
         }
         composable<AppDestination.Onboarding> {

@@ -1,7 +1,7 @@
 package ch.seesturm.pfadiseesturm.domain.fcm
 
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -47,7 +47,7 @@ enum class SeesturmFCMNotificationTopic (
     companion object {
         fun fromTopicString(topic: String): SeesturmFCMNotificationTopic {
             return entries.firstOrNull { it.topic == topic }
-                ?: throw PfadiSeesturmAppError.UnknownNotificationTopic("Die Push-Nachricht kann keinen Thema zugeordnet werden.")
+                ?: throw PfadiSeesturmError.UnknownNotificationTopic("Die Push-Nachricht kann keinen Thema zugeordnet werden.")
         }
     }
 

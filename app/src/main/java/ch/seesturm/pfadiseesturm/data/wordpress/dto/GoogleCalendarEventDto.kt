@@ -1,9 +1,9 @@
 package ch.seesturm.pfadiseesturm.data.wordpress.dto
 
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -80,7 +80,7 @@ private fun GoogleCalendarEventDto.getEndDate(calendarTimeZone: ZoneId, targetDi
             DateTimeUtil.shared.parseFloatingDateString(end.date, calendarTimeZone)
         }
         else -> {
-            throw PfadiSeesturmAppError.DateError("Anlass ohne Enddatum vorhanden.")
+            throw PfadiSeesturmError.DateError("Anlass ohne Enddatum vorhanden.")
         }
     }.atZone(targetDisplayTimezone)
     return if (isAllDay) {
@@ -100,7 +100,7 @@ private fun GoogleCalendarEventDto.getStartDate(calendarTimeZone: ZoneId, target
             DateTimeUtil.shared.parseFloatingDateString(start.date, calendarTimeZone)
         }
         else -> {
-            throw PfadiSeesturmAppError.DateError("Anlass ohne Startdatum vorhanden.")
+            throw PfadiSeesturmError.DateError("Anlass ohne Startdatum vorhanden.")
         }
     }.atZone(targetDisplayTimezone)
 }

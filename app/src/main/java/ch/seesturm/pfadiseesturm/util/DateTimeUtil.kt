@@ -48,7 +48,7 @@ class DateTimeUtil {
         return timeZone?.let {
             val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
             date.withZoneSameInstant(it).format(formatter)
-        } ?: throw PfadiSeesturmAppError.DateError("Das Datum ist falsch. ISO8601 String kann nicht erstell werden.")
+        } ?: throw PfadiSeesturmError.DateError("Das Datum ist falsch. ISO8601 String kann nicht erstell werden.")
     }
 
     fun convertFirestoreTimestampToDate(timestamp: Timestamp?): ZonedDateTime {
@@ -56,7 +56,7 @@ class DateTimeUtil {
         if (timestamp != null) {
             return timestamp.toDate().toInstant().atZone(ZoneId.systemDefault())
         }
-        throw PfadiSeesturmAppError.DateError("Datum nicht vorhanden.")
+        throw PfadiSeesturmError.DateError("Datum nicht vorhanden.")
     }
 
     // function to get the start of the month of the provided date
@@ -66,7 +66,7 @@ class DateTimeUtil {
             date.withDayOfMonth(1).toLocalDate().atStartOfDay(date.zone)
         }
         catch (e: Exception) {
-            throw PfadiSeesturmAppError.DateError("Fehler bei der Datumsverarbeitung.")
+            throw PfadiSeesturmError.DateError("Fehler bei der Datumsverarbeitung.")
         }
     }
 
@@ -79,7 +79,7 @@ class DateTimeUtil {
             localDate.atStartOfDay(floatingDateTimeZone).toInstant()
         }
         catch (e: Exception) {
-            throw PfadiSeesturmAppError.DateError("Datumsformat ungültig.")
+            throw PfadiSeesturmError.DateError("Datumsformat ungültig.")
         }
     }
 
@@ -91,7 +91,7 @@ class DateTimeUtil {
             return Instant.from(formatter.parse(iso8601DateString))
         }
         catch (e: Exception) {
-            throw PfadiSeesturmAppError.DateError("Datum ungültig.")
+            throw PfadiSeesturmError.DateError("Datum ungültig.")
         }
     }
 
@@ -117,7 +117,7 @@ class DateTimeUtil {
         // Samstag, 13. Oktober 2025, 13:00 Uhr bis Sonntag, 14. Oktober 2025, 14:00 Uhr
 
         if (endDate < startDate) {
-            throw PfadiSeesturmAppError.DateError("Enddatum ist kleiner als Startdatum.")
+            throw PfadiSeesturmError.DateError("Enddatum ist kleiner als Startdatum.")
         }
 
         val isSingleDay = startDate.year == endDate.year && startDate.month == endDate.month && startDate.dayOfYear == endDate.dayOfYear

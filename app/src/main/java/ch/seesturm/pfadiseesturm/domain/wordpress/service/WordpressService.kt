@@ -2,7 +2,7 @@ package ch.seesturm.pfadiseesturm.domain.wordpress.service
 
 import ch.seesturm.pfadiseesturm.util.Constants
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.PfadiSeesturmAppError
+import ch.seesturm.pfadiseesturm.util.PfadiSeesturmError
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.delay
@@ -36,11 +36,11 @@ open class WordpressService {
         catch (e: java.io.IOException) {
             return SeesturmResult.Error(DataError.Network.IO_EXCEPTION)
         }
-        catch (e: PfadiSeesturmAppError) {
+        catch (e: PfadiSeesturmError) {
             return SeesturmResult.Error(
                 when (e) {
-                    is PfadiSeesturmAppError.DateError -> DataError.Network.INVALID_DATE
-                    is PfadiSeesturmAppError.WeatherConditionError -> DataError.Network.INVALID_WEATHER_CONDITION
+                    is PfadiSeesturmError.DateError -> DataError.Network.INVALID_DATE
+                    is PfadiSeesturmError.WeatherConditionError -> DataError.Network.INVALID_WEATHER_CONDITION
                     else -> {
                         DataError.Network.UNKNOWN
                     }
