@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.DpSize
 import ch.seesturm.pfadiseesturm.domain.storage.model.PickedGalleryItem
 import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
 import ch.seesturm.pfadiseesturm.presentation.common.aspectRatio
+import ch.seesturm.pfadiseesturm.presentation.common.imageFitSize
 import ch.seesturm.pfadiseesturm.util.DataError
-import ch.seesturm.pfadiseesturm.util.imageFitSize
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

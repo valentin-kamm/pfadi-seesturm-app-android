@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPhoto
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotoSliderViewItem
@@ -55,7 +54,6 @@ fun ZoomableAsyncImage(
         modifier = modifier
             .fillMaxSize()
     ) {
-
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(context)
                 .data(photo.url)
@@ -65,6 +63,8 @@ fun ZoomableAsyncImage(
             contentScale = ContentScale.Fit,
             alignment = Alignment.Center,
             modifier = Modifier
+                .aspectRatio(photo.aspectRatio)
+                .fillMaxSize()
                 .zoomable(
                     zoomState = zoomState,
                     scrollGesturePropagation = ScrollGesturePropagation.NotZoomed,
