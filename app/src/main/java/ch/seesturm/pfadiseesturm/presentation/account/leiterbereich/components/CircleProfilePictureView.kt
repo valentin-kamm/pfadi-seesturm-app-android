@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -44,17 +43,23 @@ import coil.request.ImageRequest
 
 @Composable
 fun CircleProfilePictureView(
-    user: FirebaseHitobitoUser?,
+    type: CircleProfilePictureViewType,
     size: Dp,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    isLoading: Boolean = false,
     showEditBadge: Boolean = false
 ) {
 
-    val borderColor = when {
-        isLoading || user?.profilePictureUrl == null -> MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-        else -> Color.Transparent
+    val screenContext = LocalScreenContext.current
+
+    val borderColor = when (type) {
+        is CircleProfilePictureViewType.Idle -> if (type.user?.profilePictureUrl == null) {
+            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+        }
+        else {
+            Color.Transparent
+        }
+        CircleProfilePictureViewType.Loading -> MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
     }
 
     Box(
@@ -67,7 +72,12 @@ fun CircleProfilePictureView(
                 .size(size)
                 .clip(CircleShape)
                 .border(1.dp, borderColor, CircleShape)
-                .background(color = MaterialTheme.colorScheme.primaryContainer)
+                .background(
+                    color = when (screenContext) {
+                        is ScreenContext.Default -> MaterialTheme.colorScheme.primaryContainer
+                        is ScreenContext.ModalBottomSheet -> MaterialTheme.colorScheme.tertiaryContainer
+                    }
+                )
                 .then(
                     if (onClick != null) {
                         Modifier
@@ -79,72 +89,79 @@ fun CircleProfilePictureView(
                     }
                 )
         ) {
-            if (user?.profilePictureUrl == null) {
-                Image(
-                    painter = painterResource(R.drawable.logotabbar),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .alpha(
-                            if (isLoading) {
-                                0f
-                            } else {
-                                1f
-                            }
+            when (type) {
+                CircleProfilePictureViewType.Loading -> {
+                    CircularProgressIndicator(
+                        color = Color.SEESTURM_GREEN,
+                        modifier = Modifier
+                            .size(18.dp)
+                    )
+                }
+                is CircleProfilePictureViewType.Idle -> {
+                    if (type.user?.profilePictureUrl.isNullOrBlank()) {
+                        Image(
+                            painter = painterResource(R.drawable.logotabbar),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(2.dp)
                         )
-                        .fillMaxSize()
-                )
-            }
-            else {
-                SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(user.profilePictureUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    when (painter.state) {
-                        AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .graphicsLayer()
-                                    .customLoadingBlinking()
-                                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                        }
-                        is AsyncImagePainter.State.Error -> {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.HideImage,
-                                    contentDescription = null,
-                                    tint = Color.SEESTURM_GREEN,
-                                    modifier = Modifier
-                                        .size(size / 2)
-                                )
+                    }
+                    else {
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(type.user?.profilePictureUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        ) {
+                            when (painter.state) {
+                                AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer()
+                                            .customLoadingBlinking()
+                                            .background(
+                                                color = when (screenContext) {
+                                                    is ScreenContext.Default -> MaterialTheme.colorScheme.primaryContainer
+                                                    is ScreenContext.ModalBottomSheet -> MaterialTheme.colorScheme.tertiaryContainer
+                                                }
+                                            )
+                                    )
+                                }
+                                is AsyncImagePainter.State.Error -> {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                color = when (screenContext) {
+                                                    is ScreenContext.Default -> MaterialTheme.colorScheme.primaryContainer
+                                                    is ScreenContext.ModalBottomSheet -> MaterialTheme.colorScheme.tertiaryContainer
+                                                }
+                                            )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.HideImage,
+                                            contentDescription = null,
+                                            tint = Color.SEESTURM_GREEN,
+                                            modifier = Modifier
+                                                .size(size / 2)
+                                        )
+                                    }
+                                }
+                                is AsyncImagePainter.State.Success -> {
+                                    SubcomposeAsyncImageContent()
+                                }
                             }
-                        }
-                        is AsyncImagePainter.State.Success -> {
-                            SubcomposeAsyncImageContent()
                         }
                     }
                 }
-            }
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = Color.SEESTURM_GREEN,
-                    modifier = Modifier
-                        .size(18.dp)
-                )
             }
         }
         if (showEditBadge) {
@@ -170,16 +187,20 @@ fun CircleProfilePictureView(
     }
 }
 
+sealed interface CircleProfilePictureViewType {
+    data object Loading: CircleProfilePictureViewType
+    data class Idle(
+        val user: FirebaseHitobitoUser?
+    ): CircleProfilePictureViewType
+}
+
 @Preview("Plain")
 @Composable
 private fun CircleProfilePictureViewPreview1() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user1,
+            type = CircleProfilePictureViewType.Idle(DummyData.user1),
             size = 60.dp,
-            modifier = Modifier,
-            onClick = {},
-            isLoading = false,
             showEditBadge = false
         )
     }
@@ -189,11 +210,8 @@ private fun CircleProfilePictureViewPreview1() {
 private fun CircleProfilePictureViewPreview2() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = CircleProfilePictureViewType.Idle(DummyData.user3),
             size = 60.dp,
-            modifier = Modifier,
-            onClick = {},
-            isLoading = false,
             showEditBadge = false
         )
     }
@@ -203,11 +221,8 @@ private fun CircleProfilePictureViewPreview2() {
 private fun CircleProfilePictureViewPreview3() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = CircleProfilePictureViewType.Idle(DummyData.user3),
             size = 60.dp,
-            modifier = Modifier,
-            onClick = {},
-            isLoading = false,
             showEditBadge = true
         )
     }
@@ -217,11 +232,8 @@ private fun CircleProfilePictureViewPreview3() {
 private fun CircleProfilePictureViewPreview4() {
     PfadiSeesturmTheme {
         CircleProfilePictureView(
-            user = DummyData.user3,
+            type = CircleProfilePictureViewType.Loading,
             size = 60.dp,
-            modifier = Modifier,
-            onClick = {},
-            isLoading = true,
             showEditBadge = true
         )
     }

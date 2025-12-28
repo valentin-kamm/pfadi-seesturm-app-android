@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.account.service.ProfilePictureService
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.service.AuthService
-import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePictureData
+import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
 import ch.seesturm.pfadiseesturm.presentation.account.auth.AuthIntentController
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
@@ -156,7 +156,7 @@ class AuthViewModel(
         }
     }
 
-    suspend fun uploadProfilePicture(picture: ProfilePictureData): SeesturmResult<Unit, DataError.Storage> {
+    suspend fun uploadProfilePicture(picture: ProfilePicture): SeesturmResult<Unit, DataError.Storage> {
 
         when (val localAuthState = state.value) {
             is SeesturmAuthState.SignedInWithHitobito -> {
@@ -205,7 +205,7 @@ class AuthViewModel(
     private fun updateLocalProfilePictureUrl(url: Uri?) {
         when (val localAuthState = state.value) {
             is SeesturmAuthState.SignedInWithHitobito -> {
-                val newUser = FirebaseHitobitoUser.from(localAuthState.user, url.toString())
+                val newUser = FirebaseHitobitoUser.from(localAuthState.user, url?.toString())
                 updateAuthState(SeesturmAuthState.SignedInWithHitobito(newUser, localAuthState.state))
             }
             else -> {}

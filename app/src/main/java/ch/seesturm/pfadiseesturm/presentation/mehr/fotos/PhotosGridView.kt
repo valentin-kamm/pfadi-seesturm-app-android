@@ -62,13 +62,15 @@ fun PhotosGridView(
             viewModel.fetchPhotos()
         },
         onClickImage = { index ->
-            viewModel.setSelectedImageIndex(index)
             selectedImageIndex.value = index
             appStateViewModel.updateAllowedOrientation(AllowedOrientation.All)
         }
     )
 
-    if (selectedImageIndex.value != null) {
+    val localSelectedImageIndex = selectedImageIndex.value
+    val localImageResult = uiState.result
+
+    if (localSelectedImageIndex != null && localImageResult is UiState.Success) {
         Dialog(
             onDismissRequest = {
                 selectedImageIndex.value = null
@@ -81,7 +83,10 @@ fun PhotosGridView(
             )
         ) {
             PhotoSliderView(
-                viewModel = viewModel,
+                mode = PhotoSliderViewMode.Multi(
+                    images = localImageResult.data.map { PhotoSliderViewItem.fromWordpressImage(it) },
+                    initialIndex = localSelectedImageIndex
+                ),
                 onClose = {
                     selectedImageIndex.value = null
                     appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)

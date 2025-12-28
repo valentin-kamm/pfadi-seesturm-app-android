@@ -49,6 +49,7 @@ fun <T>FormItem(
     modifier: Modifier = Modifier,
     disableRoundedCorners: Boolean = false,
     leadingIcon: ImageVector? = null,
+    leadingIconColor: Color = Color.SEESTURM_GREEN,
     onClick: (() -> Unit)? = null,
     trailingElement: FormItemTrailingElementType = FormItemTrailingElementType.Blank,
     separatorColor: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
@@ -119,7 +120,7 @@ fun <T>FormItem(
                     Icon(
                         imageVector = leadingIcon,
                         contentDescription = null,
-                        tint = Color.SEESTURM_GREEN,
+                        tint = leadingIconColor,
                         modifier = Modifier
                             .size(20.dp)
                             .wrapContentSize()

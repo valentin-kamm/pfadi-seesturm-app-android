@@ -235,7 +235,7 @@ fun SchoepflialarmSheet(
                                         .fillMaxWidth()
                                 ) {
                                     CircleProfilePictureView(
-                                        user = user,
+                                        type = CircleProfilePictureViewType.Idle(schoepflialarmResult.data.user),
                                         size = 30.dp
                                     )
                                     Text(
@@ -318,7 +318,7 @@ fun SchoepflialarmSheet(
                                                         .fillMaxWidth()
                                                 ) {
                                                     CircleProfilePictureView(
-                                                        user = reaction.user,
+                                                        type = CircleProfilePictureViewType.Idle(reaction.user),
                                                         size = 20.dp
                                                     )
                                                     Text(

@@ -23,12 +23,6 @@ class PhotosGridViewModel(
         fetchPhotos()
     }
 
-    val pageTitle: String
-        get() = when (val localState = state.value.result) {
-            is UiState.Success -> "${state.value.selectedImageIndex + 1} von ${localState.data.count()}"
-                else -> ""
-        }
-
     fun fetchPhotos() {
 
         _state.update {
@@ -53,14 +47,6 @@ class PhotosGridViewModel(
                     }
                 }
             }
-        }
-    }
-
-    fun setSelectedImageIndex(index: Int) {
-        _state.update {
-            it.copy(
-                selectedImageIndex = index
-            )
         }
     }
 }

@@ -6,7 +6,7 @@ sealed interface UploadStorageItem {
 
     data class ProfilePicture(
         val user: FirebaseHitobitoUser,
-        val data: ProfilePictureData
+        val data: ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
     ): UploadStorageItem
 
     val path: String

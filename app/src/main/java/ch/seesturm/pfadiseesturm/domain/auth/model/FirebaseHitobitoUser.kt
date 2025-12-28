@@ -56,7 +56,7 @@ data class FirebaseHitobitoUser private constructor(
             )
         }
         
-        fun from(oldUser: FirebaseHitobitoUser, newProfilePictureUrl: String): FirebaseHitobitoUser {
+        fun from(oldUser: FirebaseHitobitoUser, newProfilePictureUrl: String?): FirebaseHitobitoUser {
 
             val now = ZonedDateTime.now()
 
@@ -84,8 +84,21 @@ data class FirebaseHitobitoUser private constructor(
     val displayNameShort: String
         get() = pfadiname ?: vorname ?: "Unbekannter Benutzer"
 
+    val displayNameFull: String
+        get() {
+            return if (pfadiname != null && vorname != null && nachname != null) {
+                "$vorname $nachname / $pfadiname"
+            }
+            else if (vorname != null && nachname != null) {
+                "$vorname $nachname"
+            }
+            else {
+                vorname ?: "Unbekannter Benutzer"
+            }
+        }
+
     val profilePictureStoragePath: String
-        get() = "profilePictures${userId}.jpg"
+        get() = "profilePictures/${userId}.jpg"
 }
 
 fun List<FirebaseHitobitoUser>.getUserById(uid: String): FirebaseHitobitoUser? {

@@ -27,6 +27,7 @@ import androidx.core.content.FileProvider
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPhoto
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.PhotoSliderViewItem
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -39,7 +40,8 @@ import java.io.FileOutputStream
 
 @Composable
 fun ZoomableAsyncImage(
-    photo: WordpressPhoto,
+    photo: PhotoSliderViewItem,
+    modifier: Modifier = Modifier,
     onTap: () -> Unit = {}
 ) {
 
@@ -50,13 +52,13 @@ fun ZoomableAsyncImage(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
     ) {
 
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(context)
-                .data(photo.originalUrl)
+                .data(photo.url)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
@@ -88,7 +90,7 @@ fun ZoomableAsyncImage(
                     ) {
                         Box(
                             modifier = Modifier
-                                .aspectRatio(photo.width.toFloat() / photo.height.toFloat())
+                                .aspectRatio(photo.aspectRatio)
                                 .fillMaxSize()
                                 .graphicsLayer()
                                 .customLoadingBlinking()
@@ -110,7 +112,7 @@ fun ZoomableAsyncImage(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .aspectRatio(photo.width.toFloat() / photo.height.toFloat())
+                                .aspectRatio(photo.aspectRatio)
                                 .fillMaxSize()
                                 .background(MaterialTheme.colorScheme.onSurfaceVariant)
                         ) {

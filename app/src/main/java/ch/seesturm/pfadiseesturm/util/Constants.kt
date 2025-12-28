@@ -42,4 +42,7 @@ object Constants {
     const val SCHOPFLI_LATITUDE = 47.530457
     const val SCHOPFLIALARM_MAX_DISTANCE = 100.0 // m
     const val SCHOPFLIALARM_MIN_PAUSE = 3600 // s = 1h
+
+    const val PROFILE_PICTURE_SIZE: Float = 1024f
+    const val PROFILE_PICTURE_COMPRESSION_QUALITY: Int = 75
 }

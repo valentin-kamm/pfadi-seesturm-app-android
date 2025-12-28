@@ -20,7 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,61 +28,41 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressPhoto
-import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.ZoomableAsyncImage
-import ch.seesturm.pfadiseesturm.util.state.UiState
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoSliderView(
-    viewModel: PhotosGridViewModel,
+    mode: PhotoSliderViewMode,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
-    PhotoSliderContentView(
-        uiState = uiState,
-        onRetry = {
-            viewModel.fetchPhotos()
-        },
-        pageTitle = viewModel.pageTitle,
-        onPageChange = { index ->
-            viewModel.setSelectedImageIndex(index)
-        },
-        onClose = onClose,
-        modifier = modifier
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PhotoSliderContentView(
-    uiState: PhotosGridState,
-    pageTitle: String,
-    onRetry: () -> Unit,
-    onClose: () -> Unit,
-    onPageChange: (Int) -> Unit,
-    modifier: Modifier
-) {
-
     val hideTopBar = rememberSaveable { mutableStateOf(false) }
+
+    val imageIndex = rememberSaveable(mode) {
+        mutableIntStateOf(
+            when (mode) {
+                is PhotoSliderViewMode.Multi -> mode.initialIndex
+                is PhotoSliderViewMode.Single -> 0
+            }
+        )
+    }
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         hideTopBar = hideTopBar.value,
-        title = pageTitle,
+        title = when (mode) {
+            is PhotoSliderViewMode.Multi -> "${imageIndex.value + 1} von ${mode.images.count()}"
+            is PhotoSliderViewMode.Single -> null
+        },
         navigationAction = TopBarNavigationIcon.Close { onClose() },
         modifier = modifier
             .clickable(
@@ -92,50 +72,34 @@ private fun PhotoSliderContentView(
                 },
                 interactionSource = remember { MutableInteractionSource() }
             )
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
     ) { topBarInnerPadding ->
         Box(
-            contentAlignment = if (uiState.result is UiState.Error) {
-                Alignment.TopCenter
-            }
-            else {
-                Alignment.Center
-            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(topBarInnerPadding)
         ) {
-            when (uiState.result) {
-                UiState.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                            .graphicsLayer()
-                            .customLoadingBlinking()
-                            .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                    )
-                }
-                is UiState.Error -> {
-                    ErrorCardView(
-                        errorDescription = uiState.result.message,
-                        retryAction = {
-                            onRetry()
+            when (mode) {
+                is PhotoSliderViewMode.Single -> {
+                    ZoomableAsyncImage(
+                        photo = mode.image,
+                        onTap = {
+                            hideTopBar.value = !hideTopBar.value
                         },
                         modifier = Modifier
-                            .padding(16.dp)
+                            .fillMaxSize()
                     )
                 }
-                is UiState.Success -> {
+                is PhotoSliderViewMode.Multi -> {
 
                     val pagerState = rememberPagerState(
-                        initialPage = uiState.selectedImageIndex,
-                        pageCount = { uiState.result.data.count() }
+                        initialPage = imageIndex.value,
+                        pageCount = { mode.images.count() }
                     )
 
                     LaunchedEffect(pagerState) {
                         snapshotFlow { pagerState.currentPage }.collect { i ->
-                            onPageChange(i)
+                            imageIndex.value = i
                         }
                     }
 
@@ -148,7 +112,7 @@ private fun PhotoSliderContentView(
                             .fillMaxSize()
                     ) { index ->
 
-                        val selectedPhoto = uiState.result.data.getOrNull(index)
+                        val selectedPhoto = mode.images.getOrNull(index)
 
                         if (selectedPhoto == null) {
                             Box(
@@ -182,75 +146,55 @@ private fun PhotoSliderContentView(
     }
 }
 
-@Preview("Loading")
+sealed interface PhotoSliderViewMode {
+    data class Single(
+        val image: PhotoSliderViewItem
+    ): PhotoSliderViewMode
+    data class Multi(
+        val images: List<PhotoSliderViewItem>,
+        val initialIndex: Int
+    ): PhotoSliderViewMode
+}
+
+@Preview("Multi")
 @Composable
 private fun PhotoSliderPreview1() {
     PfadiSeesturmTheme {
-        PhotoSliderContentView(
-            uiState = PhotosGridState(
-                result = UiState.Loading
+        PhotoSliderView(
+            mode = PhotoSliderViewMode.Multi(
+                images = listOf(
+                    PhotoSliderViewItem(
+                        url = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
+                        aspectRatio = 200.toFloat() / 250.toFloat()
+                    ),
+                    PhotoSliderViewItem(
+                        url = "",
+                        aspectRatio = 100.toFloat() / 600.toFloat()
+                    ),
+                    PhotoSliderViewItem(
+                        url = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
+                        aspectRatio = 400.toFloat() / 100.toFloat()
+                    )
+                ),
+                initialIndex = 0
             ),
-            pageTitle = "Test",
-            onRetry = {},
-            onPageChange = {},
-            onClose = {},
-            modifier = Modifier
+            onClose = {}
         )
     }
 }
-@Preview("Error")
+
+@Preview("Single")
 @Composable
 private fun PhotoSliderPreview2() {
     PfadiSeesturmTheme {
-        PhotoSliderContentView(
-            uiState = PhotosGridState(
-                result = UiState.Error("Schwerer Fehler")
-            ),
-            pageTitle = "Test",
-            onRetry = {},
-            onPageChange = {},
-            onClose = {},
-            modifier = Modifier
-        )
-    }
-}
-@Preview("Success")
-@Composable
-private fun PhotoSliderPreview3() {
-    PfadiSeesturmTheme {
-        PhotoSliderContentView(
-            uiState = PhotosGridState(
-                result = UiState.Success(
-                    listOf(
-                        WordpressPhoto(
-                            thumbnailUrl = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
-                            originalUrl = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
-                            orientation = "",
-                            height = 250,
-                            width = 200
-                        ),
-                        WordpressPhoto(
-                            thumbnailUrl = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
-                            originalUrl = "",
-                            orientation = "",
-                            height = 600,
-                            width = 100
-                        ),
-                        WordpressPhoto(
-                            thumbnailUrl = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
-                            originalUrl = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
-                            orientation = "",
-                            height = 100,
-                            width = 400
-                        )
-                    )
+        PhotoSliderView(
+            mode = PhotoSliderViewMode.Single(
+                image = PhotoSliderViewItem(
+                    url = "https://ih1.redbubble.net/image.1742264708.3656/flat,750x1000,075,t.u1.jpg",
+                    aspectRatio = 200.toFloat() / 250.toFloat()
                 )
             ),
-            pageTitle = "Test",
-            onRetry = {},
-            onPageChange = {},
-            onClose = {},
-            modifier = Modifier
+            onClose = {}
         )
     }
 }

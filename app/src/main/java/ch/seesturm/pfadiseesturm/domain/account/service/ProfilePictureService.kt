@@ -5,7 +5,7 @@ import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import ch.seesturm.pfadiseesturm.domain.storage.model.DeleteStorageItem
-import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePictureData
+import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
 import ch.seesturm.pfadiseesturm.domain.storage.model.UploadStorageItem
 import ch.seesturm.pfadiseesturm.domain.storage.repository.StorageRepository
 import ch.seesturm.pfadiseesturm.util.DataError
@@ -17,7 +17,7 @@ class ProfilePictureService(
     private val firestoreRepository: FirestoreRepository
 ) {
 
-    suspend fun uploadProfilePicture(user: FirebaseHitobitoUser, picture: ProfilePictureData): SeesturmResult<Uri, DataError.Storage> {
+    suspend fun uploadProfilePicture(user: FirebaseHitobitoUser, picture: ProfilePicture): SeesturmResult<Uri, DataError.Storage> {
 
         try {
             val downloadUrl = storageRepository.uploadData(
@@ -38,7 +38,7 @@ class ProfilePictureService(
             return SeesturmResult.Error(DataError.Storage.UPLOAD(e.message))
         }
         catch (e: Exception) {
-            return SeesturmResult.Error(DataError.Storage.UPLOAD("Beim Hochladen des Profilbilds ist ein unbekannter Fehler aufgetreten."))
+            return SeesturmResult.Error(DataError.Storage.UPLOAD("Beim Hochladen des Profilbilds ist ein unbekannter Fehler aufgetreten. ${e.message ?: ""}"))
         }
     }
 

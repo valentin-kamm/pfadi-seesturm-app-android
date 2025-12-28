@@ -36,6 +36,6 @@ class StorageApiImpl(
     }
 
     private fun getReference(path: String): StorageReference {
-        return storage.getReference(path)
+        return storage.reference.child(path)
     }
 }

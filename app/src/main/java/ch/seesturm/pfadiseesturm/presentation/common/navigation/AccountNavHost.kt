@@ -97,7 +97,7 @@ fun AccountNavHost(
                             user = user,
                             bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                             accountNavController = accountNavController,
-                            viewModel = leiterbereichViewModel,
+                            leiterbereichViewModel = leiterbereichViewModel,
                             appStateViewModel = appStateViewModel,
                             authViewModel = authViewModel
                         )
