@@ -61,7 +61,6 @@ class FirestoreApiImpl(
                     ?: throw IllegalArgumentException("Item cannot be parsed.")
 
                 if (existingItem.contentEquals(item)) {
-                    print("X")
                     // data has not changed -> do nothing
                     return@runTransaction true
                 }
