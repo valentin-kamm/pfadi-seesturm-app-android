@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,12 +31,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import ch.seesturm.pfadiseesturm.main.AllowedOrientation
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.ZoomableAsyncImage
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

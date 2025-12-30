@@ -234,6 +234,7 @@ fun LeiterbereichView(
                     EditProfileViewModel()
                 }
             ),
+            appStateViewModel = appStateViewModel,
             authViewModel = authViewModel,
             onDeleteAccount = {
                 leiterbereichViewModel.updateDeleteAccountAlertVisibility(true)

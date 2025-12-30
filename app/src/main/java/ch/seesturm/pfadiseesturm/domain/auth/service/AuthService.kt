@@ -2,8 +2,8 @@ package ch.seesturm.pfadiseesturm.domain.auth.service
 
 import android.content.Intent
 import androidx.activity.result.ActivityResult
-import ch.seesturm.pfadiseesturm.data.auth.dto.toFirebaseHitobitoUserDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserDto
+import ch.seesturm.pfadiseesturm.data.firestore.dto.FirebaseHitobitoUserInfoDto
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.auth.repository.AuthRepository
 import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
@@ -52,10 +52,8 @@ class AuthService(
             val firebaseUserClaims = authRepository.getCurrentFirebaseUserClaims(firebaseUser)
             val firebaseUserRole = FirebaseHitobitoUserRole.fromClaims(firebaseUserClaims)
             val fcmToken = fcmRepository.getCurrentFCMToken()
-            val firebaseUserDto = userInfo.toFirebaseHitobitoUserDto(firebaseUserRole.role).copy(
-                fcmToken = fcmToken
-            )
-            upsertUser(firebaseUserDto, id = userInfo.sub)
+            val firebaseUserInfoDto = FirebaseHitobitoUserInfoDto.from(info = userInfo, role = firebaseUserRole.role, fcmToken = fcmToken)
+            upsertUser(user = firebaseUserInfoDto, userId = userInfo.sub)
             val firebaseHitobitoUserDto = firestoreRepository.readDocument(
                 document = FirestoreRepository.SeesturmFirestoreDocument.User(id = userInfo.sub),
                 type = FirebaseHitobitoUserDto::class.java
@@ -117,12 +115,13 @@ class AuthService(
         }
     }
 
-    private suspend fun upsertUser(user: FirebaseHitobitoUserDto, id: String) {
+    private suspend fun upsertUser(user: FirebaseHitobitoUserInfoDto, userId: String) {
+
         try {
             firestoreRepository.upsertDocument(
                 item = user,
-                document = FirestoreRepository.SeesturmFirestoreDocument.User(id),
-                type = FirebaseHitobitoUserDto::class.java
+                document = FirestoreRepository.SeesturmFirestoreDocument.User(userId),
+                type = FirebaseHitobitoUserInfoDto::class.java
             )
         }
         catch (e: Exception) {

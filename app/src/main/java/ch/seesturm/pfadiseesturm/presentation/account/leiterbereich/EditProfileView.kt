@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material.icons.outlined.PhotoLibrary
@@ -44,6 +45,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.auth.model.FirebaseHitobitoUser
 import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
+import ch.seesturm.pfadiseesturm.main.AllowedOrientation
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.CircleProfilePictureView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.CircleProfilePictureViewType
@@ -73,6 +76,7 @@ import kotlinx.coroutines.launch
 fun EditProfileView(
     user: FirebaseHitobitoUser,
     viewModel: EditProfileViewModel,
+    appStateViewModel: AppStateViewModel,
     authViewModel: AuthViewModel,
     onDeleteAccount: () -> Unit,
     onSignOut: () -> Unit,
@@ -258,6 +262,7 @@ fun EditProfileView(
                 ),
                 onClose = {
                     profilePictureToDisplay = null
+                    appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
                 },
                 modifier = Modifier
                     .fillMaxSize()
@@ -291,6 +296,7 @@ fun EditProfileView(
                 url = url,
                 aspectRatio = 1f
             )
+            appStateViewModel.updateAllowedOrientation(AllowedOrientation.All)
         },
         modifier = modifier
     )
@@ -405,7 +411,7 @@ private fun EditProfileContentView(
                 ),
                 modifier = Modifier
                     .fillMaxWidth(),
-                leadingIcon = Icons.Outlined.PhotoLibrary,
+                leadingIcon = Icons.AutoMirrored.Outlined.Logout,
                 onClick = onSignOut
             )
             FormItem(

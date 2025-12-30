@@ -7,7 +7,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -46,32 +46,35 @@ class FirestoreApiImpl(
         document: DocumentReference,
         type: Class<T>
     ) {
+
         db.runTransaction { transaction ->
 
             val snapshot = transaction.get(document)
 
-            if (snapshot.exists()) {
-
+            if (!snapshot.exists()) {
+                // document does not exist yet -> insert it
+                transaction.set(document, item)
+                return@runTransaction true
+            }
+            else {
                 val existingItem = snapshot.toObject(type)
                     ?: throw IllegalArgumentException("Item cannot be parsed.")
 
                 if (existingItem.contentEquals(item)) {
+                    print("X")
+                    // data has not changed -> do nothing
                     return@runTransaction true
                 }
                 else {
+                    // document exists and data has changed -> perform update with merge, set timestamps correctly
                     item.created = existingItem.created
                     item.modified = null
 
-                    transaction.set(document, item)
+                    transaction.set(document, item, SetOptions.merge())
 
                     return@runTransaction true
                 }
             }
-            else {
-                transaction.set(document, item)
-            }
-
-            return@runTransaction true
         }.await()
     }
 

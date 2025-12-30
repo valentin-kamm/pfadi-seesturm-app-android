@@ -74,7 +74,6 @@ fun PhotosGridView(
         Dialog(
             onDismissRequest = {
                 selectedImageIndex.value = null
-                appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
             },
             properties = DialogProperties(
                 dismissOnBackPress =  true,
