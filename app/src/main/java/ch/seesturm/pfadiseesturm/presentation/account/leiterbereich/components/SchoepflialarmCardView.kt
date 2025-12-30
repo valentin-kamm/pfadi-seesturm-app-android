@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,13 +59,15 @@ fun SchoepflialarmCardView(
                 )
                 Text(
                     text = schoepflialarm.user?.displayNameShort ?: "Unbekannter Benutzer",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        hyphens = Hyphens.Auto
+                    ),
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .weight(1f)
                 )
                 Text(
@@ -75,8 +78,8 @@ fun SchoepflialarmCardView(
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 2,
                     modifier = Modifier
+                        .weight(1f)
                         .alpha(0.4f)
-                        .weight(0.5f)
                 )
             }
             Text(

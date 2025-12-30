@@ -246,7 +246,6 @@ fun SchoepflialarmSheet(
                                         textAlign = TextAlign.Start,
                                         color = MaterialTheme.colorScheme.onBackground,
                                         modifier = Modifier
-                                            .fillMaxWidth()
                                             .weight(1f)
                                     )
                                     Text(
@@ -257,8 +256,8 @@ fun SchoepflialarmSheet(
                                         color = MaterialTheme.colorScheme.onBackground,
                                         maxLines = 2,
                                         modifier = Modifier
+                                            .weight(1f)
                                             .alpha(0.4f)
-                                            .weight(0.5f)
                                     )
                                 }
                                 Text(
@@ -563,7 +562,10 @@ private fun SchoepflialarmSheetPreview3() {
     ) {
         PfadiSeesturmTheme {
             SchoepflialarmSheet(
-                schoepflialarmResult = UiState.Success(DummyData.schoepflialarm),
+                schoepflialarmResult = UiState.Success(DummyData.schoepflialarm.copy(
+                    createdFormatted = "Sonntag, 22. Juni, 00:00 Uhr",
+                    user = DummyData.user1.copy(pfadiname = "Ein ganz langer Pfadiname ")
+                )),
                 user = DummyData.user1,
                 newSchoepflialarmMessage = SeesturmTextFieldState(
                     text = "Hallo",
