@@ -122,10 +122,9 @@ fun GespeichertePersonHinzufuegenView(
         }
         item {
             SeesturmButton(
-                type = SeesturmButtonType.Primary(
-                    icon = SeesturmButtonIconType.Predefined(
-                        icon = Icons.Default.PersonAddAlt
-                    )
+                type = SeesturmButtonType.Primary,
+                icon = SeesturmButtonIconType.Predefined(
+                    icon = Icons.Default.PersonAddAlt
                 ),
                 title = "Speichern",
                 onClick = onInsert,

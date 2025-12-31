@@ -18,12 +18,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.types.SeesturmAuthState
 
 @Composable
@@ -67,15 +70,35 @@ fun LoggedOutView(
                     .fillMaxWidth()
             )
             SeesturmButton(
-                type = SeesturmButtonType.Primary(
-                    icon = SeesturmButtonIconType.Custom(
-                        image = painterResource(R.drawable.midata_logo)
-                    )
+                type = SeesturmButtonType.Primary,
+                icon = SeesturmButtonIconType.Custom(
+                    image = painterResource(R.drawable.midata_logo)
                 ),
                 title = "Login mit MiData",
                 onClick = onAuthenticate,
                 isLoading = authState.signInButtonIsLoading,
             )
         }
+    }
+}
+
+@Preview
+@Composable
+fun LoggedOutViewPreview1() {
+    PfadiSeesturmTheme {
+        LoggedOutView(
+            authState = SeesturmAuthState.SignedOut(state = ActionState.Idle),
+            onAuthenticate = {}
+        )
+    }
+}
+@Preview
+@Composable
+fun LoggedOutViewPreview2() {
+    PfadiSeesturmTheme {
+        LoggedOutView(
+            authState = SeesturmAuthState.SignedOut(state = ActionState.Loading(Unit)),
+            onAuthenticate = {}
+        )
     }
 }

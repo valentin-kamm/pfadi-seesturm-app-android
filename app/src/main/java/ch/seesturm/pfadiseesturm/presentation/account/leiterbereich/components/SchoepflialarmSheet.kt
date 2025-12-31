@@ -48,6 +48,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
@@ -407,12 +408,13 @@ fun SchoepflialarmSheet(
                                         SchoepflialarmReactionType.entries.sortedBy { it.sortingOrder }
                                             .forEach { reaction ->
                                                 SeesturmButton(
-                                                    type = SeesturmButtonType.Secondary(
+                                                    type = SeesturmButtonType.Secondary,
+                                                    colors = SeesturmButtonColor.Custom(
                                                         buttonColor = reaction.color,
                                                         contentColor = reaction.onReactionColor,
-                                                        icon = SeesturmButtonIconType.Predefined(
-                                                            icon = reaction.icon
-                                                        )
+                                                    ),
+                                                    icon = SeesturmButtonIconType.Predefined(
+                                                        icon = reaction.icon
                                                     ),
                                                     title = null,
                                                     onClick = {
@@ -476,12 +478,13 @@ fun SchoepflialarmSheet(
                     enabled = !isSendingSchoepflialarmDisabled
                 )
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
+                    type = SeesturmButtonType.Icon,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = Color.SEESTURM_GREEN,
                         contentColor = Color.White,
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.AutoMirrored.Filled.Send
-                        )
+                    ),
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.AutoMirrored.Filled.Send
                     ),
                     title = null,
                     onClick = onSubmit,

@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -35,78 +36,87 @@ import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 
 @Composable
 fun SeesturmButton(
     type: SeesturmButtonType,
+    onClick: (() -> Unit)?,
     title: String?,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
+    icon: SeesturmButtonIconType = SeesturmButtonIconType.None,
+    colors: SeesturmButtonColor = SeesturmButtonColor.Predefined,
     isLoading: Boolean = false,
     enabled: Boolean = !isLoading,
     disabledAlpha: Float = 0.6f,
     iconSize: Dp = 18.dp,
+    modifier: Modifier = Modifier,
     allowHorizontalTextShrink: Boolean = true
 ) {
 
+    val contentColor = remember(type, colors) {
+        when (colors) {
+            SeesturmButtonColor.Predefined -> type.defaultContentColor
+            is SeesturmButtonColor.Custom -> colors.contentColor
+        }
+    }
+    val buttonColor: Color = remember(type, colors) {
+        when (colors) {
+            SeesturmButtonColor.Predefined -> type.defaultButtonColor
+            is SeesturmButtonColor.Custom -> colors.buttonColor
+        }
+    }
+    val contentAlpha: Float = remember(isLoading) {
+        if (isLoading) {
+            0f
+        }
+        else {
+            1f
+        }
+    }
+
     when (type) {
-        is SeesturmButtonType.IconButton -> {
+        is SeesturmButtonType.Icon -> {
             IconButton(
-                onClick = {
-                    onClick?.invoke()
-                },
+                onClick = { onClick?.invoke() },
                 enabled = enabled,
                 colors = IconButtonColors(
-                    containerColor = type.buttonColor,
-                    disabledContainerColor = type.buttonColor.copy(alpha = disabledAlpha),
-                    contentColor = type.contentColor,
-                    disabledContentColor = type.contentColor
+                    containerColor = buttonColor,
+                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    contentColor = contentColor,
+                    disabledContentColor = contentColor
                 ),
                 modifier = modifier
             ) {
                 Box(
                     contentAlignment = Alignment.Center
                 ) {
-                    when (type.icon) {
-                        SeesturmButtonIconType.None -> {
-                            // nothing
-                        }
+                    when (icon) {
+                        SeesturmButtonIconType.None -> {}
                         is SeesturmButtonIconType.Custom -> {
                             Image(
-                                painter = type.icon.image,
+                                painter = icon.image,
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier
                                     .padding(8.dp)
-                                    .alpha(
-                                        if (isLoading) {
-                                            0f
-                                        } else {
-                                            1f
-                                        }
-                                    )
+                                    .alpha(contentAlpha)
                             )
                         }
                         is SeesturmButtonIconType.Predefined -> {
                             Icon(
-                                imageVector = type.icon.icon,
+                                imageVector = icon.icon,
                                 contentDescription = null,
-                                tint = type.contentColor,
+                                tint = contentColor,
                                 modifier = Modifier
                                     .padding(4.dp)
-                                    .alpha(
-                                        if (isLoading) {
-                                            0f
-                                        } else {
-                                            1f
-                                        }
-                                    )
+                                    .alpha(contentAlpha)
                             )
                         }
                     }
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = type.contentColor,
+                            color = contentColor,
                             modifier = Modifier
                                 .size(18.dp)
                         )
@@ -116,38 +126,34 @@ fun SeesturmButton(
         }
         is SeesturmButtonType.Primary -> {
             Button(
-                onClick = {
-                    onClick?.invoke()
-                },
+                onClick = { onClick?.invoke() },
                 enabled = enabled,
                 colors = ButtonColors(
-                    containerColor = type.buttonColor,
-                    contentColor = type.contentColor,
-                    disabledContainerColor = type.buttonColor.copy(alpha = disabledAlpha),
-                    disabledContentColor = type.contentColor
+                    containerColor = buttonColor,
+                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    contentColor = contentColor,
+                    disabledContentColor = contentColor
                 ),
                 modifier = modifier
             ) {
                 SeesturmButtonContent(
-                    icon = type.icon,
-                    contentColor = type.contentColor,
+                    icon = icon,
+                    contentColor = contentColor,
                     title = title,
                     isLoading = isLoading,
-                    iconSize = iconSize,
-                    allowHorizontalTextShrink = allowHorizontalTextShrink
+                    allowHorizontalTextShrink = allowHorizontalTextShrink,
+                    iconSize = iconSize
                 )
             }
         }
         is SeesturmButtonType.Secondary -> {
             Button(
-                onClick = {
-                    onClick?.invoke()
-                },
+                onClick = { onClick?.invoke() },
                 colors = ButtonColors(
-                    containerColor = type.buttonColor,
-                    contentColor = type.contentColor,
-                    disabledContainerColor = type.buttonColor.copy(alpha = disabledAlpha),
-                    disabledContentColor = type.contentColor
+                    containerColor = buttonColor,
+                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    contentColor = contentColor,
+                    disabledContentColor = contentColor
                 ),
                 enabled = enabled,
                 modifier = modifier
@@ -158,12 +164,12 @@ fun SeesturmButton(
                 )
             ) {
                 SeesturmButtonContent(
-                    icon = type.icon,
-                    contentColor = type.contentColor,
+                    icon = icon,
+                    contentColor = contentColor,
                     title = title,
                     isLoading = isLoading,
-                    iconSize = iconSize,
-                    allowHorizontalTextShrink = allowHorizontalTextShrink
+                    allowHorizontalTextShrink = allowHorizontalTextShrink,
+                    iconSize = iconSize
                 )
             }
         }
@@ -180,6 +186,15 @@ private fun SeesturmButtonContent(
     allowHorizontalTextShrink: Boolean
 ) {
 
+    val contentAlpha: Float = remember(isLoading) {
+        if (isLoading) {
+            0f
+        }
+        else {
+            1f
+        }
+    }
+
     Box(
         contentAlignment = Alignment.Center
     ) {
@@ -187,13 +202,7 @@ private fun SeesturmButtonContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .alpha(
-                    if (isLoading) {
-                        0f
-                    } else {
-                        1f
-                    }
-                )
+                .alpha(contentAlpha)
         ) {
             if (title != null) {
                 Text(
@@ -233,9 +242,7 @@ private fun SeesturmButtonContent(
                             .size(iconSize)
                     )
                 }
-                SeesturmButtonIconType.None -> {
-                    // nothing
-                }
+                SeesturmButtonIconType.None -> { }
             }
         }
         if (isLoading) {
@@ -265,256 +272,245 @@ private fun CustomButtonPreview() {
             ) {
                 // simple
                 SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                )
-                // with icon
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                )
-                // simple loading
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                    isLoading = true
-                )
-                // icon loading
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                    isLoading = true
-                )
-                // simple disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                    enabled = false
-                )
-                // icon disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                    enabled = false
-                )
-                // custom icon
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {}
-                )
-                // custom icon disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary(
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Primary",
-                    onClick = {},
-                    enabled = false
-                )
-            }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // simple
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                )
-                // with icon
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                )
-                // simple loading
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                    isLoading = true
-                )
-                // icon loading
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                    isLoading = true
-                )
-                // simple disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                    enabled = false
-                )
-                // icon disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.House
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                    enabled = false
-                )
-                // custom icon
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {}
-                )
-                // custom icon disabled
-                SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        ),
-                        contentColor = Color.Black
-                    ),
-                    title = "Secondary",
-                    onClick = {},
-                    enabled = false
-                )
-            }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // simple
-                SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
-                        buttonColor = Color.SEESTURM_BLUE,
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Custom(
                         contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.Cake
-                        )
+                        buttonColor = Color.SEESTURM_RED
+                    ),
+                    title = "Primary",
+                    onClick = null,
+                    icon = SeesturmButtonIconType.None
+                )
+                // with icon
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_RED
+                    ),
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Primary",
+                    onClick = null
+                )
+                // simple loading
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Predefined,
+                    icon = SeesturmButtonIconType.None,
+                    title = "Primary",
+                    onClick = null,
+                    isLoading = true
+                )
+                // icon loading
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Primary",
+                    onClick = null,
+                    isLoading = true
+                )
+                // simple disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    title = "Primary",
+                    onClick = null,
+                    enabled = false
+                )
+                // icon disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Primary",
+                    onClick = null,
+                    enabled = false
+                )
+                // custom icon
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
+                    ),
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_RED
+                    ),
+                    title = "Primary",
+                    onClick = null
+                )
+                // custom icon disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Primary,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
+                    ),
+                    title = "Primary",
+                    onClick = null,
+                    enabled = false
+                )
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // simple
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_GREEN
+                    ),
+                    title = "Secondary",
+                    onClick = null
+                )
+                // with icon
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Secondary",
+                    onClick = null
+                )
+                // simple loading
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_GREEN
+                    ),
+                    title = "Secondary",
+                    onClick = null,
+                    isLoading = true
+                )
+                // icon loading
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Secondary",
+                    onClick = null,
+                    isLoading = true
+                )
+                // simple disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_GREEN
+                    ),
+                    title = "Secondary",
+                    onClick = null,
+                    enabled = false
+                )
+                // icon disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.House
+                    ),
+                    title = "Secondary",
+                    onClick = null,
+                    enabled = false
+                )
+                // custom icon
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
+                    ),
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = Color.Black,
+                        buttonColor = Color.SEESTURM_GREEN
+                    ),
+                    title = "Secondary",
+                    onClick = null
+                )
+                // custom icon disabled
+                SeesturmButton(
+                    type = SeesturmButtonType.Secondary,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
+                    ),
+                    title = "Secondary",
+                    onClick = null,
+                    enabled = false
+                )
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // simple
+                SeesturmButton(
+                    type = SeesturmButtonType.Icon,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.Cake
+                    ),
+                    colors = SeesturmButtonColor.Custom(
+                        buttonColor = Color.SEESTURM_BLUE,
+                        contentColor = Color.Black
                     ),
                     title = null,
-                    onClick = {},
+                    onClick = null
                 )
                 // simple loading
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
-                        buttonColor = Color.SEESTURM_BLUE,
-                        contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.Cake
-                        )
+                    type = SeesturmButtonType.Icon,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.Cake
                     ),
                     isLoading = true,
                     title = null,
-                    onClick = {},
+                    onClick = null
                 )
                 // simple disabled
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
-                        buttonColor = Color.SEESTURM_BLUE,
-                        contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.Cake
-                        )
+                    type = SeesturmButtonType.Icon,
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.Cake
                     ),
                     title = null,
-                    onClick = {},
+                    onClick = null,
                     enabled = false
                 )
                 // custom icon
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
+                    type = SeesturmButtonType.Icon,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = Color.SEESTURM_BLUE,
-                        contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        )
+                        contentColor = Color.White
+                    ),
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
                     ),
                     title = null,
-                    onClick = {},
+                    onClick = null
                 )
                 // custom icon disabled
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
-                        buttonColor = Color.SEESTURM_BLUE,
-                        contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        )
+                    type = SeesturmButtonType.Icon,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
                     ),
                     title = null,
-                    onClick = {},
+                    onClick = null,
                     enabled = false
                 )
                 // custom icon loading
                 SeesturmButton(
-                    type = SeesturmButtonType.IconButton(
-                        buttonColor = Color.SEESTURM_BLUE,
-                        contentColor = Color.Black,
-                        icon = SeesturmButtonIconType.Custom(
-                            image = painterResource(R.drawable.midata_logo)
-                        )
+                    type = SeesturmButtonType.Icon,
+                    icon = SeesturmButtonIconType.Custom(
+                        image = painterResource(R.drawable.midata_logo)
                     ),
                     title = null,
-                    onClick = {},
+                    onClick = null,
                     isLoading = true
                 )
             }

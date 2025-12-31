@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
@@ -65,7 +66,8 @@ fun ErrorCardView(
             )
             if (retryAction != null) {
                 SeesturmButton(
-                    type = SeesturmButtonType.Primary(
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Custom(
                         contentColor = Color.White,
                         buttonColor = Color.SEESTURM_GREEN
                     ),

@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -39,6 +40,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
@@ -269,11 +271,13 @@ fun AktivitaetDetailCardView(
                 ) {
                     stufe.allowedAktivitaetInteractions.forEach { interaction ->
                         SeesturmButton(
-                            type = SeesturmButtonType.Secondary(
+                            type = SeesturmButtonType.Secondary,
+                            colors = SeesturmButtonColor.Custom(
                                 buttonColor = interaction.color,
-                                icon = SeesturmButtonIconType.Predefined(
-                                    icon = interaction.icon
-                                )
+                                contentColor = Color.White
+                            ),
+                            icon = SeesturmButtonIconType.Predefined(
+                                icon = interaction.icon
                             ),
                             title = interaction.verb.capitalize(Locale("de-CH")),
                             onClick = {
@@ -343,7 +347,7 @@ fun AktivitaetDetailCardView(
                         .padding(top = 16.dp)
                 ) {
                     SeesturmButton(
-                        type = SeesturmButtonType.Primary(),
+                        type = SeesturmButtonType.Primary,
                         title = "Push-Nachrichten aktivieren",
                         enabled = mode is AktivitaetDetailViewMode.Interactive,
                         onClick = {
@@ -399,7 +403,7 @@ private fun AktivitaetDetailCardViewPreview3() {
     PfadiSeesturmTheme {
         AktivitaetDetailCardView(
             aktivitaet = DummyData.aktivitaet1,
-            stufe = SeesturmStufe.Pfadi,
+            stufe = SeesturmStufe.Biber,
             mode = AktivitaetDetailViewMode.ViewOnly,
             modifier = Modifier
                 .fillMaxWidth(),

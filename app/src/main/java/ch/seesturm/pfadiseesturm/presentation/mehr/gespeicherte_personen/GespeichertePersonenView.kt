@@ -293,10 +293,9 @@ private fun GespeichertePersonenContentView(
                                             .fillMaxWidth()
                                     )
                                     SeesturmButton(
-                                        type = SeesturmButtonType.Primary(
-                                            icon = SeesturmButtonIconType.Predefined(
-                                                icon = Icons.Default.PersonAddAlt
-                                            )
+                                        type = SeesturmButtonType.Primary,
+                                        icon = SeesturmButtonIconType.Predefined(
+                                            icon = Icons.Default.PersonAddAlt
                                         ),
                                         title = "Person hinzufügen",
                                         onClick = {

@@ -36,6 +36,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
@@ -128,12 +129,13 @@ fun LeitungsteamCell(
             )
             if (member.contact.toEmail != null) {
                 SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
+                    type = SeesturmButtonType.Secondary,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = Color.SEESTURM_GREEN,
                         contentColor = Color.White,
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Outlined.MailOutline
-                        )
+                    ),
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Outlined.MailOutline
                     ),
                     title = member.contact.toEmail,
                     onClick = {

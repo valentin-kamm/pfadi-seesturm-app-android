@@ -37,6 +37,7 @@ import ch.seesturm.pfadiseesturm.R
 import ch.seesturm.pfadiseesturm.domain.storage.model.PickedGalleryItem
 import ch.seesturm.pfadiseesturm.domain.storage.model.ProfilePicture
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.DataError
@@ -164,7 +165,8 @@ private fun ProfilePictureCropperContentView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SeesturmButton(
-                    type = SeesturmButtonType.Primary(
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = Color.Transparent,
                         contentColor = Color.White
                     ),
@@ -172,7 +174,8 @@ private fun ProfilePictureCropperContentView(
                     onClick = onCancel
                 )
                 SeesturmButton(
-                    type = SeesturmButtonType.Primary(
+                    type = SeesturmButtonType.Primary,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = Color.Transparent,
                         contentColor = Color.White
                     ),
@@ -185,7 +188,7 @@ private fun ProfilePictureCropperContentView(
     }
 }
 
-@Preview
+@Preview("Idle")
 @Composable
 private fun ProfilePictureCropperViewPreview() {
 
@@ -201,6 +204,30 @@ private fun ProfilePictureCropperViewPreview() {
             translationX = 0f,
             translationY = 0f,
             isCropping = false,
+            onUpdateTransform = { _, _ -> },
+            onCrop = { },
+            onCancel = {},
+            modifier = Modifier,
+            maskDiameter = 1000f
+        )
+    }
+}
+@Preview("Loading")
+@Composable
+private fun ProfilePictureCropperViewPreview2() {
+
+    val bitmap = ImageBitmap.imageResource(
+        R.drawable.onboarding_welcome_image
+    )
+
+    PfadiSeesturmTheme {
+        ProfilePictureCropperContentView(
+            bitmap = bitmap,
+            scaleX = 1f,
+            scaleY = 1f,
+            translationX = 0f,
+            translationY = 0f,
+            isCropping = true,
             onUpdateTransform = { _, _ -> },
             onCrop = { },
             onCancel = {},

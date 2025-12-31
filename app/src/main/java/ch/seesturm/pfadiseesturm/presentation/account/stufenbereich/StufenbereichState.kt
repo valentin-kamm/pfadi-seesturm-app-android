@@ -5,21 +5,27 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 data class StufenbereichState(
-    val anAbmeldungenState: UiState<List<AktivitaetAnAbmeldung>> = UiState.Loading,
+    // load data
     val aktivitaetenState: UiState<List<GoogleCalendarEvent>> = UiState.Loading,
+    val anAbmeldungenState: UiState<List<AktivitaetAnAbmeldung>> = UiState.Loading,
+
+    // actions on single events
     val deleteAbmeldungenState: ActionState<GoogleCalendarEventWithAnAbmeldungen> = ActionState.Idle,
-    val deleteAllAbmeldungenState: ActionState<Unit> = ActionState.Idle,
     val sendPushNotificationState: ActionState<GoogleCalendarEventWithAnAbmeldungen> = ActionState.Idle,
-    val refreshing: Boolean = false,
-    val selectedAktivitaetInteraction: AktivitaetInteractionType = AktivitaetInteractionType.ABMELDEN,
-    val selectedDate: ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault()).minusMonths(3).with(LocalTime.MIDNIGHT),
-    val showDeleteAllAbmeldungenAlert: Boolean = false,
     val showDeleteAbmeldungenAlert: GoogleCalendarEventWithAnAbmeldungen? = null,
-    val showSendPushNotificationAlert: GoogleCalendarEventWithAnAbmeldungen? = null
+    val showSendPushNotificationAlert: GoogleCalendarEventWithAnAbmeldungen? = null,
+
+    // global actions
+    val deleteAllAbmeldungenState: ActionState<Unit> = ActionState.Idle,
+    val showDeleteAllAbmeldungenAlert: Boolean = false,
+
+    // other state
+    val refreshing: Boolean = false,
+    val selectedDate: ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault()).minusMonths(3).with(LocalTime.MIDNIGHT)
 )

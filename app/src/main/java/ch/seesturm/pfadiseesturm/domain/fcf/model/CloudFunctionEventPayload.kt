@@ -3,8 +3,8 @@ package ch.seesturm.pfadiseesturm.domain.fcf.model
 import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionEventPayloadDto
 import ch.seesturm.pfadiseesturm.data.wordpress.dto.GoogleCalendarEventStartEndDto
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
-import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
+import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -79,6 +79,11 @@ fun CloudFunctionEventPayload.toGoogleCalendarEvent(): GoogleCalendarEvent {
         firstDayOfMonthOfStartDate = DateTimeUtil.shared.getFirstDayOfMonthOfADate(start),
         start = start,
         end = end,
+        startDateFormatted = DateTimeUtil.shared.formatDate(
+            date = start,
+            format = "dd. MMMM yyyy",
+            type = DateFormattingType.Absolute
+        ),
         startDayFormatted = DateTimeUtil.shared.formatDate(
             date = start,
             format = "dd.",

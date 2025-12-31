@@ -11,7 +11,7 @@ interface FirestoreRepository {
     suspend fun <T: FirestoreDto>insertDocument(item: T, collection: SeesturmFirestoreCollection)
     suspend fun <T: FirestoreDto>upsertDocument(item: T, document: SeesturmFirestoreDocument, type: Class<T>)
     suspend fun <T: FirestoreDto>readDocument(document: SeesturmFirestoreDocument, type: Class<T>): T
-    suspend fun <T: FirestoreDto>readCollection(collection: SeesturmFirestoreCollection, type: Class<T>): List<T>
+    suspend fun <T: FirestoreDto>readCollection(collection: SeesturmFirestoreCollection, type: Class<T>, filter: ((Query) -> Query)? = null): List<T>
     suspend fun deleteDocument(document: SeesturmFirestoreDocument)
     suspend fun deleteDocuments(documents: List<SeesturmFirestoreDocument>)
     suspend fun deleteAllDocumentsInCollection(collection: SeesturmFirestoreCollection)

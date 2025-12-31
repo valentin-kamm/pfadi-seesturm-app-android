@@ -298,10 +298,9 @@ private fun OrdersContentView(
                                             .fillMaxWidth()
                                     )
                                     SeesturmButton(
-                                        type = SeesturmButtonType.Primary(
-                                            icon = SeesturmButtonIconType.Predefined(
-                                                icon = Icons.Default.Fastfood
-                                            )
+                                        type = SeesturmButtonType.Primary,
+                                        icon = SeesturmButtonIconType.Predefined(
+                                            icon = Icons.Default.Fastfood
                                         ),
                                         title = "Bestellung hinzufügen",
                                         onClick = {

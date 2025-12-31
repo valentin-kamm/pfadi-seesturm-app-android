@@ -1,5 +1,7 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten
 
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,6 +55,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListFooter
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
@@ -475,7 +478,8 @@ private fun AktivitaetBearbeitenContentView(
                                                 .weight(1f)
                                         )
                                         SeesturmButton(
-                                            type = SeesturmButtonType.Primary(
+                                            type = SeesturmButtonType.Primary,
+                                            colors = SeesturmButtonColor.Custom(
                                                 buttonColor = MaterialTheme.colorScheme.secondaryContainer,
                                                 contentColor = Color.SEESTURM_GREEN
                                             ),
@@ -489,7 +493,8 @@ private fun AktivitaetBearbeitenContentView(
                                             isLoading = false
                                         )
                                         SeesturmButton(
-                                            type = SeesturmButtonType.Primary(
+                                            type = SeesturmButtonType.Primary,
+                                            colors = SeesturmButtonColor.Custom(
                                                 buttonColor = MaterialTheme.colorScheme.secondaryContainer,
                                                 contentColor = Color.SEESTURM_GREEN
                                             ),
@@ -530,7 +535,8 @@ private fun AktivitaetBearbeitenContentView(
                                                 .weight(1f)
                                         )
                                         SeesturmButton(
-                                            type = SeesturmButtonType.Primary(
+                                            type = SeesturmButtonType.Primary,
+                                            colors = SeesturmButtonColor.Custom(
                                                 buttonColor = MaterialTheme.colorScheme.secondaryContainer,
                                                 contentColor = Color.SEESTURM_GREEN
                                             ),
@@ -544,7 +550,8 @@ private fun AktivitaetBearbeitenContentView(
                                             isLoading = false
                                         )
                                         SeesturmButton(
-                                            type = SeesturmButtonType.Primary(
+                                            type = SeesturmButtonType.Primary,
+                                            colors = SeesturmButtonColor.Custom(
                                                 buttonColor = MaterialTheme.colorScheme.secondaryContainer,
                                                 contentColor = Color.SEESTURM_GREEN
                                             ),
@@ -723,7 +730,8 @@ private fun AktivitaetBearbeitenContentView(
                         key = "AktivitaetBearbeitenButtonItem"
                     ) {
                         SeesturmButton(
-                            type = SeesturmButtonType.Primary(
+                            type = SeesturmButtonType.Primary,
+                            colors = SeesturmButtonColor.Custom(
                                 buttonColor = stufe.highContrastColor(isDarkTheme),
                                 contentColor = stufe.onHighContrastColor()
                             ),
@@ -743,7 +751,8 @@ private fun AktivitaetBearbeitenContentView(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Loading")
+@Preview("Loading", uiMode = UI_MODE_NIGHT_NO)
+@Preview("Loading", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetBearbeitenViewPreview1() {
     PfadiSeesturmTheme {
@@ -809,7 +818,8 @@ private fun AktivitaetBearbeitenViewPreview1() {
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Error")
+@Preview("Error", uiMode = UI_MODE_NIGHT_NO)
+@Preview("Error", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetBearbeitenViewPreview2() {
     PfadiSeesturmTheme {
@@ -875,7 +885,8 @@ private fun AktivitaetBearbeitenViewPreview2() {
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Success")
+@Preview("Success", uiMode = UI_MODE_NIGHT_NO)
+@Preview("Success", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun AktivitaetBearbeitenViewPreview3() {
     PfadiSeesturmTheme {

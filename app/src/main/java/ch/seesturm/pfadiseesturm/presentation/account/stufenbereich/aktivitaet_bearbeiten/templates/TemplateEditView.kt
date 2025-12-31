@@ -81,7 +81,7 @@ fun TemplateEditView(
                     .padding(top = 16.dp)
             ) {
                 SeesturmButton(
-                    type = SeesturmButtonType.Primary(),
+                    type = SeesturmButtonType.Primary,
                     title = mode.buttonTitle,
                     onClick = {
                         when (mode) {

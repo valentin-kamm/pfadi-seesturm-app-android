@@ -44,6 +44,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.util.DummyData
+import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 
 @Composable
@@ -195,12 +196,13 @@ fun TemplateListView(
                                             Text(
                                                 text = "Füge jetzt eine Vorlage hinzu, damit das Erstellen von Aktivitäten schneller geht.",
                                                 style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onBackground,
                                                 textAlign = TextAlign.Center,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                             )
                                             SeesturmButton(
-                                                type = SeesturmButtonType.Primary(),
+                                                type = SeesturmButtonType.Primary,
                                                 title = "Vorlage hinzufügen",
                                                 onClick = mode.onAddClick,
                                                 isLoading = false
@@ -336,6 +338,62 @@ private fun TemplateListViewPreview6() {
                 isInEditingMode = false,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
+            )
+        }
+    }
+}
+
+@Preview("Empty", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Empty", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview7() {
+    PfadiSeesturmTheme {
+        TemplateListView(
+            state = UiState.Success(
+                data = listOf()
+            ),
+            mode = TemplateListViewMode.Edit(
+                onAddClick = {},
+                editState = ActionState.Idle,
+                deleteState = ActionState.Idle,
+                onCollapseItem = {},
+                onExpandItem = {},
+                onDeleteItem = {}
+            ),
+            contentPadding = PaddingValues(16.dp),
+            onClick = {},
+            isInEditingMode = false,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+        )
+    }
+}
+
+@Preview("Empty in sheet", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("Empty in sheet", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TemplateListViewPreview8() {
+    CompositionLocalProvider(
+        LocalScreenContext provides ScreenContext.ModalBottomSheet
+    ) {
+        PfadiSeesturmTheme {
+            TemplateListView(
+                state = UiState.Success(
+                    data = listOf()
+                ),
+                mode = TemplateListViewMode.Edit(
+                    onAddClick = {},
+                    editState = ActionState.Idle,
+                    deleteState = ActionState.Idle,
+                    onCollapseItem = {},
+                    onExpandItem = {},
+                    onDeleteItem = {}
+                ),
+                contentPadding = PaddingValues(16.dp),
+                onClick = {},
+                isInEditingMode = false,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
             )
         }
     }

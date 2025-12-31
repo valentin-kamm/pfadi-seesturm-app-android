@@ -63,7 +63,7 @@ fun AuthErrorView(
                     .fillMaxWidth()
             )
             SeesturmButton(
-                type = SeesturmButtonType.Primary(),
+                type = SeesturmButtonType.Primary,
                 title = "Zurück",
                 onClick = onResetAuthState,
                 isLoading = false

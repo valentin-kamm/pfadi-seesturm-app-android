@@ -504,7 +504,7 @@ private fun OnboardingContentView(
                 }
                 else {
                     SeesturmButton(
-                        type = SeesturmButtonType.Primary(),
+                        type = SeesturmButtonType.Primary,
                         title = "Fertig",
                         onClick = onHideOnboardingScreen
                     )

@@ -20,7 +20,7 @@ interface FirestoreApi {
     suspend fun <T: FirestoreDto>insertDocument(item: T, collection: CollectionReference)
     suspend fun <T: FirestoreDto>upsertDocument(item: T, document: DocumentReference, type: Class<T>)
     suspend fun <T: FirestoreDto>readDocument(document: DocumentReference, type: Class<T>): T
-    suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>): List<T>
+    suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>, filter: ((Query) -> Query)? = null): List<T>
     suspend fun deleteDocument(document: DocumentReference)
     suspend fun deleteDocuments(documents: List<DocumentReference>)
     suspend fun deleteAllDocumentsInCollection(collection: CollectionReference)
@@ -82,9 +82,14 @@ class FirestoreApiImpl(
             ?: throw IllegalArgumentException("Document does not exist or cannot be cast.")
     }
 
-    override suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>): List<T> {
+    override suspend fun <T: FirestoreDto>readCollection(collection: CollectionReference, type: Class<T>, filter: ((Query) -> Query)?): List<T> {
 
-        val snapshot = collection.get().await()
+        var query: Query = collection
+        if (filter != null) {
+            query = filter(query)
+        }
+
+        val snapshot = query.get().await()
         return snapshot.documents.map { document ->
             document.toObject(type)
                 ?: throw IllegalArgumentException("Document does not exist or cannot be cast.")

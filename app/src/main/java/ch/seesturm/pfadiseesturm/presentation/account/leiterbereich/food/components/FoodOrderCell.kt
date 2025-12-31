@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.domain.firestore.model.FoodOrder
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
@@ -102,12 +103,13 @@ fun FoodOrderCell(
                     ) {
                         if (order.userIds.contains(userId)) {
                             SeesturmButton(
-                                type = SeesturmButtonType.IconButton(
+                                type = SeesturmButtonType.Icon,
+                                colors = SeesturmButtonColor.Custom(
                                     buttonColor = Color.SEESTURM_RED,
                                     contentColor = Color.White,
-                                    icon = SeesturmButtonIconType.Predefined(
-                                        icon = Icons.Default.Remove
-                                    )
+                                ),
+                                icon = SeesturmButtonIconType.Predefined(
+                                    icon = Icons.Default.Remove
                                 ),
                                 title = null,
                                 onClick = onDelete,
@@ -117,12 +119,13 @@ fun FoodOrderCell(
                             )
                         }
                         SeesturmButton(
-                            type = SeesturmButtonType.IconButton(
+                            type = SeesturmButtonType.Icon,
+                            colors = SeesturmButtonColor.Custom(
                                 buttonColor = Color.SEESTURM_GREEN,
                                 contentColor = Color.White,
-                                icon = SeesturmButtonIconType.Predefined(
-                                    icon = Icons.Default.Add
-                                )
+                            ),
+                            icon = SeesturmButtonIconType.Predefined(
+                                icon = Icons.Default.Add
                             ),
                             title = null,
                             onClick = onAdd,

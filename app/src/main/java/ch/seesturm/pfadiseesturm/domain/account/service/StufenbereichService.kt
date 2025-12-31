@@ -45,30 +45,24 @@ class StufenbereichService(
             transform = { it.toGoogleCalendarEvent() }
         )
 
-    fun observeAnAbmeldungen(stufe: SeesturmStufe): Flow<SeesturmResult<List<AktivitaetAnAbmeldung>, DataError.RemoteDatabase>> =
-        firestoreRepository.observeCollection(
-            collection = FirestoreRepository.SeesturmFirestoreCollection.Abmeldungen,
-            type = AktivitaetAnAbmeldungDto::class.java,
-            filter = { query ->
+    suspend fun fetchAnAbmeldungen(aktivitaeten: List<GoogleCalendarEvent>, stufe: SeesturmStufe): SeesturmResult<List<AktivitaetAnAbmeldung>, DataError.RemoteDatabase> {
+
+        val eventIds = aktivitaeten.map { it.id }
+
+        return try {
+            val abmeldungen = firestoreRepository.readCollection(
+                collection = FirestoreRepository.SeesturmFirestoreCollection.Abmeldungen,
+                type = AktivitaetAnAbmeldungDto::class.java
+            ) { query ->
                 query.whereEqualTo("stufenId", stufe.id)
-            }
-        )
-            .map { result ->
-                when (result) {
-                    is SeesturmResult.Error -> {
-                        SeesturmResult.Error(result.error)
-                    }
-                    is SeesturmResult.Success -> {
-                        try {
-                            val abmeldungen = result.data.map { it.toAktivitaetAnAbmeldung() }
-                            SeesturmResult.Success(abmeldungen)
-                        }
-                        catch (e: Exception) {
-                            SeesturmResult.Error(DataError.RemoteDatabase.DECODING_ERROR)
-                        }
-                    }
-                }
-            }
+                query.whereIn("eventId", eventIds)
+            }.map { it.toAktivitaetAnAbmeldung() }
+            SeesturmResult.Success(abmeldungen)
+        }
+        catch (e: Exception) {
+            SeesturmResult.Error(error = DataError.RemoteDatabase.READING_ERROR("Die An-/Abmeldungen für die ${stufe.stufenName} konnten nicht gelesen werden."))
+        }
+    }
 
     fun observeAktivitaetTemplates(stufe: SeesturmStufe): Flow<SeesturmResult<List<AktivitaetTemplate>, DataError.RemoteDatabase>> =
         firestoreRepository.observeCollection(

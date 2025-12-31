@@ -50,6 +50,11 @@ fun GoogleCalendarEventDto.toGoogleCalendarEvent(calendarTimeZone: ZoneId = Zone
         firstDayOfMonthOfStartDate = DateTimeUtil.shared.getFirstDayOfMonthOfADate(localStartDate),
         start = localStartDate,
         end = localEndDate,
+        startDateFormatted = DateTimeUtil.shared.formatDate(
+            date = localStartDate,
+            format = "dd. MMMM yyyy",
+            type = DateFormattingType.Absolute
+        ),
         startDayFormatted = DateTimeUtil.shared.formatDate(
             date = localStartDate,
             format = "dd.",

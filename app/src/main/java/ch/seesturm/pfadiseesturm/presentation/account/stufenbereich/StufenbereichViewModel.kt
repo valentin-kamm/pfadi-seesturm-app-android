@@ -3,6 +3,7 @@ package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ch.seesturm.pfadiseesturm.domain.account.service.StufenbereichService
+import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.toAktivitaetWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbar
@@ -11,14 +12,12 @@ import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SnackbarController
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
 
 class StufenbereichViewModel(
     private val stufe: SeesturmStufe,
@@ -29,49 +28,48 @@ class StufenbereichViewModel(
     val state = _state.asStateFlow()
 
     init {
-        getAktivitaeten(false)
-        observeAnAbmeldungen()
+        loadData(false)
     }
 
     val abmeldungenState: UiState<List<GoogleCalendarEventWithAnAbmeldungen>>
-        get() = when (val localAktivitaetenState = state.value.aktivitaetenState) {
-            UiState.Loading -> {
-                UiState.Loading
-            }
-            is UiState.Error -> {
-                UiState.Error(localAktivitaetenState.message)
-            }
-            is UiState.Success -> {
-                when (val localAnAbmeldungenState = state.value.anAbmeldungenState) {
-                    UiState.Loading -> {
-                        UiState.Loading
-                    }
-                    is UiState.Error -> {
-                        UiState.Error(localAnAbmeldungenState.message)
-                    }
-                    is UiState.Success -> {
-                        val combined = localAktivitaetenState.data.map { it.toAktivitaetWithAnAbmeldungen(anAbmeldungen = localAnAbmeldungenState.data) }
-                        UiState.Success(combined)
+        get() {
+            return when (val localAktivitaetenState = state.value.aktivitaetenState) {
+                UiState.Loading -> UiState.Loading
+                is UiState.Error -> UiState.Error(message = localAktivitaetenState.message)
+                is UiState.Success -> {
+
+                    when (val localAnAbmeldungenState = state.value.anAbmeldungenState) {
+                        UiState.Loading -> UiState.Loading
+                        is UiState.Error -> UiState.Error(message = localAnAbmeldungenState.message)
+                        is UiState.Success -> {
+                            val combined = localAktivitaetenState.data.map { it.toAktivitaetWithAnAbmeldungen(anAbmeldungen = localAnAbmeldungenState.data) }
+                            UiState.Success(combined)
+                        }
                     }
                 }
             }
         }
 
-    private val mustReloadAktivitaeten: Boolean
+    private val mustReloadData: Boolean
         get() {
 
             val localState = state.value.aktivitaetenState
 
             if (localState !is UiState.Success) {
-                return  false
+                // data is still loading, do not reload
+                return false
             }
 
+            // get all end dates and oldest end date
             val endDates = localState.data.map { it.end }
             val oldestEndDate = endDates.minOrNull()
-            return if (oldestEndDate != null) {
+
+            return if (oldestEndDate != null && endDates.isNotEmpty()) {
+                // if the oldest end date is after the selected date, reload the data
                 state.value.selectedDate < oldestEndDate
             }
             else {
+                // array is empty, always reload since we have no end dates to compare against
                 true
             }
         }
@@ -82,47 +80,23 @@ class StufenbereichViewModel(
         val localPushNotificationState = state.value.sendPushNotificationState
 
         return (localDeleteState is ActionState.Loading && localDeleteState.action == aktivitaet) ||
-                (localPushNotificationState is ActionState.Loading && localPushNotificationState.action == aktivitaet)
+            (localPushNotificationState is ActionState.Loading && localPushNotificationState.action == aktivitaet)
     }
 
-    fun refresh() {
-        getAktivitaeten(true)
-    }
+    fun loadData(isPullToRefresh: Boolean) {
 
-    private fun reloadAktivitaetenIfNecessary() {
-        if (mustReloadAktivitaeten) {
-            getAktivitaeten(false)
-        }
-    }
-
-    fun getAktivitaeten(isPullToRefresh: Boolean) {
-
-        if (!isPullToRefresh) {
-            _state.update {
-                it.copy(
-                    aktivitaetenState = UiState.Loading
-                )
-            }
-        }
-        else {
+        if (isPullToRefresh) {
             changeRefreshStatus(true)
         }
+
         viewModelScope.launch {
-            when (val result = service.fetchEvents(stufe = stufe, timeMin = state.value.selectedDate)) {
-                is SeesturmResult.Error -> {
-                    _state.update {
-                        it.copy(
-                            aktivitaetenState = UiState.Error("Aktivitäten der ${stufe.stufenName} konnten nicht geladen werden. ${result.error.defaultMessage}")
-                        )
-                    }
-                }
-                is SeesturmResult.Success -> {
-                    _state.update {
-                        it.copy(
-                            aktivitaetenState = UiState.Success(result.data)
-                        )
-                    }
-                }
+
+            getAktivitaeten(isPullToRefresh)
+
+            val localAktivitaetenState = state.value.aktivitaetenState
+
+            if (localAktivitaetenState is UiState.Success) {
+                getAnAbmeldungen(localAktivitaetenState.data, isPullToRefresh)
             }
         }.invokeOnCompletion {
             if (isPullToRefresh) {
@@ -131,30 +105,70 @@ class StufenbereichViewModel(
         }
     }
 
-    private fun observeAnAbmeldungen() {
-        _state.update {
-            it.copy(
-                anAbmeldungenState = UiState.Loading
-            )
+    private fun reloadDataIfNecessary() {
+        if (mustReloadData) {
+            loadData(false)
         }
-        service.observeAnAbmeldungen(stufe = stufe).onEach { result ->
-            when (result) {
-                is SeesturmResult.Error -> {
-                    _state.update {
-                        it.copy(
-                            anAbmeldungenState = UiState.Error("An- und Abmeldungen konnten nicht geladen werden. ${result.error.defaultMessage}")
-                        )
-                    }
-                }
-                is SeesturmResult.Success -> {
-                    _state.update {
-                        it.copy(
-                            anAbmeldungenState = UiState.Success(result.data)
-                        )
-                    }
+    }
+
+    fun refresh() {
+        loadData(true)
+    }
+
+    private suspend fun getAktivitaeten(isPullToRefresh: Boolean) {
+
+        if (!isPullToRefresh) {
+            _state.update {
+                it.copy(
+                    aktivitaetenState = UiState.Loading
+                )
+            }
+        }
+
+        when (val result = service.fetchEvents(stufe, state.value.selectedDate)) {
+            is SeesturmResult.Error -> {
+                _state.update {
+                    it.copy(
+                        aktivitaetenState = UiState.Error("Aktivitäten der ${stufe.stufenName} konnten nicht geladen werden. ${result.error.defaultMessage}")
+                    )
                 }
             }
-        }.launchIn(viewModelScope)
+            is SeesturmResult.Success -> {
+                _state.update {
+                    it.copy(
+                        aktivitaetenState = UiState.Success(result.data)
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun getAnAbmeldungen(aktivitaeten: List<GoogleCalendarEvent>, isPullToRefresh: Boolean) {
+
+        if (!isPullToRefresh) {
+            _state.update {
+                it.copy(
+                    anAbmeldungenState = UiState.Loading
+                )
+            }
+        }
+
+        when (val result = service.fetchAnAbmeldungen(aktivitaeten, stufe)) {
+            is SeesturmResult.Error -> {
+                _state.update {
+                    it.copy(
+                        anAbmeldungenState = UiState.Error("An- und Abmeldungen konnten nicht geladen werden. ${result.error.defaultMessage}")
+                    )
+                }
+            }
+            is SeesturmResult.Success -> {
+                _state.update {
+                    it.copy(
+                        anAbmeldungenState = UiState.Success(result.data)
+                    )
+                }
+            }
+        }
     }
 
     fun deleteAnAbmeldungenForAktivitaet(aktivitaet: GoogleCalendarEventWithAnAbmeldungen) {
@@ -174,7 +188,7 @@ class StufenbereichViewModel(
                     }
                     SnackbarController.showSnackbar(
                         snackbar = SeesturmSnackbar.Error(
-                                message = message,
+                            message = message,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -196,7 +210,7 @@ class StufenbereichViewModel(
                     }
                     SnackbarController.showSnackbar(
                         snackbar = SeesturmSnackbar.Success(
-                                message = message,
+                            message = message,
                             onDismiss = {
                                 _state.update {
                                     it.copy(
@@ -223,7 +237,7 @@ class StufenbereichViewModel(
         viewModelScope.launch {
             when (val result = service.sendPushNotification(stufe, aktivitaet.event)) {
                 is SeesturmResult.Error -> {
-                    val message = "Push-Nachricht für ${aktivitaet.event.title} konnten nicht gesendet werden. ${result.error.defaultMessage}"
+                    val message = "Push-Nachricht für ${aktivitaet.event.title} konnte nicht gesendet werden. ${result.error.defaultMessage}"
                     _state.update {
                         it.copy(
                             sendPushNotificationState = ActionState.Error(aktivitaet, message)
@@ -334,13 +348,6 @@ class StufenbereichViewModel(
         }
     }
 
-    fun updateSelectedAktivitaetInteraction(interaction: AktivitaetInteractionType) {
-        _state.update {
-            it.copy(
-                selectedAktivitaetInteraction = interaction
-            )
-        }
-    }
     fun updateShowDeleteAllAbmeldungenAlert(isVisible: Boolean) {
         _state.update {
             it.copy(
@@ -368,9 +375,8 @@ class StufenbereichViewModel(
                 selectedDate = it.selectedDate.withYear(year).withMonth(month).withDayOfMonth(dayOfMonth)
             )
         }
-        reloadAktivitaetenIfNecessary()
+        reloadDataIfNecessary()
     }
-
     private fun changeRefreshStatus(newStatus: Boolean) {
         _state.update {
             it.copy(

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
 import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
@@ -165,8 +167,10 @@ fun AktivitaetAnAbmeldenView(
                     content = {
                         DropdownButton(
                             title = selectedSheetMode.nomen,
-                            contentColor = selectedSheetMode.color,
-                            buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            colors = SeesturmButtonColor.Custom(
+                                contentColor = selectedSheetMode.color,
+                                buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
                             dropdown = { isShown, dismiss ->
                                 ThemedDropdownMenu(
                                     expanded = isShown,
@@ -200,8 +204,10 @@ fun AktivitaetAnAbmeldenView(
         }
         item {
             SeesturmButton(
-                type = SeesturmButtonType.Primary(
-                    buttonColor = selectedSheetMode.color
+                type = SeesturmButtonType.Primary,
+                colors = SeesturmButtonColor.Custom(
+                    buttonColor = selectedSheetMode.color,
+                    contentColor = Color.White
                 ),
                 title = "${selectedSheetMode.nomen} senden",
                 isLoading = anAbmeldenState.isLoading,

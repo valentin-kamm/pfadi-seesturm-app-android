@@ -1,6 +1,7 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -21,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +42,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.types.AktivitaetInteractionType
@@ -48,19 +55,20 @@ import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 fun StufenbereichAnAbmeldungCell(
     aktivitaet: GoogleCalendarEventWithAnAbmeldungen,
     stufe: SeesturmStufe,
-    selectedAktivitaetInteraction: AktivitaetInteractionType,
     isBearbeitenButtonLoading: Boolean,
-    onChangeSelectedAktivitaetInteraction: (AktivitaetInteractionType) -> Unit,
-    onDeleteAnAbmeldungen: () -> Unit,
+    onOpenSheet: (AktivitaetInteractionType) -> Unit,
     onSendPushNotification: () -> Unit,
+    onDeleteAnAbmeldungen: () -> Unit,
     onEditAktivitaet: () -> Unit,
     onClick: () -> Unit,
     isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
 
-    val filteredAnAbmeldungen: List<AktivitaetAnAbmeldung> =
-        aktivitaet.anAbmeldungen.filter { it.type == selectedAktivitaetInteraction }
+    val anAbmeldungenCount: Map<AktivitaetInteractionType, Int> =
+        stufe.allowedAktivitaetInteractions.sortedBy { it.id }.associateWith { type ->
+            aktivitaet.anAbmeldungen.count { it.type == type }
+        }
 
     CustomCardView(
         onClick = onClick,
@@ -94,15 +102,32 @@ fun StufenbereichAnAbmeldungCell(
                         modifier = Modifier
                             .fillMaxWidth()
                     )
-                    Text(
-                        text = aktivitaet.event.fullDateTimeFormatted,
-                        style = MaterialTheme.typography.bodySmall.copy(hyphens = Hyphens.Auto),
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        color = MaterialTheme.colorScheme.onBackground,
+                    TextWithIcon(
+                        type = TextWithIconType.Text(
+                            text = aktivitaet.event.fullDateTimeFormatted,
+                            textStyle = { MaterialTheme.typography.bodySmall.copy(hyphens = Hyphens.Auto) }
+                        ),
+                        imageVector = Icons.Outlined.AccessTime,
+                        textColor = MaterialTheme.colorScheme.onBackground,
+                        iconTint = stufe.highContrastColor(isDarkTheme),
+                        horizontalAlignment = Alignment.Start,
                         modifier = Modifier
                             .fillMaxWidth()
                     )
+                    if (aktivitaet.event.location != null) {
+                        TextWithIcon(
+                            type = TextWithIconType.Text(
+                                text = aktivitaet.event.location,
+                                textStyle = { MaterialTheme.typography.bodySmall.copy(hyphens = Hyphens.Auto) }
+                            ),
+                            imageVector = Icons.Outlined.LocationOn,
+                            textColor = MaterialTheme.colorScheme.onBackground,
+                            iconTint = stufe.highContrastColor(isDarkTheme),
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                    }
                 }
                 Image(
                     painter = painterResource(stufe.iconReference),
@@ -114,106 +139,27 @@ fun StufenbereichAnAbmeldungCell(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                stufe.allowedAktivitaetInteractions.forEach { interaction ->
-                    CustomCardView(
-                        shadowColor = Color.Transparent,
-                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                        onClick = {
-                            onChangeSelectedAktivitaetInteraction(interaction)
-                        }
-                    ) {
-                        TextWithIcon(
-                            type = TextWithIconType.Text(
-                                text = aktivitaet.displayTextAnAbmeldungen(interaction),
-                                textStyle = { MaterialTheme.typography.labelSmall }
-                            ),
-                            imageVector = interaction.icon,
-                            textColor = interaction.color,
-                            iconTint = interaction.color,
-                            horizontalAlignment = Alignment.Start,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .padding(8.dp)
-                        )
-                    }
-                }
-            }
-            CustomCardView(
-                shadowColor = Color.Transparent,
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                if (filteredAnAbmeldungen.isEmpty()) {
-                    Text(
-                        text = "Keine ${selectedAktivitaetInteraction.nomenMehrzahl}",
-                        style = MaterialTheme.typography.bodySmall,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onBackground,
+                anAbmeldungenCount.forEach { (interaction, count) ->
+                    SeesturmButton(
+                        type = SeesturmButtonType.Secondary,
+                        colors = SeesturmButtonColor.Custom(
+                            buttonColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = interaction.color,
+                        ),
+                        icon = SeesturmButtonIconType.Predefined(
+                            icon = interaction.icon
+                        ),
+                        title = "$count ${if (count == 1) { interaction.nomen } else { interaction.nomenMehrzahl }}",
+                        onClick = {
+                            onOpenSheet(interaction)
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                            .weight(1f)
                     )
-                }
-                else {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        filteredAnAbmeldungen.forEachIndexed { index, abmeldung ->
-                            if (index > 0) {
-                                HorizontalDivider(
-                                    thickness = 1.dp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-                                    modifier = Modifier
-                                        .padding(0.dp)
-                                )
-                            }
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                horizontalAlignment = Alignment.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = abmeldung.displayName,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                )
-                                TextWithIcon(
-                                    type = TextWithIconType.Text(
-                                        text = "${abmeldung.type.taetigkeit}: ${abmeldung.createdString}",
-                                        textStyle = { MaterialTheme.typography.labelSmall }
-                                    ),
-                                    imageVector = abmeldung.type.icon,
-                                    textColor = abmeldung.type.color,
-                                    iconTint = abmeldung.type.color,
-                                    horizontalAlignment = Alignment.Start,
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                )
-                                Text(
-                                    text = abmeldung.bemerkungForDisplay,
-                                    style = MaterialTheme.typography.labelSmall.copy(hyphens = Hyphens.Auto),
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Start,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
                 }
             }
             Box(
@@ -222,13 +168,16 @@ fun StufenbereichAnAbmeldungCell(
                     .fillMaxWidth()
             ) {
                 DropdownButton(
+                    type = SeesturmButtonType.Primary,
                     title = "Bearbeiten",
                     icon = SeesturmButtonIconType.Predefined(
                         icon = Icons.Default.Edit
                     ),
                     isLoading = isBearbeitenButtonLoading,
-                    buttonColor = stufe.highContrastColor(isDarkTheme),
-                    contentColor = stufe.onHighContrastColor(),
+                    colors = SeesturmButtonColor.Custom(
+                        contentColor = stufe.onHighContrastColor(),
+                        buttonColor = stufe.highContrastColor(isDarkTheme)
+                    ),
                     dropdown = { isShown, dismiss ->
                         ThemedDropdownMenu(
                             expanded = isShown,
@@ -305,9 +254,8 @@ private fun StufenbereichAnAbmeldungCellPreview1() {
                 )
             ),
             stufe = SeesturmStufe.Biber,
-            selectedAktivitaetInteraction = AktivitaetInteractionType.ABMELDEN,
             isBearbeitenButtonLoading = true,
-            onChangeSelectedAktivitaetInteraction = {},
+            onOpenSheet = {},
             onDeleteAnAbmeldungen = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
@@ -329,9 +277,8 @@ private fun StufenbereichAnAbmeldungCellPreview2() {
                 )
             ),
             stufe = SeesturmStufe.Biber,
-            selectedAktivitaetInteraction = AktivitaetInteractionType.ABMELDEN,
             isBearbeitenButtonLoading = false,
-            onChangeSelectedAktivitaetInteraction = {},
+            onOpenSheet = {},
             onDeleteAnAbmeldungen = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
@@ -350,10 +297,9 @@ private fun StufenbereichAnAbmeldungCellPreview3() {
                 anAbmeldungen = emptyList()
             ),
             stufe = SeesturmStufe.Biber,
-            selectedAktivitaetInteraction = AktivitaetInteractionType.ABMELDEN,
             isBearbeitenButtonLoading = false,
-            onChangeSelectedAktivitaetInteraction = {},
             onDeleteAnAbmeldungen = {},
+            onOpenSheet = {},
             onSendPushNotification = {},
             onEditAktivitaet = {},
             onClick = {},

@@ -18,6 +18,7 @@ data class GoogleCalendarEvent(
     val firstDayOfMonthOfStartDate: ZonedDateTime,
     val start: ZonedDateTime,
     val end: ZonedDateTime,
+    val startDateFormatted: String,
     val startDayFormatted: String,
     val startMonthFormatted: String,
     val endDateFormatted: String?,

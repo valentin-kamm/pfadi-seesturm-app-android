@@ -78,10 +78,9 @@ fun MainSectionHeader(
         )
         if (type is MainSectionHeaderType.Button) {
             SeesturmButton(
-                type = SeesturmButtonType.Secondary(
-                    icon = SeesturmButtonIconType.Predefined(
-                        icon = type.buttonIcon
-                    )
+                type = SeesturmButtonType.Secondary,
+                icon = SeesturmButtonIconType.Predefined(
+                    icon = type.buttonIcon
                 ),
                 onClick = {
                     type.buttonAction?.invoke()

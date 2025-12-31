@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
+import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -81,12 +82,13 @@ fun LeiterbereichStufeCardView(
                         .fillMaxWidth()
                 )
                 SeesturmButton(
-                    type = SeesturmButtonType.Secondary(
+                    type = SeesturmButtonType.Secondary,
+                    colors = SeesturmButtonColor.Custom(
                         buttonColor = stufe.highContrastColor(isDarkTheme),
                         contentColor = stufe.onHighContrastColor(),
-                        icon = SeesturmButtonIconType.Predefined(
-                            icon = Icons.Default.Add
-                        )
+                    ),
+                    icon = SeesturmButtonIconType.Predefined(
+                        icon = Icons.Default.Add
                     ),
                     title = "Neue Aktivität",
                     onClick = {

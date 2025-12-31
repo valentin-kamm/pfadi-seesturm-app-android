@@ -114,6 +114,10 @@ dependencies {
     implementation(libs.androidx.adaptive.navigation)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
 
+    // navigation 3
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+
     // icons
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)

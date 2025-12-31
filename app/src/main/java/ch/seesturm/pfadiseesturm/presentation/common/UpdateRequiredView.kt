@@ -67,7 +67,7 @@ fun UpdateRequiredView(
                     .fillMaxWidth()
             )
             SeesturmButton(
-                type = SeesturmButtonType.Primary(),
+                type = SeesturmButtonType.Primary,
                 title = "Zu Google Play",
                 onClick = onGoToPlayStore,
                 isLoading = false

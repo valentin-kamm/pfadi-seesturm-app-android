@@ -80,10 +80,11 @@ class FirestoreRepositoryImpl(
             type = type
         )
 
-    override suspend fun <T : FirestoreDto> readCollection(collection: SeesturmFirestoreCollection, type: Class<T>): List<T> =
+    override suspend fun <T : FirestoreDto> readCollection(collection: SeesturmFirestoreCollection, type: Class<T>, filter: ((Query) -> Query)?): List<T> =
         api.readCollection(
             collection = collectionReference(collection),
-            type = type
+            type = type,
+            filter = filter
         )
 
     override suspend fun deleteDocument(document: SeesturmFirestoreDocument) {
