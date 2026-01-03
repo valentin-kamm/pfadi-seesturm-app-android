@@ -382,19 +382,30 @@ private fun StufenbereichContentView(
 
             when (abmeldungenState) {
                 UiState.Loading -> {
-                    items(
-                        count = 5,
-                        key = { index ->
-                            "StufenbereichLoadingCell$index"
+
+                    (0..<2).toList().forEach { headerIndex ->
+                        seesturmStickyHeader(
+                            uniqueKey = "StufenbereichLoadingHeader$headerIndex",
+                            stickyOffsets = stickyOffsets
+                        ) {
+                            BasicListHeader(
+                                mode = BasicListHeaderMode.Loading,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.background)
+                            )
                         }
-                    ) { index ->
-                        StufenbereichAnAbmeldungLoadingCell(
-                            stufe = stufe,
-                            isDarkTheme = isDarkTheme,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .animateItem()
-                        )
+                        items(
+                            count = 4,
+                            key = { index -> "StufenbereichLoadingCell$headerIndex$index" }
+                        ) {
+                            StufenbereichAnAbmeldungLoadingCell(
+                                stufe = stufe,
+                                isDarkTheme = isDarkTheme,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
                 is UiState.Error -> {

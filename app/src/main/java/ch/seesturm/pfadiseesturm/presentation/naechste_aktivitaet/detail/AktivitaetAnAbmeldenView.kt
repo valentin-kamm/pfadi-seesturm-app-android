@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Comment
@@ -156,51 +155,54 @@ fun AktivitaetAnAbmeldenView(
                 )
             )
         }
-        item {
-            FormItem(
-                items = (0..<1).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Text(
-                    title = "An-/Abmeldung"
-                ),
-                trailingElement = FormItemTrailingElementType.Custom(
-                    content = {
-                        DropdownButton(
-                            title = selectedSheetMode.nomen,
-                            colors = SeesturmButtonColor.Custom(
-                                contentColor = selectedSheetMode.color,
-                                buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            ),
-                            dropdown = { isShown, dismiss ->
-                                ThemedDropdownMenu(
-                                    expanded = isShown,
-                                    onDismissRequest = {
-                                        dismiss()
-                                    }
-                                ) {
-                                    stufe.allowedAktivitaetInteractions.forEach { interaction ->
-                                        ThemedDropdownMenuItem(
-                                            text = {
-                                                Text(interaction.nomen)
-                                            },
-                                            onClick = {
-                                                dismiss()
-                                                onChangeSheetMode(interaction)
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    imageVector = interaction.icon,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        )
+        if (stufe.allowedAktivitaetInteractions.count() > 1) {
+            item {
+                FormItem(
+                    items = (0..<1).toList(),
+                    index = 0,
+                    mainContent = FormItemContentType.Text(
+                        title = "An-/Abmeldung"
+                    ),
+                    trailingElement = FormItemTrailingElementType.Custom(
+                        content = {
+                            DropdownButton(
+                                title = selectedSheetMode.nomen,
+                                colors = SeesturmButtonColor.Custom(
+                                    contentColor = selectedSheetMode.color,
+                                    buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                                dropdown = { isShown, dismiss ->
+                                    ThemedDropdownMenu(
+                                        expanded = isShown,
+                                        onDismissRequest = {
+                                            dismiss()
+                                        }
+                                    ) {
+                                        stufe.allowedAktivitaetInteractions.forEach { interaction ->
+                                            ThemedDropdownMenuItem(
+                                                text = {
+                                                    Text(interaction.nomen)
+                                                },
+                                                onClick = {
+                                                    dismiss()
+                                                    onChangeSheetMode(interaction)
+                                                },
+                                                trailingIcon = {
+                                                    Icon(
+                                                        imageVector = interaction.icon,
+                                                        contentDescription = null,
+                                                        tint = interaction.color
+                                                    )
+                                                }
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        )
-                    }
+                            )
+                        }
+                    )
                 )
-            )
+            }
         }
         item {
             SeesturmButton(

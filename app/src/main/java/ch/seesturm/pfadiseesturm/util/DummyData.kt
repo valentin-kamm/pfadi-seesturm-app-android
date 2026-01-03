@@ -613,7 +613,8 @@ object DummyData {
         thumbnailHeight = 300,
         title = "Infobroschüre Pfadi Thurgau",
         documentUrl = "https://seesturm.ch/wp-content/uploads/2022/04/190404_Infobroschuere-Pfadi-Thurgau.pdf",
-        published = "test 2022-04-22T13:26:20+00:00"
+        published = oldDate,
+        publishedFormatted = oldDateFormatted
     )
 
     val gespeichertePerson1 = GespeichertePerson(

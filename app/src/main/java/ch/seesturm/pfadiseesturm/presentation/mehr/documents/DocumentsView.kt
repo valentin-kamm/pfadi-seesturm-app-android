@@ -32,11 +32,12 @@ import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.documents.components.DocumentCardView
 import ch.seesturm.pfadiseesturm.presentation.mehr.documents.components.DocumentLoadingCardView
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
-import ch.seesturm.pfadiseesturm.util.types.WordpressDocumentType
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.launchWebsite
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import ch.seesturm.pfadiseesturm.util.types.WordpressDocumentType
+import java.text.Normalizer
 
 @Composable
 fun DocumentsView(
@@ -147,15 +148,27 @@ private fun DocumentsContentView(
                         }
                     }
                     else {
+
+                        val documentsSorted = when (documentType) {
+                            WordpressDocumentType.Luuchtturm -> {
+                                uiState.data.sortedByDescending {
+                                    Normalizer.normalize(it.title, Normalizer.Form.NFC)
+                                }
+                            }
+                            WordpressDocumentType.Documents -> {
+                                uiState.data.sortedByDescending { it.published }
+                            }
+                        }
+
                         itemsIndexed(
-                            items = uiState.data,
+                            items = documentsSorted,
                             key = { _, item ->
                                 "DokumenteCell${item.id}"
                             }
                         ) { index, item ->
                             DocumentCardView(
                                 document = item,
-                                items = uiState.data,
+                                items = documentsSorted,
                                 index = index,
                                 onClick = {
                                     onClick(item)

@@ -269,7 +269,7 @@ fun AktivitaetDetailCardView(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    stufe.allowedAktivitaetInteractions.forEach { interaction ->
+                    stufe.allowedAktivitaetInteractions.sortedByDescending { it.id }.forEach { interaction ->
                         SeesturmButton(
                             type = SeesturmButtonType.Secondary,
                             colors = SeesturmButtonColor.Custom(

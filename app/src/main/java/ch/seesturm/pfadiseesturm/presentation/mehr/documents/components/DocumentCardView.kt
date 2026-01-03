@@ -135,7 +135,7 @@ fun <T>DocumentCardView(
                         )
                         TextWithIcon(
                             type = TextWithIconType.Text(
-                                text = document.published.uppercase(),
+                                text = document.publishedFormatted.uppercase(),
                                 textStyle = { MaterialTheme.typography.labelSmall }
                             ),
                             imageVector = Icons.Outlined.CalendarMonth,
@@ -158,7 +158,7 @@ fun <T>DocumentCardView(
 private fun DocumentCardViewPreview() {
     PfadiSeesturmTheme {
         DocumentCardView(
-            document = DummyData.document1.copy(published = "Hallo Hallo Hallo Hallo Hallo Hallo Hallo "),
+            document = DummyData.document1,
             items = listOf(DummyData.document1),
             index = 0
         )
