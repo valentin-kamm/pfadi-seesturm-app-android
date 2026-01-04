@@ -13,7 +13,7 @@ data class CloudFunctionEventPayload(
     val summary: String,
     val description: String,
     val location: String,
-    val isAllDay: Boolean = false,
+    val isAllDay: Boolean,
     val start: ZonedDateTime,
     val end: ZonedDateTime
 )
@@ -43,7 +43,7 @@ fun CloudFunctionEventPayload.toCloudFunctionEventPayloadDto(): CloudFunctionEve
             dateTime = if (isAllDay) null else { DateTimeUtil.shared.getIso8601DateString(date = end, timeZone = timeZoneForEvent) },
             date = if (isAllDay) {
                 DateTimeUtil.shared.formatDate(
-                    date = end,
+                    date = end.plusDays(1),
                     format = "yyyy-MM-dd",
                     type = DateFormattingType.Absolute
                 )
@@ -66,9 +66,22 @@ fun CloudFunctionEventPayload.toGoogleCalendarEvent(): GoogleCalendarEvent {
         type = DateFormattingType.Relative(true)
     )
 
+    val startDate: ZonedDateTime = if (!isAllDay) {
+        start
+    }
+    else {
+        start.toLocalDate().atStartOfDay(targetDisplayTimezone)
+    }
+    val endDate: ZonedDateTime = if (!isAllDay) {
+        end
+    }
+    else {
+        end.toLocalDate().atStartOfDay(targetDisplayTimezone)
+    }
+
     return GoogleCalendarEvent(
         id = UUID.randomUUID().toString(),
-        title = summary,
+        title = summary.trim(),
         description = description.trim().ifEmpty { null },
         location = location.trim().ifEmpty { null },
         created = now,
@@ -76,29 +89,29 @@ fun CloudFunctionEventPayload.toGoogleCalendarEvent(): GoogleCalendarEvent {
         createdFormatted = nowString,
         modifiedFormatted = nowString,
         isAllDay = isAllDay,
-        firstDayOfMonthOfStartDate = DateTimeUtil.shared.getFirstDayOfMonthOfADate(start),
-        start = start,
-        end = end,
+        firstDayOfMonthOfStartDate = DateTimeUtil.shared.getFirstDayOfMonthOfADate(startDate),
+        start = startDate,
+        end = endDate,
         startDateFormatted = DateTimeUtil.shared.formatDate(
-            date = start,
+            date = startDate,
             format = "dd. MMMM yyyy",
             type = DateFormattingType.Absolute
         ),
         startDayFormatted = DateTimeUtil.shared.formatDate(
-            date = start,
+            date = startDate,
             format = "dd.",
             type = DateFormattingType.Absolute
         ),
         startMonthFormatted = DateTimeUtil.shared.formatDate(
-            date = start,
+            date = startDate,
             format = "MMM",
             type = DateFormattingType.Absolute
         ),
-        endDateFormatted = DateTimeUtil.shared.getEventEndDateString(startDate = start, endDate = end),
-        timeFormatted = DateTimeUtil.shared.getEventTimeString(isAllDay = isAllDay, startDate = start, endDate = end),
+        endDateFormatted = DateTimeUtil.shared.getEventEndDateString(startDate = startDate, endDate = endDate),
+        timeFormatted = DateTimeUtil.shared.getEventTimeString(isAllDay = isAllDay, startDate = startDate, endDate = endDate),
         fullDateTimeFormatted = DateTimeUtil.shared.formatDateRange(
-            start,
-            end,
+            startDate,
+            endDate,
             isAllDay
         )
     )

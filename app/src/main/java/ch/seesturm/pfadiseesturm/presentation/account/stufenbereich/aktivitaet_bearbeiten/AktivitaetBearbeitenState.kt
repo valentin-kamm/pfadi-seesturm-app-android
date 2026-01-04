@@ -24,6 +24,7 @@ data class AktivitaetBearbeitenState (
     val location: String,
     val start: ZonedDateTime,
     val end: ZonedDateTime,
+    val isAllDay: Boolean,
     val sendPushNotification: Boolean = true,
     val showConfirmationDialog: Boolean = false,
     val startDatePickerState: DatePickerState,
@@ -76,7 +77,8 @@ data class AktivitaetBearbeitenState (
                     initialMinute = initialEndDate.minute,
                     is24Hour = true
                 ),
-                templatesState = UiState.Loading
+                templatesState = UiState.Loading,
+                isAllDay = false
             )
         }
     }

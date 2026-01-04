@@ -117,7 +117,7 @@ class DateTimeUtil {
         // Samstag, 13. Oktober 2025, 13:00 Uhr bis Sonntag, 14. Oktober 2025, 14:00 Uhr
 
         if (endDate < startDate) {
-            throw PfadiSeesturmError.DateError("Enddatum ist kleiner als Startdatum.")
+            throw PfadiSeesturmError.DateError("Das Startdatum muss vor dem Enddatum sein.")
         }
 
         val isSingleDay = startDate.year == endDate.year && startDate.month == endDate.month && startDate.dayOfYear == endDate.dayOfYear

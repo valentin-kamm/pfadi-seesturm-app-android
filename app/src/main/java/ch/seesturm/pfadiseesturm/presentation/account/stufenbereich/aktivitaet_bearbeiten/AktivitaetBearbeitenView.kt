@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
@@ -32,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -235,7 +237,10 @@ fun AktivitaetBearbeitenView(
         onNavigateBack = {
             accountNavController.navigateUp()
         },
-        isDarkTheme = appState.theme.isDarkTheme
+        isDarkTheme = appState.theme.isDarkTheme,
+        onToggleAllDay = { isAllDay ->
+            viewModel.updateAllDay(isAllDay)
+        }
     )
 }
 
@@ -250,6 +255,7 @@ private fun AktivitaetBearbeitenContentView(
     updateStartTimePickerVisibility: (Boolean) -> Unit,
     updateEndDatePickerVisibility: (Boolean) -> Unit,
     updateEndTimePickerVisibility: (Boolean) -> Unit,
+    onToggleAllDay: (Boolean) -> Unit,
     onLocationChange: (String) -> Unit,
     onPushNotificationChange: (Boolean) -> Unit,
     onSubmitButtonClick: () -> Unit,
@@ -340,7 +346,7 @@ private fun AktivitaetBearbeitenContentView(
                     ) {
                         BasicListHeader(BasicListHeaderMode.Loading)
                         FormItem(
-                            items = (0..1).toList(),
+                            items = (0..2).toList(),
                             index = 0,
                             modifier = Modifier
                                 .animateItem(),
@@ -350,8 +356,18 @@ private fun AktivitaetBearbeitenContentView(
                             )
                         )
                         FormItem(
-                            items = (0..1).toList(),
+                            items = (0..2).toList(),
                             index = 1,
+                            modifier = Modifier
+                                .animateItem(),
+                            mainContent = FormItemContentType.Text(
+                                title = "Start",
+                                isLoading = true
+                            )
+                        )
+                        FormItem(
+                            items = (0..2).toList(),
+                            index = 2,
                             modifier = Modifier
                                 .animateItem(),
                             mainContent = FormItemContentType.Text(
@@ -456,7 +472,7 @@ private fun AktivitaetBearbeitenContentView(
                     ) {
                         BasicListHeader(BasicListHeaderMode.Normal("Zeit"))
                         FormItem(
-                            items = (0..1).toList(),
+                            items = (0..2).toList(),
                             index = 0,
                             modifier = Modifier
                                 .animateItem(),
@@ -492,28 +508,30 @@ private fun AktivitaetBearbeitenContentView(
                                                 .wrapContentWidth(),
                                             isLoading = false
                                         )
-                                        SeesturmButton(
-                                            type = SeesturmButtonType.Primary,
-                                            colors = SeesturmButtonColor.Custom(
-                                                buttonColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                contentColor = Color.SEESTURM_GREEN
-                                            ),
-                                            title = startTimeFormatted,
-                                            onClick = {
-                                                updateStartTimePickerVisibility(true)
-                                            },
-                                            enabled = !uiState.publishAktivitaetState.isLoading,
-                                            modifier = Modifier
-                                                .wrapContentWidth(),
-                                            isLoading = false
-                                        )
+                                        if (!uiState.isAllDay) {
+                                            SeesturmButton(
+                                                type = SeesturmButtonType.Primary,
+                                                colors = SeesturmButtonColor.Custom(
+                                                    buttonColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                    contentColor = Color.SEESTURM_GREEN
+                                                ),
+                                                title = startTimeFormatted,
+                                                onClick = {
+                                                    updateStartTimePickerVisibility(true)
+                                                },
+                                                enabled = !uiState.publishAktivitaetState.isLoading,
+                                                modifier = Modifier
+                                                    .wrapContentWidth(),
+                                                isLoading = false
+                                            )
+                                        }
                                     }
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
                             )
                         )
                         FormItem(
-                            items = (0..1).toList(),
+                            items = (0..2).toList(),
                             index = 1,
                             modifier = Modifier
                                 .animateItem(),
@@ -549,24 +567,50 @@ private fun AktivitaetBearbeitenContentView(
                                                 .wrapContentWidth(),
                                             isLoading = false
                                         )
-                                        SeesturmButton(
-                                            type = SeesturmButtonType.Primary,
-                                            colors = SeesturmButtonColor.Custom(
-                                                buttonColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                contentColor = Color.SEESTURM_GREEN
-                                            ),
-                                            title = endTimeFormatted,
-                                            onClick = {
-                                                updateEndTimePickerVisibility(true)
-                                            },
-                                            enabled = !uiState.publishAktivitaetState.isLoading,
-                                            modifier = Modifier
-                                                .wrapContentWidth(),
-                                            isLoading = false
-                                        )
+                                        if (!uiState.isAllDay) {
+                                            SeesturmButton(
+                                                type = SeesturmButtonType.Primary,
+                                                colors = SeesturmButtonColor.Custom(
+                                                    buttonColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                    contentColor = Color.SEESTURM_GREEN
+                                                ),
+                                                title = endTimeFormatted,
+                                                onClick = {
+                                                    updateEndTimePickerVisibility(true)
+                                                },
+                                                enabled = !uiState.publishAktivitaetState.isLoading,
+                                                modifier = Modifier
+                                                    .wrapContentWidth(),
+                                                isLoading = false
+                                            )
+                                        }
                                     }
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                            )
+                        )
+                        FormItem(
+                            items = (0..2).toList(),
+                            index = 2,
+                            modifier = Modifier
+                                .animateItem(),
+                            mainContent = FormItemContentType.Text(
+                                title = "Ganztägig"
+                            ),
+                            trailingElement = FormItemTrailingElementType.Custom(
+                                content = {
+                                    Switch(
+                                        checked = uiState.isAllDay,
+                                        onCheckedChange = { newValue ->
+                                            onToggleAllDay(newValue)
+                                        },
+                                        enabled = !uiState.publishAktivitaetState.isLoading,
+                                        colors = SwitchDefaults.colors().copy(
+                                            checkedThumbColor = MaterialTheme.colorScheme.background,
+                                            checkedTrackColor = stufe.highContrastColor(isDarkTheme)
+                                        )
+                                    )
+                                }
                             )
                         )
                         BasicListFooter(BasicListHeaderMode.Normal("Zeiten in MEZ/MESZ (CH-Zeit)"))
@@ -794,7 +838,8 @@ private fun AktivitaetBearbeitenViewPreview1() {
                     initialMinute = ZonedDateTime.now().minute,
                     is24Hour = true
                 ),
-                templatesState = UiState.Loading
+                templatesState = UiState.Loading,
+                isAllDay = false
             ),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             mode = AktivitaetBearbeitenMode.Insert,
@@ -809,11 +854,12 @@ private fun AktivitaetBearbeitenViewPreview1() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Wolf,
-            aktivitaetForPreviewSheet = mutableStateOf(null),
-            showTemplatesSheet = mutableStateOf(false),
+            aktivitaetForPreviewSheet = remember { mutableStateOf(null) },
+            showTemplatesSheet = remember { mutableStateOf(false) },
             onNavigateToTemplates = {},
             modifier = Modifier,
-            isDarkTheme = false
+            isDarkTheme = false,
+            onToggleAllDay = {}
         )
     }
 }
@@ -861,7 +907,8 @@ private fun AktivitaetBearbeitenViewPreview2() {
                     initialMinute = ZonedDateTime.now().minute,
                     is24Hour = true
                 ),
-                templatesState = UiState.Loading
+                templatesState = UiState.Loading,
+                isAllDay = false
             ),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             mode = AktivitaetBearbeitenMode.Insert,
@@ -876,11 +923,12 @@ private fun AktivitaetBearbeitenViewPreview2() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Wolf,
-            aktivitaetForPreviewSheet = mutableStateOf(null),
-            showTemplatesSheet = mutableStateOf(false),
+            aktivitaetForPreviewSheet = remember { mutableStateOf(null) },
+            showTemplatesSheet = remember { mutableStateOf(false) },
             onNavigateToTemplates = {},
             modifier = Modifier,
-            isDarkTheme = false
+            isDarkTheme = false,
+            onToggleAllDay = {}
         )
     }
 }
@@ -928,7 +976,8 @@ private fun AktivitaetBearbeitenViewPreview3() {
                     initialMinute = ZonedDateTime.now().minute,
                     is24Hour = true
                 ),
-                templatesState = UiState.Loading
+                templatesState = UiState.Loading,
+                isAllDay = false
             ),
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             mode = AktivitaetBearbeitenMode.Insert,
@@ -943,11 +992,12 @@ private fun AktivitaetBearbeitenViewPreview3() {
             onErrorRetry = {},
             onNavigateBack = {},
             stufe = SeesturmStufe.Biber,
-            aktivitaetForPreviewSheet = mutableStateOf(null),
-            showTemplatesSheet = mutableStateOf(false),
+            aktivitaetForPreviewSheet = remember { mutableStateOf(null) },
+            showTemplatesSheet = remember { mutableStateOf(false) },
             onNavigateToTemplates = {},
             modifier = Modifier,
-            isDarkTheme = false
+            isDarkTheme = false,
+            onToggleAllDay = {}
         )
     }
 }

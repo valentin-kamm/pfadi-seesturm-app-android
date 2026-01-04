@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Duration
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,8 +77,9 @@ class AktivitaetBearbeitenViewModel(
                 summary = _state.value.title.text.trim(),
                 description = state.value.description.state.getUnescapedHtml(),
                 location = state.value.location.trim(),
-                start = state.value.start,
-                end = state.value.end
+                start = if(state.value.isAllDay) { state.value.start.toLocalDate().atStartOfDay(ZoneId.of("Europe/Zurich")) } else { state.value.start },
+                end = if(state.value.isAllDay) { state.value.end.toLocalDate().atStartOfDay(ZoneId.of("Europe/Zurich")) } else { state.value.end },
+                isAllDay = state.value.isAllDay
             )
         }
     val aktivitaetForPreview: GoogleCalendarEvent?
@@ -85,7 +87,7 @@ class AktivitaetBearbeitenViewModel(
             return try {
                 aktivitaetForPublishing.toGoogleCalendarEvent()
             }
-            catch (e: Exception) {
+            catch (_: Exception) {
                 null
             }
         }
@@ -113,7 +115,7 @@ class AktivitaetBearbeitenViewModel(
             }
 
             // warnings
-            if (Duration.between(aktivitaet.start, aktivitaet.end).abs().toHours() < 2) {
+            if (Duration.between(aktivitaet.start, aktivitaet.end).abs().toHours() < 2 && !state.value.isAllDay) {
                 return AktivitaetValidationStatus.Warning(
                     title = "Aktivität kürzer als 2h",
                     description = "Die Aktivität ist kürzer als 2 Stunden. Möchtest du die Aktivität trotzdem ${mode.verb}?"
@@ -258,7 +260,8 @@ class AktivitaetBearbeitenViewModel(
                                 initialHour = result.data.end.hour,
                                 initialMinute = result.data.end.minute,
                                 is24Hour = true
-                            )
+                            ),
+                            isAllDay = result.data.isAllDay
                         )
                     }
                 }
@@ -473,6 +476,13 @@ class AktivitaetBearbeitenViewModel(
         _state.update {
             it.copy(
                 showConfirmationDialog = isVisible
+            )
+        }
+    }
+    fun updateAllDay(isAllDay: Boolean) {
+        _state.update {
+            it.copy(
+                isAllDay = isAllDay
             )
         }
     }
