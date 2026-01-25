@@ -37,18 +37,17 @@ import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellCar
 import ch.seesturm.pfadiseesturm.presentation.aktuell.list.components.AktuellLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicLoadingStickHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.rememberStickyHeaderOffsets
+import ch.seesturm.pfadiseesturm.presentation.common.lists.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.InfiniteScrollUiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,7 +134,9 @@ private fun AktuellContentView(
             when (val localState = uiState.result) {
                 InfiniteScrollUiState.Loading -> {
                     stickyHeader {
-                        BasicLoadingStickHeader()
+                        BasicListHeader(
+                            mode = BasicListHeaderMode.Loading
+                        )
                     }
                     items(
                         count = 5,

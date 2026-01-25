@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -47,23 +46,22 @@ import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenu
 import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTextContentColor
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemLeadingContentType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.GalleriesViewModel
 import ch.seesturm.pfadiseesturm.presentation.mehr.fotos.components.MehrHorizontalPhotoScrollView
 import ch.seesturm.pfadiseesturm.util.Constants
-import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.launchWebsite
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.SeesturmAppTheme
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import java.util.Calendar
 
 @Composable
@@ -135,297 +133,225 @@ private fun MehrContentView(
             additionalEndPadding = 16.dp,
             additionalStartPadding = 16.dp
         )
-        val firstSectionCount = 5
-        val secondSectionCount = 3
-        val thirdSectionCount = 3
-        val fourthSectionCount = 2
 
-        LazyColumn(
+        GroupedColumn(
             state = columnState,
-            userScrollEnabled = true,
             contentPadding = combinedPadding,
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
-            item {
-                BasicListHeader(
-                    mode = BasicListHeaderMode.Normal("Infos und Medien"),
-                )
-            }
-            item {
-                FormItem(
-                    items = (0..<firstSectionCount).toList(),
-                    index = 0,
-                    mainContent = FormItemContentType.Text(
-                        title = "Fotos"
+            section(
+                header = {
+                    BasicListHeader(
+                        mode = BasicListHeaderMode.Normal("Infos und Medien"),
+                    )
+                }
+            ) {
+                textItem(
+                    text = "Fotos",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Photo
                     ),
-                    leadingIcon = Icons.Outlined.Photo,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.Pfadijahre
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
-            }
-            if (!photosState.isError) {
-                item {
-                    FormItem(
-                        items = (0..<firstSectionCount).toList(),
-                        index = 1,
-                        mainContent = FormItemContentType.Custom(
-                            content = {
-                                MehrHorizontalPhotoScrollView(
-                                    photosState = photosState,
-                                    mehrNavController = mehrNavController,
-                                    modifier = Modifier
-                                        .padding(vertical = 16.dp)
-                                )
-                            }
-                        ),
-                        trailingElement = FormItemTrailingElementType.Blank,
-                        modifier = Modifier
-                            .animateItem()
-                    )
+                if (!photosState.isError) {
+                    item {
+                        MehrHorizontalPhotoScrollView(
+                            photosState = photosState,
+                            mehrNavController = mehrNavController,
+                            modifier = Modifier
+                                .padding(vertical = 16.dp)
+                        )
+                    }
                 }
-            }
-            item {
-                FormItem(
-                    items = (0..<firstSectionCount).toList(),
-                    index = 2,
-                    mainContent = FormItemContentType.Text(
-                        title = "Dokumente"
+                textItem(
+                    text = "Dokumente",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Description
                     ),
-                    leadingIcon = Icons.Outlined.Description,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.Dokumente
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<firstSectionCount).toList(),
-                    index = 3,
-                    mainContent = FormItemContentType.Text(
-                        title = "Lüüchtturm"
+                textItem(
+                    text = "Lüüchtturm",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.LibraryBooks
                     ),
-                    leadingIcon = Icons.AutoMirrored.Outlined.LibraryBooks,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.Luuchtturm
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<firstSectionCount).toList(),
-                    index = 4,
-                    mainContent = FormItemContentType.Text(
-                        title = "Leitungsteam"
+                textItem(
+                    text = "Leitungsteam",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.ContactMail
                     ),
-                    leadingIcon = Icons.Outlined.ContactMail,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.Leitungsteam
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
             }
-            item {
-                BasicListHeader(
-                    mode = BasicListHeaderMode.Normal("Pfadiheim"),
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                )
-            }
-            item {
-                FormItem(
-                    items = (0..<secondSectionCount).toList(),
-                    index = 0,
-                    mainContent = FormItemContentType.Text(
-                        title = "Belegungsplan",
-                        textColor = FormItemTextContentColor.Custom(
-                            color = Color.SEESTURM_GREEN
-                        )
+
+            section(
+                header = {
+                    BasicListHeader(
+                        mode = BasicListHeaderMode.Normal("Pfadiheim")
+                    )
+                }
+            ) {
+                textItem(
+                    text = "Belegungsplan",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.CalendarMonth
                     ),
-                    leadingIcon = Icons.Outlined.CalendarMonth,
                     onClick = {
                         onLaunchWebsite("https://api.belegungskalender-kostenlos.de/kalender.php?kid=24446")
-                    },
-                    trailingElement = FormItemTrailingElementType.Blank
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<secondSectionCount).toList(),
-                    index = 1,
-                    mainContent = FormItemContentType.Text(
-                        title = "Weitere Informationen",
-                        textColor = FormItemTextContentColor.Custom(
-                            color = Color.SEESTURM_GREEN
-                        )
+                textItem(
+                    text = "Weitere Informationen",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Info
                     ),
-                    leadingIcon = Icons.Outlined.Info,
                     onClick = {
                         onLaunchWebsite("https://seesturm.ch/pfadiheim/")
-                    },
-                    trailingElement = FormItemTrailingElementType.Blank
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<secondSectionCount).toList(),
-                    index = 2,
-                    mainContent = FormItemContentType.Text(
-                        title = "Anfrage und Reservation",
-                        textColor = FormItemTextContentColor.Custom(
-                            color = Color.SEESTURM_GREEN
-                        )
+                textItem(
+                    text = "Anfrage und Reservation",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Textsms
                     ),
-                    leadingIcon = Icons.Outlined.Textsms,
                     onClick = {
                         onLaunchWebsite("mailto:pfadiheim@seesturm.ch")
-                    },
-                    trailingElement = FormItemTrailingElementType.Blank
+                    }
                 )
             }
-            item {
-                BasicListHeader(
-                    mode = BasicListHeaderMode.Normal("Einstellungen"),
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                )
-            }
-            item {
-                FormItem(
-                    items = (0..<thirdSectionCount).toList(),
-                    index = 0,
-                    mainContent = FormItemContentType.Text(
-                        title = "Push-Nachrichten"
+
+            section(
+                header = {
+                    BasicListHeader(
+                        mode = BasicListHeaderMode.Normal("Einstellungen")
+                    )
+                }
+            ) {
+                textItem(
+                    text = "Push-Nachrichten",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Notifications
                     ),
-                    leadingIcon = Icons.Outlined.Notifications,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.PushNotifications
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<thirdSectionCount).toList(),
-                    index = 1,
-                    mainContent = FormItemContentType.Text(
-                        title = "Gespeicherte Personen"
+                textItem(
+                    text = "Gespeicherte Personen",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.PeopleOutline
                     ),
-                    leadingIcon = Icons.Outlined.PeopleOutline,
+                    trailingContent = GroupedColumnItemTrailingContentType.DisclosureIndicator,
                     onClick = {
                         mehrNavController.navigate(
                             AppDestination.MainTabView.Destinations.Mehr.Destinations.GespeichertePersonen
                         )
-                    },
-                    trailingElement = FormItemTrailingElementType.DisclosureIndicator
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<thirdSectionCount).toList(),
-                    index = 2,
-                    mainContent = FormItemContentType.Text(
-                        title = "Erscheinungsbild"
+                textItem(
+                    text = "Erscheinungsbild",
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Contrast
                     ),
-                    leadingIcon = Icons.Outlined.Contrast,
-                    trailingElement = FormItemTrailingElementType.Custom(
-                        content = {
-                            DropdownButton(
-                                title = selectedTheme.description,
-                                dropdown = { isShown, dismiss ->
-                                    ThemedDropdownMenu(
-                                        expanded = isShown,
-                                        onDismissRequest = {
-                                            dismiss()
-                                        }
-                                    ) {
-                                        SeesturmAppTheme.entries.forEach { theme ->
-                                            ThemedDropdownMenuItem(
-                                                text = { Text(theme.description) },
-                                                onClick = {
-                                                    onChangeTheme(theme)
-                                                    dismiss()
-                                                },
-                                                trailingIcon = {
-                                                    if (theme == selectedTheme) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Check,
-                                                            contentDescription = null
-                                                        )
-                                                    }
+                    trailingContent = GroupedColumnItemTrailingContentType.Custom {
+                        DropdownButton(
+                            title = selectedTheme.description,
+                            dropdown = { isShown, dismiss ->
+                                ThemedDropdownMenu(
+                                    expanded = isShown,
+                                    onDismissRequest = {
+                                        dismiss()
+                                    }
+                                ) {
+                                    SeesturmAppTheme.entries.forEach { theme ->
+                                        ThemedDropdownMenuItem(
+                                            text = { Text(theme.description) },
+                                            onClick = {
+                                                onChangeTheme(theme)
+                                                dismiss()
+                                            },
+                                            trailingIcon = {
+                                                if (theme == selectedTheme) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null
+                                                    )
                                                 }
-                                            )
-                                        }
+                                            }
+                                        )
                                     }
                                 }
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
                 )
             }
-            item {
-                FormItem(
-                    items = (0..<fourthSectionCount).toList(),
-                    index = 0,
-                    mainContent = FormItemContentType.Text(
-                        title = "Feedback zur App geben",
-                        textColor = FormItemTextContentColor.Custom(
-                            color = Color.SEESTURM_GREEN
-                        )
+
+            section {
+                textItem(
+                    text = "Feedback zur App geben",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.Comment
                     ),
-                    leadingIcon = Icons.AutoMirrored.Outlined.Comment,
                     onClick = {
                         onLaunchWebsite(Constants.FEEDBACK_FORM_URL)
-                    },
-                    trailingElement = FormItemTrailingElementType.Blank,
-                    modifier = Modifier
-                        .padding(top = 32.dp)
+                    }
                 )
-            }
-            item {
-                FormItem(
-                    items = (0..<fourthSectionCount).toList(),
-                    index = 1,
-                    mainContent = FormItemContentType.Text(
-                        title = "Datenschutzerklärung",
-                        textColor = FormItemTextContentColor.Custom(
-                            color = Color.SEESTURM_GREEN
-                        )
+                textItem(
+                    text = "Datenschutzerklärung",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Security
                     ),
-                    leadingIcon = Icons.Outlined.Security,
                     onClick = {
                         onLaunchWebsite(Constants.DATENSCHUTZERKLAERUNG_URL)
-                    },
-                    trailingElement = FormItemTrailingElementType.Blank
+                    }
                 )
             }
-            item {
-                Text(
-                    footerText,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 32.dp, bottom = 16.dp)
-                        .alpha(0.4f)
-                        .fillMaxWidth()
-                )
+
+            section {
+                customItem {
+                    Text(
+                        footerText,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .alpha(0.4f)
+                            .fillMaxWidth()
+                    )
+                }
             }
         }
     }

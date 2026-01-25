@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.common.forms
+package ch.seesturm.pfadiseesturm.presentation.common.lists
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

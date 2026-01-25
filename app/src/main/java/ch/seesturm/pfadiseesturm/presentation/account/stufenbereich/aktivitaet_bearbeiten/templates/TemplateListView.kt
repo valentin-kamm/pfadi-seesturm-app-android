@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.NoteAdd
@@ -33,10 +31,9 @@ import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.SwipeableFormItem
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemActionIcon
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemSwipeMode
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
@@ -65,153 +62,133 @@ fun TemplateListView(
         TemplateListViewMode.Use -> false
     }
 
-    LazyColumn(
+    GroupedColumn(
         state = listState,
         userScrollEnabled = !state.scrollingDisabled,
         contentPadding = contentPadding,
         modifier = modifier
             .fillMaxSize()
     ) {
-
-        when (state) {
-            UiState.Loading -> {
-                items(
-                    count = 3,
-                    key = { index ->
-                        "TemplateListViewLoadingCell$index"
-                    }
-                ) { index ->
-                    FormItem(
-                        items = (0..<3).toList(),
-                        index = index,
-                        modifier = Modifier
-                            .animateItem(),
-                        mainContent = FormItemContentType.Custom(
-                            content = {
-                                RedactedText(
-                                    numberOfLines = 5,
-                                    textStyle = MaterialTheme.typography.bodyLarge
-                                )
-                            },
-                            contentPadding = PaddingValues(16.dp)
-                        )
-                    )
-                }
-            }
-            is UiState.Error -> {
-                item(key = "TemplateListViewErrorCell") {
-                    ErrorCardView(
-                        errorDescription = state.message,
-                        modifier = Modifier
-                            .animateItem()
-                    )
-                }
-            }
-            is UiState.Success -> {
-                if (state.data.isNotEmpty()) {
-                    itemsIndexed(
-                        items = state.data.sortedByDescending { it.created },
-                        key = { _, template ->
-                            "TemplateListViewCell${template.id}"
+        section {
+            when (state) {
+                UiState.Loading -> {
+                    items(
+                        count = 3,
+                        key = { index ->
+                            "TemplateListViewLoadingCell$index"
                         }
-                    ) { index, template ->
-                        SwipeableFormItem(
-                            items = state.data,
-                            index = index,
-                            content = FormItemContentType.Custom(
-                                content = {
-                                    HtmlTextView(
-                                        html = template.description,
-                                        openLinks = false
-                                    )
-                                },
-                                contentPadding = PaddingValues(16.dp)
-                            ),
-                            swipeEnabled = isSwipeableFormItemEnabled,
-                            isRevealed = state.data.first { it.id == template.id}.swipeActionsRevealed,
-                            actions = {
-                                FormItemActionIcon(
-                                    onClick = {
-                                        if (mode is TemplateListViewMode.Edit) {
-                                            mode.onDeleteItem(template)
-                                        }
-                                    },
-                                    backgroundColor = Color.SEESTURM_RED,
-                                    icon = Icons.Filled.Delete,
-                                    iconTint = Color.White
-                                )
-                            },
-                            onExpand = {
-                                if (mode is TemplateListViewMode.Edit) {
-                                    mode.onExpandItem(template)
-                                }
-                            },
-                            onCollapse = {
-                                if (mode is TemplateListViewMode.Edit) {
-                                    mode.onCollapseItem(template)
-                                }
-                            },
-                            onClick = {
-                                onClick(template)
-                            },
+                    ) {
+                        RedactedText(
+                            numberOfLines = 5,
+                            textStyle = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
-                                .animateItem()
+                                .padding(vertical = 8.dp)
                         )
                     }
                 }
-                else {
-                    item(
-                        key = "NoTemplatesListViewErrorCell"
+                is UiState.Error -> {
+                    customItem(
+                        key = "TemplateListViewErrorCell"
                     ) {
-                        FormItem(
-                            items = listOf(1),
-                            index = 0,
-                            mainContent = FormItemContentType.Custom(
-                                contentPadding = PaddingValues(16.dp),
-                                content = {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
+                        ErrorCardView(
+                            errorDescription = state.message
+                        )
+                    }
+                }
+                is UiState.Success -> {
+                    if (state.data.isNotEmpty()) {
+                        itemsIndexed(
+                            items = state.data.sortedByDescending { it.created },
+                            key = { _, template ->
+                                "TemplateListViewCell${template.id}"
+                            },
+                            swipeMode = { _, template ->
+                                if (isSwipeableFormItemEnabled) {
+                                    GroupedColumnItemSwipeMode.Enabled(
+                                        isRevealed = state.data.first { it.id == template.id}.swipeActionsRevealed,
+                                        actions = {
+                                            GroupedColumnItemActionIcon(
+                                                onClick = {
+                                                    if (mode is TemplateListViewMode.Edit) {
+                                                        mode.onDeleteItem(template)
+                                                    }
+                                                },
+                                                backgroundColor = Color.SEESTURM_RED,
+                                                icon = Icons.Filled.Delete,
+                                                iconTint = Color.White
+                                            )
+                                        },
+                                        onExpand = {
+                                            if (mode is TemplateListViewMode.Edit) {
+                                                mode.setSwipeActionsRevealed(template, true)
+                                            }
+                                        },
+                                        onCollapse = {
+                                            if (mode is TemplateListViewMode.Edit) {
+                                                mode.setSwipeActionsRevealed(template, false)
+                                            }
+                                        }
+                                    )
+                                }
+                                else {
+                                    GroupedColumnItemSwipeMode.Disabled
+                                }
+                            },
+                            onClick = { _, template ->
+                                onClick(template)
+                            }
+                        ) { _, template ->
+                            HtmlTextView(
+                                html = template.description,
+                                openLinks = false
+                            )
+                        }
+                    }
+                    else {
+                        item(
+                            key = "NoTemplatesListViewErrorCell"
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 24.dp)
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.NoteAdd,
+                                    contentDescription = null,
+                                    tint = Color.SEESTURM_GREEN,
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                )
+                                Text(
+                                    text = "Keine Vorlagen",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                                if (mode is TemplateListViewMode.Edit) {
+                                    Text(
+                                        text = "Füge jetzt eine Vorlage hinzu, damit das Erstellen von Aktivitäten schneller geht.",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(top = 16.dp, bottom = 24.dp)
-                                            .padding(horizontal = 16.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Outlined.NoteAdd,
-                                            contentDescription = null,
-                                            tint = Color.SEESTURM_GREEN,
-                                            modifier = Modifier
-                                                .size(50.dp)
-                                        )
-                                        Text(
-                                            text = "Keine Vorlagen",
-                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                        )
-                                        if (mode is TemplateListViewMode.Edit) {
-                                            Text(
-                                                text = "Füge jetzt eine Vorlage hinzu, damit das Erstellen von Aktivitäten schneller geht.",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onBackground,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                            )
-                                            SeesturmButton(
-                                                type = SeesturmButtonType.Primary,
-                                                title = "Vorlage hinzufügen",
-                                                onClick = mode.onAddClick,
-                                                isLoading = false
-                                            )
-                                        }
-                                    }
+                                    )
+                                    SeesturmButton(
+                                        type = SeesturmButtonType.Primary,
+                                        title = "Vorlage hinzufügen",
+                                        onClick = mode.onAddClick,
+                                        isLoading = false
+                                    )
                                 }
-                            )
-                        )
+                            }
+                        }
                     }
                 }
             }
@@ -356,8 +333,7 @@ private fun TemplateListViewPreview7() {
                 onAddClick = {},
                 editState = ActionState.Idle,
                 deleteState = ActionState.Idle,
-                onCollapseItem = {},
-                onExpandItem = {},
+                setSwipeActionsRevealed = { _, _ -> },
                 onDeleteItem = {}
             ),
             contentPadding = PaddingValues(16.dp),
@@ -385,8 +361,7 @@ private fun TemplateListViewPreview8() {
                     onAddClick = {},
                     editState = ActionState.Idle,
                     deleteState = ActionState.Idle,
-                    onCollapseItem = {},
-                    onExpandItem = {},
+                    setSwipeActionsRevealed = { _, _ -> },
                     onDeleteItem = {}
                 ),
                 contentPadding = PaddingValues(16.dp),

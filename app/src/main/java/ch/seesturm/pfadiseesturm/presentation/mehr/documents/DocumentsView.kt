@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +26,8 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.WordpressDocument
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.documents.components.DocumentCardView
 import ch.seesturm.pfadiseesturm.presentation.mehr.documents.components.DocumentLoadingCardView
@@ -91,7 +91,8 @@ private fun DocumentsContentView(
             additionalStartPadding = 16.dp,
             additionalBottomPadding = 16.dp
         )
-        LazyColumn(
+
+        GroupedColumn(
             state = columnState,
             userScrollEnabled = !uiState.scrollingDisabled,
             contentPadding = combinedPadding,
@@ -99,83 +100,73 @@ private fun DocumentsContentView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            val loadingCellCount = 4
-            when (uiState) {
-                UiState.Loading -> {
-                    items(
-                        count = loadingCellCount,
-                        key = { index ->
-                            "DokumenteLoadingCell$index"
-                        }
-                    ) { index ->
-                        DocumentLoadingCardView(
-                            items = (0..<loadingCellCount).toList(),
-                            index = index,
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                }
-                is UiState.Error -> {
-                    item(
-                        key = "DokumenteErrorCell"
-                    ) {
-                        ErrorCardView(
-                            errorTitle = "Ein Fehler ist aufgetreten",
-                            errorDescription = uiState.message,
-                            modifier = Modifier
-                                .animateItem()
+            section {
+                when (uiState) {
+                    UiState.Loading -> {
+                        items(
+                            count = 4,
+                            key = { index ->
+                                "DokumenteLoadingCell$index"
+                            }
                         ) {
-                            onRetry()
-                        }
-                    }
-                }
-                is UiState.Success -> {
-                    if (uiState.data.isEmpty()) {
-                        item(
-                            key = "NoDocumentsCell"
-                        ) {
-                            Text(
-                                "Keine Dokumente",
-                                textAlign = TextAlign.Center,
+                            DocumentLoadingCardView(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 75.dp)
-                                    .padding(horizontal = 16.dp)
-                                    .alpha(0.4f)
-                                    .animateItem()
+                                    .padding(vertical = 8.dp)
                             )
                         }
                     }
-                    else {
-
-                        val documentsSorted = when (documentType) {
-                            WordpressDocumentType.Luuchtturm -> {
-                                uiState.data.sortedByDescending {
-                                    Normalizer.normalize(it.title, Normalizer.Form.NFC)
+                    is UiState.Error -> {
+                        customItem(
+                            key = "DokumenteErrorCell"
+                        ) {
+                            ErrorCardView(
+                                errorTitle = "Ein Fehler ist aufgetreten",
+                                errorDescription = uiState.message
+                            ) {
+                                onRetry()
+                            }
+                        }
+                    }
+                    is UiState.Success -> {
+                        if (uiState.data.isEmpty()) {
+                            item(
+                                key = "NoDocumentsCell"
+                            ) {
+                                Text(
+                                    "Keine Dokumente",
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 75.dp)
+                                        .padding(horizontal = 16.dp)
+                                        .alpha(0.4f)
+                                )
+                            }
+                        }
+                        else {
+                            val documentsSorted = when (documentType) {
+                                WordpressDocumentType.Luuchtturm -> {
+                                    uiState.data.sortedByDescending {
+                                        Normalizer.normalize(it.title, Normalizer.Form.NFC)
+                                    }
+                                }
+                                WordpressDocumentType.Documents -> {
+                                    uiState.data.sortedByDescending { it.published }
                                 }
                             }
-                            WordpressDocumentType.Documents -> {
-                                uiState.data.sortedByDescending { it.published }
-                            }
-                        }
-
-                        itemsIndexed(
-                            items = documentsSorted,
-                            key = { _, item ->
-                                "DokumenteCell${item.id}"
-                            }
-                        ) { index, item ->
-                            DocumentCardView(
-                                document = item,
+                            items(
                                 items = documentsSorted,
-                                index = index,
-                                onClick = {
-                                    onClick(item)
+                                key = { document ->
+                                    "DokumenteCell${document.id}"
                                 },
-                                modifier = Modifier
-                                    .animateItem()
-                            )
+                                onClick = onClick
+                            ) { document ->
+                                DocumentCardView(
+                                    document = document,
+                                    modifier = Modifier.
+                                    padding(vertical = 8.dp)
+                                )
+                            }
                         }
                     }
                 }

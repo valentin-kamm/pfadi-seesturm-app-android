@@ -31,7 +31,6 @@ fun LeitungsteamLoadingCell(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
-            .padding(16.dp)
     ) {
         Box(
             modifier = Modifier

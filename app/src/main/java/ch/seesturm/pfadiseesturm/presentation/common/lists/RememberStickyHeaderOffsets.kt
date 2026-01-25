@@ -1,10 +1,9 @@
-package ch.seesturm.pfadiseesturm.presentation.common.forms
+package ch.seesturm.pfadiseesturm.presentation.common.lists
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
-import ch.seesturm.pfadiseesturm.presentation.common.lists.StickyHeaderOffset
 import ch.seesturm.pfadiseesturm.util.Constants
 
 @Composable

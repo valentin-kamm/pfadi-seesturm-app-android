@@ -71,7 +71,7 @@ class TemplateViewModel(
         }.launchIn(viewModelScope)
     }
 
-    fun toggleSwipeActionsEnabled(template: AktivitaetTemplate) {
+    fun setSwipeActionsRevealed(template: AktivitaetTemplate, isRevealed: Boolean) {
 
         val localState = state.value.templatesState
 
@@ -82,7 +82,7 @@ class TemplateViewModel(
         val updatedTemplateList = localState.data.map { item ->
             if (item.id == template.id) {
                 item.copy(
-                    swipeActionsRevealed = !item.swipeActionsRevealed
+                    swipeActionsRevealed = isRevealed
                 )
             }
             else {

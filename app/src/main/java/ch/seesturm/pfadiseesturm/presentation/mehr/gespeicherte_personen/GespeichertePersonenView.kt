@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -48,13 +46,11 @@ import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemActionIcon
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.SwipeableFormItem
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemActionIcon
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemSwipeMode
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
@@ -104,8 +100,8 @@ fun GespeichertePersonenView(
             viewModel.toggleEditingMode()
         },
         showSheet = viewModel.showSheet,
-        onToggleSwipeActions = { personId ->
-            viewModel.toggleSwipeActions(personId)
+        onSetSwipeActions = { personId, isRevealed ->
+            viewModel.setSwipeActionsIsRevealed(personId, isRevealed)
         },
         onDeletePerson = { personId ->
             viewModel.deletePerson(personId)
@@ -122,13 +118,11 @@ private fun GespeichertePersonenContentView(
     navController: NavController,
     onToggleEditingMode: () -> Unit,
     showSheet: MutableState<Boolean>,
-    onToggleSwipeActions: (String) -> Unit,
+    onSetSwipeActions: (String, Boolean) -> Unit,
     onDeletePerson: (String) -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
     columnState: LazyListState = rememberLazyListState(),
 ) {
-
-    val loadingCellCount = 5
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
@@ -168,7 +162,7 @@ private fun GespeichertePersonenContentView(
             additionalBottomPadding = 16.dp
         )
 
-        LazyColumn(
+        GroupedColumn(
             state = columnState,
             userScrollEnabled = !personenState.scrollingDisabled,
             contentPadding = combinedPadding,
@@ -176,133 +170,129 @@ private fun GespeichertePersonenContentView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
             when (personenState) {
                 UiState.Loading -> {
-                    items(
-                        count = loadingCellCount,
-                        key = { index ->
-                            "GespeichertePersonenLoadingCell$index"
-                        }
-                    ) { index ->
-                        FormItem(
-                            items = (0..<loadingCellCount).toList(),
-                            index = index,
-                            mainContent = FormItemContentType.Text(
-                                title = "",
-                                isLoading = true
-                            ),
-                            trailingElement = FormItemTrailingElementType.Blank,
-                            modifier = Modifier
-                                .animateItem()
+                    section {
+                        textItems(
+                            count = 4,
+                            key = { index ->
+                                "GespeichertePersonenLoadingCell$index"
+                            },
+                            isLoading = true,
+                            text = {
+                                ""
+                            }
                         )
                     }
                 }
                 is UiState.Error -> {
-                    item(
-                        key = "GespeichertePersonenErrorCell"
-                    ) {
-                        ErrorCardView(
-                            errorTitle = "Ein Fehler ist aufgetreten",
-                            errorDescription = personenState.message,
-                            modifier = Modifier
-                                .animateItem()
-                        )
+                    section {
+                        customItem(
+                            key = "GespeichertePersonenErrorCell"
+                        ) {
+                            ErrorCardView(
+                                errorTitle = "Ein Fehler ist aufgetreten",
+                                errorDescription = personenState.message
+                            )
+                        }
                     }
                 }
                 is UiState.Success -> {
 
-                    val persons = personenState.data
-
-                    if (persons.isNotEmpty()) {
-                        item {
-                            BasicListHeader(
-                                mode = BasicListHeaderMode.Normal("Gespeicherte Personen"),
-                            )
-                        }
-                        itemsIndexed(
-                            items = persons,
-                            key = { index, _ ->
-                                "GespeichertePersonenCell$index"
+                    if (personenState.data.isNotEmpty()) {
+                        section(
+                            header = {
+                                BasicListHeader(
+                                    mode = BasicListHeaderMode.Normal("Gespeicherte Personen"),
+                                )
                             }
-                        ) { index, person ->
-
-                            SwipeableFormItem(
-                                items = persons,
-                                index = index,
-                                content = FormItemContentType.Text(
-                                    title = person.displayName
-                                ),
-                                swipeEnabled = isInEditingMode,
-                                isRevealed = persons.first { it.id == person.id }.swipeActionsRevealed,
-                                actions = {
-                                    FormItemActionIcon(
-                                        onClick = {
-                                            onDeletePerson(person.id)
-                                        },
-                                        backgroundColor = Color.SEESTURM_RED,
-                                        icon = Icons.Filled.Delete,
-                                    )
+                        ) {
+                            textItemsIndexed(
+                                items = personenState.data,
+                                key = { index, _ ->
+                                    "GespeichertePersonenCell$index"
                                 },
-                                onExpand = {
-                                    onToggleSwipeActions(person.id)
+                                text = { _, person ->
+                                    person.displayName
                                 },
-                                onCollapse = {
-                                    onToggleSwipeActions(person.id)
-                                },
-                                modifier = Modifier
-                                    .animateItem()
+                                swipeMode = { _, person ->
+                                    if (isInEditingMode) {
+                                        GroupedColumnItemSwipeMode.Enabled(
+                                            isRevealed = personenState.data.first { it.id == person.id }.swipeActionsRevealed,
+                                            actions = {
+                                                GroupedColumnItemActionIcon(
+                                                    onClick = {
+                                                        onDeletePerson(person.id)
+                                                    },
+                                                    backgroundColor = Color.SEESTURM_RED,
+                                                    icon = Icons.Filled.Delete
+                                                )
+                                            },
+                                            onExpand = {
+                                                onSetSwipeActions(person.id, true)
+                                            },
+                                            onCollapse = {
+                                                onSetSwipeActions(person.id, false)
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        GroupedColumnItemSwipeMode.Disabled
+                                    }
+                                }
                             )
                         }
                     }
                     else {
-                        item(
-                            key = "KeineGespeichertePersonenCell"
-                        ) {
-                            CustomCardView(
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                        section {
+                            customItem(
+                                key = "KeineGespeichertePersonenCell"
                             ) {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                CustomCardView(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 16.dp, bottom = 24.dp)
-                                        .padding(horizontal = 16.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.PersonOff,
-                                        contentDescription = null,
-                                        tint = Color.SEESTURM_GREEN,
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                    )
-                                    Text(
-                                        text = "Keine Personen gespeichert",
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
-                                        textAlign = TextAlign.Center,
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                    )
-                                    Text(
-                                        text = "Füge die Angaben von Personen hinzu, die du of von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                    SeesturmButton(
-                                        type = SeesturmButtonType.Primary,
-                                        icon = SeesturmButtonIconType.Predefined(
-                                            icon = Icons.Default.PersonAddAlt
-                                        ),
-                                        title = "Person hinzufügen",
-                                        onClick = {
-                                            showSheet.value = true
-                                        },
-                                        isLoading = false
-                                    )
+                                            .padding(top = 16.dp, bottom = 24.dp)
+                                            .padding(horizontal = 16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.PersonOff,
+                                            contentDescription = null,
+                                            tint = Color.SEESTURM_GREEN,
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                        )
+                                        Text(
+                                            text = "Keine Personen gespeichert",
+                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                        Text(
+                                            text = "Füge die Angaben von Personen hinzu, die du of von Aktivitäten abmeldest. So musst du sie nicht jedes Mal neu eintragen.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                        SeesturmButton(
+                                            type = SeesturmButtonType.Primary,
+                                            icon = SeesturmButtonIconType.Predefined(
+                                                icon = Icons.Default.PersonAddAlt
+                                            ),
+                                            title = "Person hinzufügen",
+                                            onClick = {
+                                                showSheet.value = true
+                                            },
+                                            isLoading = false
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -323,7 +313,7 @@ private fun GespeichertePersonenViewPreview1() {
             navController = rememberNavController(),
             onToggleEditingMode = {},
             showSheet = mutableStateOf(false),
-            onToggleSwipeActions = {},
+            onSetSwipeActions = { _, _ -> },
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
         )
@@ -339,7 +329,7 @@ private fun GespeichertePersonenViewPreview2() {
             navController = rememberNavController(),
             onToggleEditingMode = {},
             showSheet = mutableStateOf(false),
-            onToggleSwipeActions = {},
+            onSetSwipeActions = { _, _ -> },
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
         )
@@ -355,7 +345,7 @@ private fun GespeichertePersonenViewPreview3() {
             navController = rememberNavController(),
             onToggleEditingMode = {},
             showSheet = mutableStateOf(false),
-            onToggleSwipeActions = {},
+            onSetSwipeActions = { _, _ -> },
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
         )
@@ -375,7 +365,27 @@ private fun GespeichertePersonenViewPreview4() {
             navController = rememberNavController(),
             onToggleEditingMode = {},
             showSheet = mutableStateOf(false),
-            onToggleSwipeActions = {},
+            onSetSwipeActions = { _, _ -> },
+            onDeletePerson = {},
+            bottomNavigationInnerPadding = PaddingValues(0.dp)
+        )
+    }
+}
+@Preview("Success, Editing mode")
+@Composable
+private fun GespeichertePersonenViewPreview5() {
+    PfadiSeesturmTheme {
+        GespeichertePersonenContentView(
+            personenState = UiState.Success(listOf(
+                DummyData.gespeichertePerson1,
+                DummyData.gespeichertePerson2,
+                DummyData.gespeichertePerson3
+            )),
+            isInEditingMode = true,
+            navController = rememberNavController(),
+            onToggleEditingMode = {},
+            showSheet = mutableStateOf(false),
+            onSetSwipeActions = { _, _ -> },
             onDeletePerson = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp)
         )

@@ -1,10 +1,7 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
@@ -22,30 +19,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnSectionScope
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
 
-@Composable
-fun <T>PushNotificationToggle(
-    items: List<T>,
+fun GroupedColumnSectionScope.pushNotifcationToggle(
     topic: SeesturmFCMNotificationTopic,
-    index: Int,
     state: UiState<Set<SeesturmFCMNotificationTopic>>,
     actionState: ActionState<SeesturmFCMNotificationTopic>,
     onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    isOn: Boolean = if (state is UiState.Success) {
-        state.data.contains(topic)
-    }
-    else {
-        false
-    }
+    key: Any?,
+    modifier: Modifier = Modifier
 ) {
+
+    val disabledAlpha = 0.6f
 
     val isPushNotificationToggleLoading = when (actionState) {
         is ActionState.Loading -> {
@@ -54,77 +45,69 @@ fun <T>PushNotificationToggle(
         else -> { false }
     }
 
-    val disabledAlpha = 0.6f
-
-    FormItem(
-        items = items,
-        index = index,
+    item(
         modifier = modifier,
-        mainContent = FormItemContentType.Custom(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                top = 4.dp,
-                bottom = 4.dp
-            ),
-            content = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = topic.topicName,
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.bodyLarge.copy(hyphens = Hyphens.Auto),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
-                    if (isPushNotificationToggleLoading) {
-                        CircularProgressIndicator(
-                            color = Color.SEESTURM_GREEN,
-                            modifier = Modifier
-                                .size(20.dp)
-                        )
-                    }
+        key = key,
+        trailingContent = GroupedColumnItemTrailingContentType.Custom {
+            Checkbox(
+                checked = if (state is UiState.Success) {
+                    state.data.contains(topic)
                 }
-            }
-        ),
-        trailingElement = FormItemTrailingElementType.Custom(
-            content = {
-                Checkbox(
-                    checked = isOn,
-                    onCheckedChange = onToggle,
-                    enabled = !actionState.isLoading && state.isSuccess,
-                    colors = CheckboxColors(
+                else {
+                    false
+                },
+                onCheckedChange = onToggle,
+                enabled = !actionState.isLoading && state.isSuccess,
+                colors = CheckboxColors(
 
-                        // enabled
-                        // checked
-                        checkedCheckmarkColor = Color.White,
-                        checkedBoxColor = Color.SEESTURM_GREEN,
-                        checkedBorderColor = Color.SEESTURM_GREEN,
-                        // unchecked
-                        uncheckedCheckmarkColor = Color.Transparent,
-                        uncheckedBoxColor = Color.Transparent,
-                        uncheckedBorderColor = Color.SEESTURM_GREEN,
+                    // enabled
+                    // checked
+                    checkedCheckmarkColor = Color.White,
+                    checkedBoxColor = Color.SEESTURM_GREEN,
+                    checkedBorderColor = Color.SEESTURM_GREEN,
+                    // unchecked
+                    uncheckedCheckmarkColor = Color.Transparent,
+                    uncheckedBoxColor = Color.Transparent,
+                    uncheckedBorderColor = Color.SEESTURM_GREEN,
 
-                        // disabled
-                        disabledBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
-                        disabledIndeterminateBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
-                        disabledIndeterminateBoxColor = Color.Transparent,
-                        // checked
-                        disabledCheckedBoxColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
-                        // unchecked
-                        disabledUncheckedBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
-                        disabledUncheckedBoxColor = Color.Transparent
-                    )
+                    // disabled
+                    disabledBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
+                    disabledIndeterminateBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
+                    disabledIndeterminateBoxColor = Color.Transparent,
+                    // checked
+                    disabledCheckedBoxColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
+                    // unchecked
+                    disabledUncheckedBorderColor = Color.SEESTURM_GREEN.copy(alpha = disabledAlpha),
+                    disabledUncheckedBoxColor = Color.Transparent
+                )
+            )
+        }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = topic.topicName,
+                textAlign = TextAlign.Start,
+                style = MaterialTheme.typography.bodyLarge.copy(hyphens = Hyphens.Auto),
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+            )
+            if (isPushNotificationToggleLoading) {
+                CircularProgressIndicator(
+                    color = Color.SEESTURM_GREEN,
+                    modifier = Modifier
+                        .size(20.dp)
                 )
             }
-        )
-    )
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -132,24 +115,22 @@ fun <T>PushNotificationToggle(
 private fun PushNotificationTogglePreview() {
     val list = listOf(SeesturmFCMNotificationTopic.BiberAktivitaeten, SeesturmFCMNotificationTopic.WolfAktivitaeten, SeesturmFCMNotificationTopic.PfadiAktivitaeten, SeesturmFCMNotificationTopic.PioAktivitaeten)
     PfadiSeesturmTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            list.forEach { topic ->
-                PushNotificationToggle(
-                    items = list,
-                    topic = topic,
-                    index = list.indexOf(topic),
-                    state = UiState.Success(
-                        setOf(
-                            SeesturmFCMNotificationTopic.BiberAktivitaeten,
-                            SeesturmFCMNotificationTopic.PioAktivitaeten
-                        )
-                    ),
-                    actionState = ActionState.Loading(SeesturmFCMNotificationTopic.WolfAktivitaeten),
-                    onToggle = {}
-                )
+        GroupedColumn {
+            section {
+                list.forEach { topic ->
+                    pushNotifcationToggle(
+                        key = null,
+                        topic = topic,
+                        state = UiState.Success(
+                            setOf(
+                                SeesturmFCMNotificationTopic.BiberAktivitaeten,
+                                SeesturmFCMNotificationTopic.PioAktivitaeten
+                            )
+                        ),
+                        actionState = ActionState.Loading(SeesturmFCMNotificationTopic.WolfAktivitaeten),
+                        onToggle = {}
+                    )
+                }
             }
         }
     }

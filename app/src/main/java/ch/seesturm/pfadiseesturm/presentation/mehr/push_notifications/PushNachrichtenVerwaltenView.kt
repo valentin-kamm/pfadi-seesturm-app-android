@@ -5,13 +5,10 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -30,10 +26,11 @@ import ch.seesturm.pfadiseesturm.domain.fcm.SeesturmFCMNotificationTopic
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListFooter
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormSection
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListFooter
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.FormSection
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -142,7 +139,7 @@ fun PushNachrichtenVerwaltenContentView(
             )
         )
 
-    LazyColumn(
+    GroupedColumn(
         state = columnState,
         contentPadding = contentPadding,
         modifier = Modifier
@@ -151,119 +148,70 @@ fun PushNachrichtenVerwaltenContentView(
     ) {
 
         if (additionalTopContent != null) {
-            item(
-                key = "additionalTopContent"
-            ) {
-                additionalTopContent()
+            section {
+                customItem(
+                    key = "additionalTopContent"
+                ) {
+                    additionalTopContent()
+                }
             }
         }
 
         when (subscribedTopicsState) {
             is UiState.Error -> {
-                item(
-                    key = "PushNachrichtenVerwaltenErrorCell"
-                ) {
-                    ErrorCardView(
-                        errorTitle = "Ein Fehler ist aufgetreten",
-                        errorDescription = subscribedTopicsState.message,
-                        modifier = Modifier
-                            .animateItem()
-                    )
-                }
-            }
-            is UiState.Loading -> {
-                sections.forEach { (section, topics) ->
-                    item(
-                        key = "PushNachrichtenVerwaltenHeader${section.header}"
+                section {
+                    customItem(
+                        key = "PushNachrichtenVerwaltenErrorCell"
                     ) {
-                        BasicListHeader(
-                            mode = BasicListHeaderMode.Normal(section.header.uppercase()),
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                    items(
-                        items = topics,
-                        key = { topic ->
-                            "PushNachrichtenVerwaltenCell${topic.topic}"
-                        }
-                    ) { topic ->
-                        PushNotificationToggle(
-                            items = topics,
-                            topic = topic,
-                            index = topics.indexOf(topic),
-                            state = subscribedTopicsState,
-                            actionState = actionState,
-                            onToggle = {},
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                    item(
-                        key = "PushNachrichtenVerwaltenFooter${section.header}"
-                    ) {
-                        BasicListFooter(
-                            mode = BasicListHeaderMode.Normal(
-                                text = section.footer
-                            ),
-                            maxLines = Int.MAX_VALUE,
-                            modifier = Modifier
-                                .fillMaxWidth()
+                        ErrorCardView(
+                            errorTitle = "Ein Fehler ist aufgetreten",
+                            errorDescription = subscribedTopicsState.message
                         )
                     }
                 }
             }
-            is UiState.Success -> {
+            is UiState.Loading, is UiState.Success -> {
                 sections.forEach { (section, topics) ->
-                    item(
-                        key = "PushNachrichtenVerwaltenHeader${section.header}"
-                    ) {
-                        BasicListHeader(
-                            mode = BasicListHeaderMode.Normal(section.header.uppercase()),
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                    items(
-                        items = topics,
-                        key = { topic ->
-                            "PushNachrichtenVerwaltenCell${topic.topic}"
+                    section(
+                        header = {
+                            BasicListHeader(
+                                mode = BasicListHeaderMode.Normal(section.header.uppercase())
+                            )
+                        },
+                        footer = {
+                            BasicListFooter(
+                                mode = BasicListHeaderMode.Normal(
+                                    text = section.footer
+                                ),
+                                maxLines = Int.MAX_VALUE,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
                         }
-                    ) { topic ->
-                        PushNotificationToggle(
-                            items = topics,
-                            topic = topic,
-                            state = subscribedTopicsState,
-                            actionState = actionState,
-                            index = topics.indexOf(topic),
-                            onToggle = { isOn ->
-                                onToggle(topic, isOn)
-                            },
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                    item(
-                        key = "PushNachrichtenVerwaltenFooter${section.header}"
                     ) {
-                        BasicListFooter(
-                            mode = BasicListHeaderMode.Normal(
-                                text = section.footer
-                            ),
-                            maxLines = Int.MAX_VALUE,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
+                        topics.forEach { topic ->
+                            pushNotifcationToggle(
+                                topic = topic,
+                                state = subscribedTopicsState,
+                                actionState = actionState,
+                                onToggle = { isOn ->
+                                    onToggle(topic, isOn)
+                                },
+                                key = "PushNachrichtenVerwaltenCell${topic.topic}"
+                            )
+                        }
                     }
                 }
             }
         }
 
         if (additionalBottomContent != null) {
-            item(
-                key = "additionalBottomContent"
-            ) {
-                additionalBottomContent()
+            section {
+                customItem(
+                    key = "additionalBottomContent"
+                ) {
+                    additionalBottomContent()
+                }
             }
         }
     }

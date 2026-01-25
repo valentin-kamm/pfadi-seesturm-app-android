@@ -36,11 +36,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.CalendarSubscriptionButton
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicLoadingStickHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.rememberStickyHeaderOffsets
+import ch.seesturm.pfadiseesturm.presentation.common.lists.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
@@ -136,7 +135,9 @@ private fun AnlaesseContentView(
             when (val localState = uiState.result) {
                 InfiniteScrollUiState.Loading -> {
                     stickyHeader {
-                        BasicLoadingStickHeader()
+                        BasicListHeader(
+                            mode = BasicListHeaderMode.Loading
+                        )
                     }
                     items(
                         count = 3,
@@ -151,7 +152,9 @@ private fun AnlaesseContentView(
                         )
                     }
                     stickyHeader {
-                        BasicLoadingStickHeader()
+                        BasicListHeader(
+                            mode = BasicListHeaderMode.Loading
+                        )
                     }
                     items(
                         count = 5,

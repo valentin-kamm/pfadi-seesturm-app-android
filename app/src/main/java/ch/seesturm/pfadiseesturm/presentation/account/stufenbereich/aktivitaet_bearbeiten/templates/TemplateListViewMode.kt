@@ -9,8 +9,7 @@ sealed class TemplateListViewMode {
         val onAddClick: () -> Unit,
         val editState: ActionState<Unit>,
         val deleteState: ActionState<Unit>,
-        val onCollapseItem: (AktivitaetTemplate) -> Unit,
-        val onExpandItem: (AktivitaetTemplate) -> Unit,
+        val setSwipeActionsRevealed: (AktivitaetTemplate, Boolean) -> Unit,
         val onDeleteItem: (AktivitaetTemplate) -> Unit
     ): TemplateListViewMode()
 }

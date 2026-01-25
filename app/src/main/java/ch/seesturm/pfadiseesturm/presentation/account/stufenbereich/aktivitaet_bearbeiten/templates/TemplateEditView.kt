@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -22,8 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmHTMLEditor
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.SeesturmRichTextState
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.getUnescapedHtml
@@ -42,60 +39,53 @@ fun TemplateEditView(
     listState: LazyListState = rememberLazyListState()
 ) {
 
-    LazyColumn(
+    GroupedColumn(
         state = listState,
         contentPadding = PaddingValues(16.dp),
         modifier = modifier
             .fillMaxSize()
     ) {
-        item {
-            FormItem(
-                items = (0..0).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmHTMLEditor(
-                            state = richTextState,
-                            enabled = !editState.isLoading,
-                            label = {
-                                Text("Vorlage")
-                            },
-                            placeholder = {
-                                Text("Vorlage")
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-                    }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-            )
-        }
-        item {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            ) {
-                SeesturmButton(
-                    type = SeesturmButtonType.Primary,
-                    title = mode.buttonTitle,
-                    onClick = {
-                        when (mode) {
-                            is TemplateEditMode.Insert -> {
-                                mode.onSubmit(richTextState.state.getUnescapedHtml())
-                            }
-                            is TemplateEditMode.Update -> {
-                                mode.onSubmit(richTextState.state.getUnescapedHtml())
-                            }
-                        }
-                    },
-                    isLoading = editState.isLoading,
+        section {
+            item {
+                SeesturmHTMLEditor(
+                    state = richTextState,
                     enabled = !editState.isLoading,
+                    label = {
+                        Text("Vorlage")
+                    },
+                    placeholder = {
+                        Text("Vorlage")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
                 )
+            }
+        }
+        section {
+            customItem {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    SeesturmButton(
+                        type = SeesturmButtonType.Primary,
+                        title = mode.buttonTitle,
+                        onClick = {
+                            when (mode) {
+                                is TemplateEditMode.Insert -> {
+                                    mode.onSubmit(richTextState.state.getUnescapedHtml())
+                                }
+                                is TemplateEditMode.Update -> {
+                                    mode.onSubmit(richTextState.state.getUnescapedHtml())
+                                }
+                            }
+                        },
+                        isLoading = editState.isLoading,
+                        enabled = !editState.isLoading,
+                    )
+                }
             }
         }
     }

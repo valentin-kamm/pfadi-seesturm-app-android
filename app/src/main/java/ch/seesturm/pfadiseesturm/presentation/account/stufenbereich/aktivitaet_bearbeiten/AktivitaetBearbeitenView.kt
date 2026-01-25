@@ -1,18 +1,21 @@
 package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,9 +23,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material3.CalendarLocale
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -41,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -52,19 +54,17 @@ import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateListView
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateListViewMode
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
-import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListFooter
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListFooter
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmDatePicker
 import ch.seesturm.pfadiseesturm.presentation.common.picker.SeesturmTimePicker
@@ -89,6 +89,11 @@ import ch.seesturm.pfadiseesturm.util.types.DateFormattingType
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import com.mohamedrejeb.richeditor.model.RichTextState
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.CupertinoMaterials
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,7 +249,7 @@ fun AktivitaetBearbeitenView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun AktivitaetBearbeitenContentView(
     uiState: AktivitaetBearbeitenState,
@@ -270,6 +275,8 @@ private fun AktivitaetBearbeitenContentView(
     columnState: LazyListState = rememberLazyListState()
 ) {
 
+    val hazeState = remember { HazeState() }
+
     val startDateFormatted = DateTimeUtil.shared.formatDate(
         date = uiState.start,
         format = "dd.MM.yyyy",
@@ -291,6 +298,8 @@ private fun AktivitaetBearbeitenContentView(
         type = DateFormattingType.Absolute
     )
 
+    val controlsEnabled = !uiState.publishAktivitaetState.isLoading && !uiState.aktivitaetState.isLoading
+
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         title = mode.topBarTitle(stufe),
@@ -305,194 +314,64 @@ private fun AktivitaetBearbeitenContentView(
         }
     ) { topBarInnerPadding ->
 
-        val combinedPadding =
-            bottomNavigationInnerPadding.intersectWith(
-                other = topBarInnerPadding,
-                layoutDirection = LayoutDirection.Ltr,
-                additionalStartPadding = 16.dp,
-                additionalEndPadding = 16.dp,
-                additionalTopPadding = 16.dp,
-                additionalBottomPadding = 16.dp
-            )
+        val combinedPadding = bottomNavigationInnerPadding.intersectWith(
+            other = topBarInnerPadding,
+            layoutDirection = LayoutDirection.Ltr,
+            additionalStartPadding = 16.dp,
+            additionalEndPadding = 16.dp,
+            additionalTopPadding = 16.dp,
+            additionalBottomPadding = 16.dp
+        )
 
-        LazyColumn(
-            state = columnState,
-            contentPadding = combinedPadding,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            userScrollEnabled = !uiState.aktivitaetState.isLoading,
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-
-            when (uiState.aktivitaetState) {
-                is UiState.Error -> {
-                    item(
-                        key = "AktivitaetBearbeitenErrorItem"
-                    ) {
-                        ErrorCardView(
-                            errorDescription = uiState.aktivitaetState.message,
-                            retryAction = {
-                                onErrorRetry()
-                            }
-                        )
-                    }
-                }
-                UiState.Loading -> {
-                    item(
-                        key = "AktivitaetBearbeitenDateLoadingItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Loading)
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 1,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 2,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        BasicListFooter(mode = BasicListHeaderMode.Loading)
-                    }
-                    item(
-                        key = "AktivitaetBearbeitenPlaceLoadingItem"
-                    ) {
-                        FormItem(
-                            items = (0..0).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        BasicListFooter(BasicListHeaderMode.Loading)
-                    }
-                    item(
-                        key = "AktivitaetBearbeitenDescriptionLoadingItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Loading)
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 1,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
-                                    RedactedText(
-                                        numberOfLines = 7,
-                                        lastLineFraction = 0.75f,
-                                        textStyle = LocalTextStyle.current
-                                    )
-                                },
-                                contentPadding = PaddingValues(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    top = 16.dp,
-                                    bottom = 48.dp
+            GroupedColumn(
+                state = columnState,
+                contentPadding = combinedPadding,
+                userScrollEnabled = !uiState.aktivitaetState.isLoading,
+                sectionSpacing = 16.dp,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .hazeSource(hazeState)
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                when (uiState.aktivitaetState) {
+                    is UiState.Error -> {
+                        section {
+                            customItem(
+                                key = "ManageEventErrorItem"
+                            ) {
+                                ErrorCardView(
+                                    errorDescription = uiState.aktivitaetState.message,
+                                    retryAction = {
+                                        onErrorRetry()
+                                    }
                                 )
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 2,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Vorlage einfügen",
-                                isLoading = true
-                            ),
-                            trailingElement = FormItemTrailingElementType.Blank
-                        )
+                            }
+                        }
                     }
-                    item(
-                        key = "AktivitaetBearbeitenPublishLoadingItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Loading)
-                        FormItem(
-                            items = (0..1).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                        FormItem(
-                            items = (0..1).toList(),
-                            index = 1,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Start",
-                                isLoading = true
-                            )
-                        )
-                    }
-                }
 
-                is UiState.Success -> {
-                    item(
-                        key = "AktivitaetBearbeitenDateItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Normal("Zeit"))
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
+                    UiState.Loading, is UiState.Success -> {
+                        section(
+                            header = {
+                                BasicListHeader(BasicListHeaderMode.Normal("Zeit"))
+                            },
+                            footer = {
+                                BasicListFooter(BasicListHeaderMode.Normal("Zeiten in MEZ/MESZ (CH-Zeit)"))
+                            }
+                        ) {
+                            textItem(
+                                key = "AktivitaetBearbeitenStartDateItem",
+                                text = "Start",
+                                trailingContent = GroupedColumnItemTrailingContentType.Custom {
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "Start",
-                                            textAlign = TextAlign.Start,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .weight(1f)
-                                        )
                                         SeesturmButton(
                                             type = SeesturmButtonType.Primary,
                                             colors = SeesturmButtonColor.Custom(
@@ -503,7 +382,7 @@ private fun AktivitaetBearbeitenContentView(
                                             onClick = {
                                                 updateStartDatePickerVisibility(true)
                                             },
-                                            enabled = !uiState.publishAktivitaetState.isLoading,
+                                            enabled = controlsEnabled,
                                             modifier = Modifier
                                                 .wrapContentWidth(),
                                             isLoading = false
@@ -519,39 +398,23 @@ private fun AktivitaetBearbeitenContentView(
                                                 onClick = {
                                                     updateStartTimePickerVisibility(true)
                                                 },
-                                                enabled = !uiState.publishAktivitaetState.isLoading,
+                                                enabled = controlsEnabled,
                                                 modifier = Modifier
                                                     .wrapContentWidth(),
                                                 isLoading = false
                                             )
                                         }
                                     }
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                                }
                             )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 1,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
+                            textItem(
+                                key = "AktivitaetBearbeitenEndDateItem",
+                                text = "Ende",
+                                trailingContent = GroupedColumnItemTrailingContentType.Custom {
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "Ende",
-                                            textAlign = TextAlign.Start,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .weight(1f)
-                                        )
                                         SeesturmButton(
                                             type = SeesturmButtonType.Primary,
                                             colors = SeesturmButtonColor.Custom(
@@ -562,7 +425,7 @@ private fun AktivitaetBearbeitenContentView(
                                             onClick = {
                                                 updateEndDatePickerVisibility(true)
                                             },
-                                            enabled = !uiState.publishAktivitaetState.isLoading,
+                                            enabled = controlsEnabled,
                                             modifier = Modifier
                                                 .wrapContentWidth(),
                                             isLoading = false
@@ -578,33 +441,25 @@ private fun AktivitaetBearbeitenContentView(
                                                 onClick = {
                                                     updateEndTimePickerVisibility(true)
                                                 },
-                                                enabled = !uiState.publishAktivitaetState.isLoading,
+                                                enabled = controlsEnabled,
                                                 modifier = Modifier
                                                     .wrapContentWidth(),
                                                 isLoading = false
                                             )
                                         }
                                     }
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                                }
                             )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 2,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Ganztägig"
-                            ),
-                            trailingElement = FormItemTrailingElementType.Custom(
-                                content = {
+                            textItem(
+                                key = "AktivitaetBearbeitenAllDayDateItem",
+                                text = "Ganztägig",
+                                trailingContent = GroupedColumnItemTrailingContentType.Custom {
                                     Switch(
                                         checked = uiState.isAllDay,
                                         onCheckedChange = { newValue ->
                                             onToggleAllDay(newValue)
                                         },
-                                        enabled = !uiState.publishAktivitaetState.isLoading,
+                                        enabled = controlsEnabled,
                                         colors = SwitchDefaults.colors().copy(
                                             checkedThumbColor = MaterialTheme.colorScheme.background,
                                             checkedTrackColor = stufe.highContrastColor(isDarkTheme)
@@ -612,155 +467,106 @@ private fun AktivitaetBearbeitenContentView(
                                     )
                                 }
                             )
-                        )
-                        BasicListFooter(BasicListHeaderMode.Normal("Zeiten in MEZ/MESZ (CH-Zeit)"))
-                    }
+                        }
 
-                    item(
-                        key = "AktivitaetBearbeitenPlaceItem"
-                    ) {
-                        FormItem(
-                            items = (0..0).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
-                                    SeesturmTextField(
-                                        state = SeesturmTextFieldState(
-                                            text = uiState.location,
-                                            label = "Treffpunkt",
-                                            state = SeesturmBinaryUiState.Success(Unit),
-                                            onValueChanged = { newValue ->
-                                                onLocationChange(newValue)
-                                            }
-                                        ),
-                                        leadingIcon = Icons.Outlined.LocationOn,
-                                        enabled = !uiState.publishAktivitaetState.isLoading,
-                                        keyboardOptions = KeyboardOptions(
-                                            imeAction = ImeAction.Next
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        )
-                        BasicListFooter(BasicListHeaderMode.Normal("Treffpunkt am Anfang der Aktivität"))
-                    }
-
-                    item(
-                        key = "AktivitaetBearbeitenDescriptionItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Normal("Beschreibung"))
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 0,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
-                                    SeesturmTextField(
-                                        state = uiState.title,
-                                        leadingIcon = Icons.Outlined.Title,
-                                        enabled = !uiState.publishAktivitaetState.isLoading,
-                                        keyboardOptions = KeyboardOptions(
-                                            imeAction = ImeAction.Next
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 1,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
-                                    SeesturmHTMLEditor(
-                                        state = uiState.description,
-                                        enabled = !uiState.publishAktivitaetState.isLoading,
-                                        placeholder = {
-                                            Text("Beschreibung")
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(250.dp)
-                                    )
-                                }
-                            )
-                        )
-                        FormItem(
-                            items = (0..2).toList(),
-                            index = 2,
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Vorlage einfügen"
-                            ),
-                            trailingElement = FormItemTrailingElementType.Blank,
-                            onClick = if (!uiState.publishAktivitaetState.isLoading) {
-                                { showTemplatesSheet.value = true }
+                        section(
+                            footer = {
+                                BasicListFooter(BasicListHeaderMode.Normal("Treffpunkt am Anfang der Aktivität"))
                             }
-                            else {
-                                null
+                        ) {
+                            item(
+                                key = "AktivitaetBearbeitenPlaceItem"
+                            ) {
+                                SeesturmTextField(
+                                    state = SeesturmTextFieldState(
+                                        text = uiState.location,
+                                        label = "Treffpunkt",
+                                        state = SeesturmBinaryUiState.Success(Unit),
+                                        onValueChanged = { newValue ->
+                                            onLocationChange(newValue)
+                                        }
+                                    ),
+                                    leadingIcon = Icons.Outlined.LocationOn,
+                                    enabled = controlsEnabled,
+                                    keyboardOptions = KeyboardOptions(
+                                        imeAction = ImeAction.Next
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
                             }
-                        )
-                    }
+                        }
 
-                    item(
-                        key = "AktivitaetBearbeitenPublishItem"
-                    ) {
-                        BasicListHeader(BasicListHeaderMode.Normal(mode.buttonTitle))
-                        if (aktivitaetForPreview != null) {
-                            FormItem(
-                                items = (0..1).toList(),
-                                index = 0,
-                                modifier = Modifier
-                                    .animateItem(),
-                                mainContent = FormItemContentType.Text(
-                                    title = "Vorschau"
-                                ),
-                                trailingElement = FormItemTrailingElementType.Blank,
-                                onClick = if (!uiState.publishAktivitaetState.isLoading) {
-                                    { aktivitaetForPreviewSheet.value = aktivitaetForPreview }
-                                }
-                                else {
+                        section(
+                            header = {
+                                BasicListHeader(BasicListHeaderMode.Normal("Beschreibung"))
+                            }
+                        ) {
+                            item(
+                                key = "AktivitaetBearbeitenTitleItem"
+                            ) {
+                                SeesturmTextField(
+                                    state = uiState.title,
+                                    leadingIcon = Icons.Outlined.Title,
+                                    enabled = controlsEnabled,
+                                    keyboardOptions = KeyboardOptions(
+                                        imeAction = ImeAction.Next
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                            }
+                            item(
+                                key = "AktivitaetBearbeitenDescriptionItem"
+                            ) {
+                                SeesturmHTMLEditor(
+                                    state = uiState.description,
+                                    enabled = controlsEnabled,
+                                    placeholder = {
+                                        Text("Beschreibung")
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(250.dp)
+                                )
+                            }
+                            textItem(
+                                key = "AktivitaetBearbeitenInsertTemplateItem",
+                                text = "Vorlage einfügen",
+                                onClick = if (controlsEnabled) {
+                                    { showTemplatesSheet.value = true }
+                                } else {
                                     null
                                 }
                             )
                         }
-                        FormItem(
-                            items = if (aktivitaetForPreview == null) {
-                                (0..0).toList()
+
+                        section(
+                            header = {
+                                BasicListHeader(BasicListHeaderMode.Normal(mode.buttonTitle))
                             }
-                            else {
-                                (0..1).toList()
-                            },
-                            index = if (aktivitaetForPreview == null) {
-                                0
+                        ) {
+                            if (aktivitaetForPreview != null) {
+                                textItem(
+                                    key = "AktivitaetBearbeitenPublishPreviewItem",
+                                    text = "Vorschau",
+                                    onClick = if (controlsEnabled) {
+                                        { aktivitaetForPreviewSheet.value = aktivitaetForPreview }
+                                    } else {
+                                        null
+                                    }
+                                )
                             }
-                            else {
-                                1
-                            },
-                            modifier = Modifier
-                                .animateItem(),
-                            mainContent = FormItemContentType.Text(
-                                title = "Push-Nachricht senden"
-                            ),
-                            trailingElement = FormItemTrailingElementType.Custom(
-                                content = {
+                            textItem(
+                                key = "AktivitaetBearbeitenPublishPushNotificationItem",
+                                text = "Push-Nachricht senden",
+                                trailingContent = GroupedColumnItemTrailingContentType.Custom {
                                     Switch(
                                         checked = uiState.sendPushNotification,
                                         onCheckedChange = { newValue ->
                                             onPushNotificationChange(newValue)
                                         },
-                                        enabled = !uiState.publishAktivitaetState.isLoading,
+                                        enabled = controlsEnabled,
                                         colors = SwitchDefaults.colors().copy(
                                             checkedThumbColor = MaterialTheme.colorScheme.background,
                                             checkedTrackColor = stufe.highContrastColor(isDarkTheme)
@@ -768,26 +574,68 @@ private fun AktivitaetBearbeitenContentView(
                                     )
                                 }
                             )
-                        )
+                        }
+
+                        section {
+                            customItem(
+                                key = "AktivitaetBearbeitenButtonItem"
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    SeesturmButton(
+                                        type = SeesturmButtonType.Primary,
+                                        colors = SeesturmButtonColor.Custom(
+                                            buttonColor = stufe.highContrastColor(isDarkTheme),
+                                            contentColor = stufe.onHighContrastColor()
+                                        ),
+                                        enabled = controlsEnabled,
+                                        title = mode.buttonTitle,
+                                        onClick = {
+                                            onSubmitButtonClick()
+                                        },
+                                        isLoading = uiState.publishAktivitaetState.isLoading
+                                    )
+                                }
+                            }
+                        }
                     }
-                    item(
-                        key = "AktivitaetBearbeitenButtonItem"
-                    ) {
-                        SeesturmButton(
-                            type = SeesturmButtonType.Primary,
-                            colors = SeesturmButtonColor.Custom(
-                                buttonColor = stufe.highContrastColor(isDarkTheme),
-                                contentColor = stufe.onHighContrastColor()
-                            ),
-                            modifier = Modifier
-                                .animateItem(),
-                            title = mode.buttonTitle,
-                            onClick = {
-                                onSubmitButtonClick()
-                            },
-                            isLoading = uiState.publishAktivitaetState.isLoading
+                }
+            }
+            if (uiState.aktivitaetState.isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Transparent)
+                        .then(
+                            if (Build.VERSION.SDK_INT >= 30) {
+                                Modifier
+                                    .hazeEffect(hazeState, style = CupertinoMaterials.ultraThin())
+                                    .background(Color.Transparent)
+                            }
+                            else {
+                                Modifier
+                                    .background(MaterialTheme.colorScheme.background)
+                            }
                         )
-                    }
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.CenterVertically)
+                ) {
+                    CircularProgressIndicator(
+                        color = stufe.highContrastColor(isDarkTheme),
+                        modifier = Modifier
+                            .size(32.dp)
+                    )
+                    Text(
+                        text = "${stufe.aktivitaetDescription} wird geladen...",
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }

@@ -228,15 +228,14 @@ class GespeichertePersonenViewModel(
             }
         }
     }
-    fun toggleSwipeActions(id: String) {
-
+    fun setSwipeActionsIsRevealed(personId: String, isRevealed: Boolean) {
         val localState = state.value.readingResult
 
         if (localState is UiState.Success) {
             val updatePersonList = localState.data.map { item ->
-                if (item.id == id) {
+                if (item.id == personId) {
                     item.copy(
-                        swipeActionsRevealed = !item.swipeActionsRevealed
+                        swipeActionsRevealed = isRevealed
                     )
                 }
                 else {

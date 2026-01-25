@@ -54,6 +54,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
@@ -143,8 +144,6 @@ private fun OrdersContentView(
     columnState: LazyListState = rememberLazyListState()
 ) {
 
-    val loadingCellNumber = 10
-
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
         navigationAction = TopBarNavigationIcon.Back { accountNavController.navigateUp() },
@@ -197,7 +196,7 @@ private fun OrdersContentView(
             additionalBottomPadding = 16.dp
         )
 
-        LazyColumn(
+        GroupedColumn(
             state = columnState,
             userScrollEnabled = !foodState.scrollingDisabled,
             contentPadding = combinedPadding,
@@ -205,109 +204,102 @@ private fun OrdersContentView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
             when (foodState) {
                 UiState.Loading -> {
-                    items(
-                        count = loadingCellNumber,
-                        key = { index ->
-                            "EssenBestellenLoadingCell$index"
+                    section {
+                        items(
+                            count = 10,
+                            key = { index ->
+                                "EssenBestellenLoadingCell$index"
+                            }
+                        ) {
+                            FoodOrderLoadingCell()
                         }
-                    ) { index ->
-                        FoodOrderLoadingCell(
-                            items = (0..<loadingCellNumber).toList(),
-                            index = index,
-                            modifier = Modifier
-                                .animateItem()
-                        )
                     }
                 }
                 is UiState.Error -> {
-                    item(
-                        key = "EssenBestellenErrorCell"
-                    ) {
-                        ErrorCardView(
-                            errorDescription = foodState.message,
-                            modifier = Modifier
-                                .animateItem()
-                        )
-                    }
-                }
-                is UiState.Success -> {
-
-                    val relevantOrders = foodState.data.filter { it.totalCount > 0 }
-
-                    if (relevantOrders.isNotEmpty()) {
-                        itemsIndexed(
-                            items = relevantOrders,
-                            key = { _, order ->
-                                order.id
-                            }
-                        ) { index, order ->
-                            FoodOrderCell(
-                                order = order,
-                                orders = relevantOrders,
-                                index = index,
-                                userId = userId,
-                                onDelete = {
-                                    onDeleteFromOrder(order.id)
-                                },
-                                onAdd = {
-                                    onAddToOrder(order.id)
-                                },
-                                modifier = Modifier
-                                    .animateItem()
+                    section {
+                        customItem(
+                            key = "EssenBestellenErrorCell"
+                        ) {
+                            ErrorCardView(
+                                errorDescription = foodState.message
                             )
                         }
                     }
-                    else {
-                        item(
-                            key = "KeineBestellungCell"
-                        ) {
-                            CustomCardView(
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                }
+                is UiState.Success -> {
+                    val relevantOrders = foodState.data.filter { it.totalCount > 0 }
+
+                    section {
+                        if (relevantOrders.isNotEmpty()) {
+                            items(
+                                items = relevantOrders,
+                                key = { order ->
+                                    order.id
+                                }
+                            ) { order ->
+                                FoodOrderCell(
+                                    order = order,
+                                    userId = userId,
+                                    onDelete = {
+                                        onDeleteFromOrder(order.id)
+                                    },
+                                    onAdd = {
+                                        onAddToOrder(order.id)
+                                    }
+                                )
+                            }
+                        }
+                        else {
+                            customItem(
+                                key = "KeineBestellungCell"
                             ) {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                CustomCardView(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 16.dp, bottom = 24.dp)
-                                        .padding(horizontal = 16.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.NoFood,
-                                        contentDescription = null,
-                                        tint = Color.SEESTURM_GREEN,
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                    )
-                                    Text(
-                                        text = "Keine Bestellungen",
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
-                                        textAlign = TextAlign.Center,
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                    )
-                                    Text(
-                                        text = "Füge jetzt die erste Bestellung hinzu.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                    SeesturmButton(
-                                        type = SeesturmButtonType.Primary,
-                                        icon = SeesturmButtonIconType.Predefined(
-                                            icon = Icons.Default.Fastfood
-                                        ),
-                                        title = "Bestellung hinzufügen",
-                                        onClick = {
-                                            showFoodSheet.value = true
-                                        },
-                                        isLoading = false
-                                    )
+                                            .padding(top = 16.dp, bottom = 24.dp)
+                                            .padding(horizontal = 16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.NoFood,
+                                            contentDescription = null,
+                                            tint = Color.SEESTURM_GREEN,
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                        )
+                                        Text(
+                                            text = "Keine Bestellungen",
+                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                        Text(
+                                            text = "Füge jetzt die erste Bestellung hinzu.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                        SeesturmButton(
+                                            type = SeesturmButtonType.Primary,
+                                            icon = SeesturmButtonIconType.Predefined(
+                                                icon = Icons.Default.Fastfood
+                                            ),
+                                            title = "Bestellung hinzufügen",
+                                            onClick = {
+                                                showFoodSheet.value = true
+                                            },
+                                            isLoading = false
+                                        )
+                                    }
                                 }
                             }
                         }

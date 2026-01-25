@@ -1,4 +1,4 @@
 package ch.seesturm.pfadiseesturm.presentation.common.lists
 
-class GroupedListDsl {
-}
+@DslMarker
+annotation class GroupedColumnDsl

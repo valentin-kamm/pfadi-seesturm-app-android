@@ -2,16 +2,12 @@ package ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -42,17 +38,15 @@ import ch.seesturm.pfadiseesturm.presentation.common.ThemedDropdownMenuItem
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam.components.LeitungsteamCell
 import ch.seesturm.pfadiseesturm.presentation.mehr.leitungsteam.components.LeitungsteamLoadingCell
 import ch.seesturm.pfadiseesturm.util.DummyData
-import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.UiState
+import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
 @Composable
 fun LeitungsteamView(
@@ -72,7 +66,7 @@ fun LeitungsteamView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 private fun LeitungsteamContentView(
     uiState: UiState<List<Leitungsteam>>,
@@ -82,9 +76,7 @@ private fun LeitungsteamContentView(
     columnState: LazyListState = rememberLazyListState()
 ) {
 
-    val stickyOffsets = rememberStickyHeaderOffsets(columnState, 0)
     var selectedStufe by remember { mutableStateOf("Abteilungsleitung") }
-    val loadingCellCount = 7
 
     TopBarScaffold(
         topBarStyle = TopBarStyle.Small,
@@ -98,7 +90,7 @@ private fun LeitungsteamContentView(
             additionalBottomPadding = 16.dp
         )
 
-        LazyColumn(
+        GroupedColumn(
             state = columnState,
             userScrollEnabled = !uiState.scrollingDisabled,
             contentPadding = combinedPadding,
@@ -108,87 +100,72 @@ private fun LeitungsteamContentView(
         ) {
             when (uiState) {
                 UiState.Loading -> {
-                    seesturmStickyHeader(
-                        uniqueKey = "LeitungsteamLoadingStickyHeader",
-                        stickyOffsets = stickyOffsets
-                    ) { _ ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.background)
-                                .fillMaxWidth()
-                                .animateItem()
-                                .padding(16.dp)
-                        ) {
+                    section(
+                        header = {
                             RedactedText(
                                 numberOfLines = 1,
                                 textStyle = MaterialTheme.typography.titleLarge,
-                                lastLineFraction = 0.55f
+                                lastLineFraction = 0.55f,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            )
+                        }
+                    ) {
+                        items(
+                            count = 2,
+                            key = { index ->
+                                "LeitungsteamLoadingCell$index"
+                            },
+                            padding = { index ->
+                                PaddingValues(
+                                    top = if (index == 0) 16.dp else 0.dp,
+                                    bottom = 0.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                )
+                            }
+                        ) {
+                            LeitungsteamLoadingCell(
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
                             )
                         }
                     }
-                    items(
-                        count = loadingCellCount,
-                        key = { index ->
-                            "LeitungsteamLoadingCell$index"
-                        }
-                    ) { index ->
-                        FormItem(
-                            items = (0..<loadingCellCount).toList(),
-                            index = index,
-                            modifier = Modifier
-                                .animateItem()
-                                .padding(horizontal = 16.dp)
-                                .padding(top = if (index == 0) 16.dp else 0.dp),
-                            mainContent = FormItemContentType.Custom(
-                                content = {
-                                    LeitungsteamLoadingCell()
-                                }
-                            ),
-                        )
-                    }
                 }
                 is UiState.Error -> {
-                    item(
-                        key = "LeitungsteamErroCell"
-                    ) {
-                        ErrorCardView(
-                            errorTitle = "Ein Fehler ist aufgetreten",
-                            errorDescription = uiState.message,
-                            modifier = Modifier
-                                .animateItem()
-                                .padding(16.dp)
+                    section {
+                        customItem(
+                            key = "LeitungsteamErrorCell"
                         ) {
-                            onRetry()
+                            ErrorCardView(
+                                errorTitle = "Ein Fehler ist aufgetreten",
+                                errorDescription = uiState.message,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                            ) {
+                                onRetry()
+                            }
                         }
                     }
                 }
                 is UiState.Success -> {
-                    seesturmStickyHeader(
-                        uniqueKey = "LeitungsteamStickyHeader",
-                        stickyOffsets = stickyOffsets
-                    ) { _ ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.background)
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .animateItem()
-                        ) {
-                            Text(
-                                text = selectedStufe,
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    section(
+                        header = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .alpha(0.4f)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .wrapContentSize()
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
                             ) {
+                                Text(
+                                    text = selectedStufe,
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .alpha(0.4f)
+                                )
                                 DropdownButton(
                                     title = "Stufe",
                                     dropdown = { isShown, dismiss ->
@@ -224,30 +201,28 @@ private fun LeitungsteamContentView(
                                 )
                             }
                         }
-                    }
-                    if (uiState.data.map { it.teamName }.contains(selectedStufe)) {
-                        val members = uiState.data.first { it.teamName == selectedStufe }.members
-                        itemsIndexed(
-                            items = members,
-                            key = { index, _ ->
-                                "LeitungsteamCell$index"
-                            }
-                        ) { index, item ->
-                            FormItem(
-                                items = members,
-                                index = index,
-                                modifier = Modifier
-                                    .animateItem()
-                                    .padding(horizontal = 16.dp)
-                                    .padding(top = if (index == 0) 16.dp else 0.dp),
-                                mainContent = FormItemContentType.Custom(
-                                    content = {
-                                        LeitungsteamCell(
-                                            member = item
-                                        )
-                                    }
+                    ) {
+                        if (uiState.data.map { it.teamName }.contains(selectedStufe)) {
+                            itemsIndexed(
+                                items = uiState.data.first { it.teamName == selectedStufe}.members,
+                                key = { index, _ ->
+                                    "LeitungsteamCell$index"
+                                },
+                                padding = { index , _->
+                                    PaddingValues(
+                                        top = if (index == 0) 16.dp else 0.dp,
+                                        bottom = 0.dp,
+                                        start = 16.dp,
+                                        end = 16.dp
+                                    )
+                                }
+                            ) { _, member ->
+                                LeitungsteamCell(
+                                    member = member,
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
                                 )
-                            )
+                            }
                         }
                     }
                 }

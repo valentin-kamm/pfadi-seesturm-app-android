@@ -2,11 +2,10 @@ package ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,11 +31,10 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.DropdownButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeader
-import ch.seesturm.pfadiseesturm.presentation.common.forms.BasicListHeaderMode
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
@@ -62,159 +60,132 @@ fun AktivitaetAnAbmeldenView(
     modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState(),
 ) {
-
-    val firstTextFieldCount = 3
-
-    LazyColumn(
+    GroupedColumn(
         state = columnState,
         contentPadding = PaddingValues(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
     ) {
-        item {
-            FormItem(
-                items = (0..<firstTextFieldCount).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmTextField(
-                            state = vornameState,
-                            leadingIcon = Icons.Outlined.AccountBox,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    },
-                    contentPadding = PaddingValues(16.dp)
-                )
-            )
-            FormItem(
-                items = (0..<firstTextFieldCount).toList(),
-                index = 1,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmTextField(
-                            state = nachnameState,
-                            leadingIcon = Icons.Filled.AccountBox,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    },
-                    contentPadding = PaddingValues(16.dp)
-                )
-            )
-            FormItem(
-                items = (0..<firstTextFieldCount).toList(),
-                index = 2,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmTextField(
-                            state = pfadinameState,
-                            leadingIcon = Icons.Outlined.TagFaces,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    },
-                    contentPadding = PaddingValues(16.dp)
-                )
-            )
-        }
-        item {
-            BasicListHeader(
-                mode = BasicListHeaderMode.Normal("Bemerkung (optional)")
-            )
-            FormItem(
-                items = (0..<1).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmTextField(
-                            state = bemerkungState,
-                            leadingIcon = Icons.AutoMirrored.Outlined.Comment,
-                            singleLine = false,
-                            hideLabel = true,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Done
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                        )
-                    },
-                    contentPadding = PaddingValues(16.dp)
-                )
-            )
-        }
-        if (stufe.allowedAktivitaetInteractions.count() > 1) {
+        section {
             item {
-                FormItem(
-                    items = (0..<1).toList(),
-                    index = 0,
-                    mainContent = FormItemContentType.Text(
-                        title = "An-/Abmeldung"
+                SeesturmTextField(
+                    state = vornameState,
+                    leadingIcon = Icons.Outlined.AccountBox,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
                     ),
-                    trailingElement = FormItemTrailingElementType.Custom(
-                        content = {
-                            DropdownButton(
-                                title = selectedSheetMode.nomen,
-                                colors = SeesturmButtonColor.Custom(
-                                    contentColor = selectedSheetMode.color,
-                                    buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
-                                dropdown = { isShown, dismiss ->
-                                    ThemedDropdownMenu(
-                                        expanded = isShown,
-                                        onDismissRequest = {
-                                            dismiss()
-                                        }
-                                    ) {
-                                        stufe.allowedAktivitaetInteractions.forEach { interaction ->
-                                            ThemedDropdownMenuItem(
-                                                text = {
-                                                    Text(interaction.nomen)
-                                                },
-                                                onClick = {
-                                                    dismiss()
-                                                    onChangeSheetMode(interaction)
-                                                },
-                                                trailingIcon = {
-                                                    Icon(
-                                                        imageVector = interaction.icon,
-                                                        contentDescription = null,
-                                                        tint = interaction.color
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    )
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+            }
+            item {
+                SeesturmTextField(
+                    state = nachnameState,
+                    leadingIcon = Icons.Filled.AccountBox,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+            }
+            item {
+                SeesturmTextField(
+                    state = pfadinameState,
+                    leadingIcon = Icons.Outlined.TagFaces,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
                 )
             }
         }
-        item {
-            SeesturmButton(
-                type = SeesturmButtonType.Primary,
-                colors = SeesturmButtonColor.Custom(
-                    buttonColor = selectedSheetMode.color,
-                    contentColor = Color.White
-                ),
-                title = "${selectedSheetMode.nomen} senden",
-                isLoading = anAbmeldenState.isLoading,
-                onClick = onSubmit
-            )
+        section(
+            header = {
+                BasicListHeader(
+                    mode = BasicListHeaderMode.Normal("Bemerkung (optional)")
+                )
+            }
+        ) {
+            item {
+                SeesturmTextField(
+                    state = bemerkungState,
+                    leadingIcon = Icons.AutoMirrored.Outlined.Comment,
+                    singleLine = false,
+                    hideLabel = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+            }
+        }
+        if (stufe.allowedAktivitaetInteractions.count() > 1) {
+            section {
+                textItem(
+                    text = "An-/Abmeldung",
+                    trailingContent = GroupedColumnItemTrailingContentType.Custom {
+                        DropdownButton(
+                            title = selectedSheetMode.nomen,
+                            colors = SeesturmButtonColor.Custom(
+                                contentColor = selectedSheetMode.color,
+                                buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                            dropdown = { isShown, dismiss ->
+                                ThemedDropdownMenu(
+                                    expanded = isShown,
+                                    onDismissRequest = {
+                                        dismiss()
+                                    }
+                                ) {
+                                    stufe.allowedAktivitaetInteractions.forEach { interaction ->
+                                        ThemedDropdownMenuItem(
+                                            text = {
+                                                Text(interaction.nomen)
+                                            },
+                                            onClick = {
+                                                dismiss()
+                                                onChangeSheetMode(interaction)
+                                            },
+                                            trailingIcon = {
+                                                Icon(
+                                                    imageVector = interaction.icon,
+                                                    contentDescription = null,
+                                                    tint = interaction.color
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                )
+            }
+        }
+        section {
+            customItem {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SeesturmButton(
+                        type = SeesturmButtonType.Primary,
+                        colors = SeesturmButtonColor.Custom(
+                            buttonColor = selectedSheetMode.color,
+                            contentColor = Color.White
+                        ),
+                        title = "${selectedSheetMode.nomen} senden",
+                        isLoading = anAbmeldenState.isLoading,
+                        onClick = onSubmit
+                    )
+                }
+            }
         }
     }
 }

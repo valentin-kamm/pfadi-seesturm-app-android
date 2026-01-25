@@ -2,10 +2,9 @@ package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,9 +27,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTrailingElementType
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemTrailingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.textfield.SeesturmTextField
@@ -49,85 +47,77 @@ fun AddOrderView(
     modifier: Modifier = Modifier,
     columnState: LazyListState = rememberLazyListState()
 ) {
-    
-    val textFieldCount = 2
 
-    LazyColumn(
+    GroupedColumn(
         state = columnState,
         contentPadding = PaddingValues(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
             .fillMaxWidth()
     ) {
-        item {
-            FormItem(
-                items = (0..<textFieldCount).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Custom(
-                    content = {
-                        SeesturmTextField(
-                            state = foodItemFieldState,
-                            leadingIcon = Icons.Default.Fastfood,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Done
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    },
-                    contentPadding = PaddingValues(16.dp)
+        section {
+            item {
+                SeesturmTextField(
+                    state = foodItemFieldState,
+                    leadingIcon = Icons.Default.Fastfood,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
                 )
-            )
-            FormItem(
-                items = (0..<textFieldCount).toList(),
-                index = 1,
-                mainContent = FormItemContentType.Text(
-                    title = "Anzahl"
-                ),
-                trailingElement = FormItemTrailingElementType.Custom(
-                    content = {
-                        DropdownButton(
-                            title = "$selectedNumberOfItems",
-                            colors = SeesturmButtonColor.Custom(
-                                buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                contentColor = Color.SEESTURM_GREEN
-                            ),
-                            dropdown = { isShown, dismiss ->
-                                ThemedDropdownMenu(
-                                    expanded = isShown,
-                                    onDismissRequest = {
-                                        dismiss()
-                                    }
-                                ) {
-                                    (1..10).forEach { anzahl ->
-                                        ThemedDropdownMenuItem(
-                                            text = {
-                                                Text("$anzahl")
-                                            },
-                                            onClick = {
-                                                onNumberPickerValueChange(anzahl)
-                                                dismiss()
-                                            }
-                                        )
-                                    }
+            }
+            textItem(
+                text = "Anzahl",
+                trailingContent = GroupedColumnItemTrailingContentType.Custom {
+                    DropdownButton(
+                        title = "$selectedNumberOfItems",
+                        colors = SeesturmButtonColor.Custom(
+                            buttonColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            contentColor = Color.SEESTURM_GREEN
+                        ),
+                        dropdown = { isShown, dismiss ->
+                            ThemedDropdownMenu(
+                                expanded = isShown,
+                                onDismissRequest = {
+                                    dismiss()
+                                }
+                            ) {
+                                (1..10).forEach { anzahl ->
+                                    ThemedDropdownMenuItem(
+                                        text = {
+                                            Text("$anzahl")
+                                        },
+                                        onClick = {
+                                            onNumberPickerValueChange(anzahl)
+                                            dismiss()
+                                        }
+                                    )
                                 }
                             }
-                        )
-                    }
-                )
-            )
-        }
-        item {
-            SeesturmButton(
-                type = SeesturmButtonType.Primary,
-                icon = SeesturmButtonIconType.None,
-                isLoading = isButtonLoading,
-                title = "Speichern",
-                onClick = {
-                    onSubmit()
+                        }
+                    )
                 }
             )
+        }
+        section {
+            customItem {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SeesturmButton(
+                        type = SeesturmButtonType.Primary,
+                        icon = SeesturmButtonIconType.None,
+                        isLoading = isButtonLoading,
+                        title = "Speichern",
+                        onClick = {
+                            onSubmit()
+                        }
+                    )
+                }
+            }
         }
     }
 }

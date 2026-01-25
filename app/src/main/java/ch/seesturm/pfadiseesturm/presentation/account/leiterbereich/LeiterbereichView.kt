@@ -73,8 +73,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeader
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeaderType
 import ch.seesturm.pfadiseesturm.presentation.common.TopBarScaffold
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
-import ch.seesturm.pfadiseesturm.presentation.common.forms.rememberStickyHeaderOffsets
-import ch.seesturm.pfadiseesturm.presentation.common.forms.seesturmStickyHeader
+import ch.seesturm.pfadiseesturm.presentation.common.lists.rememberStickyHeaderOffsets
+import ch.seesturm.pfadiseesturm.presentation.common.lists.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ModalBottomSheetKeyboardResponse
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents

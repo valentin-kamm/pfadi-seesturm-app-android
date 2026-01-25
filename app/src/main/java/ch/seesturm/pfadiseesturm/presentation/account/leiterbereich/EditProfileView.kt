@@ -5,10 +5,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,9 +51,8 @@ import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.CircleProfilePictureView
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.CircleProfilePictureViewType
 import ch.seesturm.pfadiseesturm.presentation.common.alert.SimpleAlert
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItem
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemContentType
-import ch.seesturm.pfadiseesturm.presentation.common.forms.FormItemTextContentColor
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemLeadingContentType
 import ch.seesturm.pfadiseesturm.presentation.common.profile_picture_cropper.ProfilePictureCropperView
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
@@ -320,113 +319,104 @@ private fun EditProfileContentView(
             .fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
-        Column(
+        GroupedColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top,
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CircleProfilePictureView(
-                type = profilePictureType,
-                size = 120.dp,
-                onClick = if (user.profilePictureUrl != null) {
-                    { onProfilePictureClick(user.profilePictureUrl) }
+            section {
+                customItem {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircleProfilePictureView(
+                            type = profilePictureType,
+                            size = 120.dp,
+                            onClick = if (user.profilePictureUrl != null) {
+                                { onProfilePictureClick(user.profilePictureUrl) }
+                            } else {
+                                null
+                            },
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                        )
+                        Text(
+                            text = user.displayNameFull,
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp)
+                        )
+                        if (user.email != null) {
+                            Text(
+                                text = user.email,
+                                style = MaterialTheme.typography.bodyMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
                 }
-                else {
-                    null
-                },
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-            )
-            Text(
-                text = user.displayNameFull,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 4.dp)
-            )
-            if (user.email != null) {
-                Text(
-                    text = user.email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 40.dp)
+            }
+            section {
+                textItem(
+                    text = "Profilbild wählen",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.PhotoLibrary
+                    ),
+                    onClick = onLaunchImagePicker
+                )
+                textItem(
+                    text = "Profilbild löschen",
+                    textColor = if (user.profilePictureUrl != null) {
+                        { Color.SEESTURM_RED }
+                    } else {
+                        { MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f) }
+                    },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        color = if (user.profilePictureUrl != null) {
+                            { Color.SEESTURM_RED }
+                        } else {
+                            { MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f) }
+                        }
+                    ),
+                    onClick = if (user.profilePictureUrl != null) {
+                        { onDeleteProfilePicture() }
+                    } else {
+                        null
+                    }
                 )
             }
-            FormItem(
-                items = (0..<2).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Text(
-                    title = "Profilbild wählen",
-                    textColor = FormItemTextContentColor.Custom(Color.SEESTURM_GREEN)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                leadingIcon = Icons.Outlined.PhotoLibrary,
-                onClick = onLaunchImagePicker
-            )
-            FormItem(
-                items = (0..<2).toList(),
-                index = 1,
-                mainContent = FormItemContentType.Text(
-                    title = "Profilbild löschen",
-                    textColor = FormItemTextContentColor.Custom(
-                        if (user.profilePictureUrl != null) {
-                            Color.SEESTURM_RED
-                        }
-                        else {
-                            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                        }
-                    )
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                leadingIcon = Icons.Outlined.Delete,
-                leadingIconColor = if (user.profilePictureUrl != null) {
-                    Color.SEESTURM_RED
-                }
-                else {
-                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                },
-                onClick = if (user.profilePictureUrl != null) {
-                    { onDeleteProfilePicture() }
-                }
-                else { null }
-            )
-            FormItem(
-                items = (0..<2).toList(),
-                index = 0,
-                mainContent = FormItemContentType.Text(
-                    title = "Abmelden",
-                    textColor = FormItemTextContentColor.Custom(Color.SEESTURM_GREEN)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                leadingIcon = Icons.AutoMirrored.Outlined.Logout,
-                onClick = onSignOut
-            )
-            FormItem(
-                items = (0..<2).toList(),
-                index = 1,
-                mainContent = FormItemContentType.Text(
-                    title = "App-Account löschen",
-                    textColor = FormItemTextContentColor.Custom(Color.SEESTURM_RED)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                leadingIcon = Icons.Outlined.PersonRemove,
-                leadingIconColor = Color.SEESTURM_RED,
-                onClick = onDeleteAccount
-            )
+            section {
+                textItem(
+                    text = "Abmelden",
+                    textColor = { Color.SEESTURM_GREEN },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.Logout
+                    ),
+                    onClick = onSignOut
+                )
+                textItem(
+                    text = "App-Account löschen",
+                    textColor = { Color.SEESTURM_RED },
+                    leadingContent = GroupedColumnItemLeadingContentType.Icon(
+                        imageVector = Icons.Outlined.PersonRemove,
+                        color = { Color.SEESTURM_RED }
+                    ),
+                    onClick = onDeleteAccount
+                )
+            }
         }
         if (imageUploadState.isLoading) {
             LinearProgressIndicator(

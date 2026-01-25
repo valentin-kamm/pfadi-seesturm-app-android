@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.common.forms
+package ch.seesturm.pfadiseesturm.presentation.common.lists
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
-import ch.seesturm.pfadiseesturm.presentation.common.lists.StickyHeaderOffset
 import ch.seesturm.pfadiseesturm.util.Constants
 
 fun LazyListScope.seesturmStickyHeader(

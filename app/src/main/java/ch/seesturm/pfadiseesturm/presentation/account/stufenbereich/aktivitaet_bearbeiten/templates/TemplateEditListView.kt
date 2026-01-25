@@ -82,11 +82,8 @@ fun TemplateEditListView(
             },
             editState = uiState.editState,
             deleteState = uiState.deleteState,
-            onCollapseItem = { template -> 
-                viewModel.toggleSwipeActionsEnabled(template)
-            },
-            onExpandItem = { template ->
-                viewModel.toggleSwipeActionsEnabled(template)
+            setSwipeActionsRevealed = { template, isRevealed ->
+                viewModel.setSwipeActionsRevealed(template, isRevealed)
             },
             onDeleteItem = { template ->
                 viewModel.deleteTemplate(template)
@@ -195,8 +192,7 @@ private fun TemplateEditListViewPreview1() {
                 onAddClick = {},
                 editState = ActionState.Idle,
                 deleteState = ActionState.Idle,
-                onCollapseItem = {},
-                onExpandItem = {},
+                setSwipeActionsRevealed = { _, _ -> },
                 onDeleteItem = {}
             ),
             onNavigateBack = {},
@@ -219,8 +215,7 @@ private fun TemplateEditListViewPreview2() {
                 onAddClick = {},
                 editState = ActionState.Idle,
                 deleteState = ActionState.Idle,
-                onCollapseItem = {},
-                onExpandItem = {},
+                setSwipeActionsRevealed = { _, _ -> },
                 onDeleteItem = {}
             ),
             onNavigateBack = {},
@@ -243,8 +238,7 @@ private fun TemplateEditListViewPreview3() {
                 onAddClick = {},
                 editState = ActionState.Idle,
                 deleteState = ActionState.Idle,
-                onCollapseItem = {},
-                onExpandItem = {},
+                setSwipeActionsRevealed = { _, _ -> },
                 onDeleteItem = {}
             ),
             onNavigateBack = {},
