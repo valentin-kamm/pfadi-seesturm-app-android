@@ -373,9 +373,25 @@ private fun MehrViewPreview1() {
         )
     }
 }
-@Preview("Success")
+@Preview("Error")
 @Composable
 private fun MehrViewPreview2() {
+    PfadiSeesturmTheme {
+        MehrContentView(
+            photosState = UiState.Error(""),
+            selectedTheme = SeesturmAppTheme.Dark,
+            versionName = "2.0.0",
+            versionCode = "20",
+            bottomNavigationInnerPadding = PaddingValues(0.dp),
+            mehrNavController = rememberNavController(),
+            onChangeTheme = {},
+            onLaunchWebsite = {}
+        )
+    }
+}
+@Preview("Success")
+@Composable
+private fun MehrViewPreview3() {
     PfadiSeesturmTheme {
         MehrContentView(
             photosState = UiState.Success(

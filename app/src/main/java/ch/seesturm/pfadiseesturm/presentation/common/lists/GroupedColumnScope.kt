@@ -43,8 +43,8 @@ class GroupedColumnScope(
     }
 
     internal fun emit() {
-        sections.forEachIndexed { index, sectionData ->
 
+        sections.forEachIndexed { index, sectionData ->
             sectionData.stickyHeader?.let { stickyHeaderData ->
                 val props = stickyHeaderData.stickyOffsets.find { it.uniqueKey == stickyHeaderData.uniqueKey }
                 val index = stickyHeaderData.stickyOffsets

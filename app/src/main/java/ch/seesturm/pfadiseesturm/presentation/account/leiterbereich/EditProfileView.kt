@@ -243,10 +243,10 @@ fun EditProfileView(
 
     var profilePictureToDisplay by retain { mutableStateOf<PhotoSliderViewItem?>(null) }
     val localProfilePictureToDisplay = profilePictureToDisplay
-
     if (localProfilePictureToDisplay != null) {
         Dialog(
             onDismissRequest = {
+                appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
                 profilePictureToDisplay = null
             },
             properties = DialogProperties(
@@ -260,8 +260,8 @@ fun EditProfileView(
                     image = localProfilePictureToDisplay
                 ),
                 onClose = {
-                    profilePictureToDisplay = null
                     appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
+                    profilePictureToDisplay = null
                 },
                 modifier = Modifier
                     .fillMaxSize()

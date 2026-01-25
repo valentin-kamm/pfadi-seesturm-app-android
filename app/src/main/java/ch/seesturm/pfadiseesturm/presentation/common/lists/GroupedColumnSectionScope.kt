@@ -63,6 +63,38 @@ class GroupedColumnSectionScope(
 
     private val items = mutableListOf<GroupedColumnItemData>()
 
+    fun item(
+        key: Any? = null,
+        modifier: Modifier = Modifier,
+        overlineContent: @Composable (() -> Unit)? = null,
+        supportingContent: @Composable (() -> Unit)? = null,
+        leadingContent: GroupedColumnItemLeadingContentType = GroupedColumnItemLeadingContentType.None,
+        trailingContent: GroupedColumnItemTrailingContentType = GroupedColumnItemTrailingContentType.None,
+        tonalElevation: Dp = ListItemDefaults.Elevation,
+        shadowElevation: Dp = ListItemDefaults.Elevation,
+        onClick: (() -> Unit)? = null,
+        disableRoundedCorners: Boolean = false,
+        swipeMode: GroupedColumnItemSwipeMode = GroupedColumnItemSwipeMode.Disabled,
+        padding: PaddingValues = PaddingValues(0.dp),
+        headlineContent: @Composable (() -> Unit)
+    ) {
+        items += internalItem(
+            key = key,
+            modifier = modifier,
+            overlineContent = overlineContent,
+            supportingContent = supportingContent,
+            leadingContent = leadingContent,
+            trailingContent = trailingContent,
+            tonalElevation = tonalElevation,
+            shadowElevation = shadowElevation,
+            onClick = onClick,
+            disableRoundedCorners = disableRoundedCorners,
+            swipeMode = swipeMode,
+            padding = padding,
+            headlineContent = headlineContent
+        )
+    }
+
     fun items(
         count: Int,
         key: ((index: Int) -> Any)? = null,
@@ -174,41 +206,8 @@ class GroupedColumnSectionScope(
         }
     }
 
-    fun item(
+    fun textItem(
         key: Any? = null,
-        modifier: Modifier = Modifier,
-        overlineContent: @Composable (() -> Unit)? = null,
-        supportingContent: @Composable (() -> Unit)? = null,
-        leadingContent: GroupedColumnItemLeadingContentType = GroupedColumnItemLeadingContentType.None,
-        trailingContent: GroupedColumnItemTrailingContentType = GroupedColumnItemTrailingContentType.None,
-        tonalElevation: Dp = ListItemDefaults.Elevation,
-        shadowElevation: Dp = ListItemDefaults.Elevation,
-        onClick: (() -> Unit)? = null,
-        disableRoundedCorners: Boolean = false,
-        swipeMode: GroupedColumnItemSwipeMode = GroupedColumnItemSwipeMode.Disabled,
-        padding: PaddingValues = PaddingValues(0.dp),
-        headlineContent: @Composable (() -> Unit)
-    ) {
-        items += internalItem(
-            key = key,
-            modifier = modifier,
-            overlineContent = overlineContent,
-            supportingContent = supportingContent,
-            leadingContent = leadingContent,
-            trailingContent = trailingContent,
-            tonalElevation = tonalElevation,
-            shadowElevation = shadowElevation,
-            onClick = onClick,
-            disableRoundedCorners = disableRoundedCorners,
-            swipeMode = swipeMode,
-            padding = padding,
-            headlineContent = headlineContent
-        )
-    }
-
-    fun <T> textItemsIndexed(
-        items: List<T>,
-        key: ((index: Int, item: T) -> Any)? = null,
         modifier: Modifier = Modifier,
         overlineContent: @Composable (() -> Unit)? = null,
         supportingContent: @Composable (() -> Unit)? = null,
@@ -217,17 +216,68 @@ class GroupedColumnSectionScope(
         textColor: (@Composable () -> Color)? = null,
         tonalElevation: Dp = ListItemDefaults.Elevation,
         shadowElevation: Dp = ListItemDefaults.Elevation,
-        onClick: ((index: Int, item: T) -> Unit)? = null,
+        onClick: (() -> Unit)? = null,
         disableRoundedCorners: Boolean = false,
         isLoading: Boolean = false,
-        swipeMode: (index: Int, item: T) -> GroupedColumnItemSwipeMode = { _, _ -> GroupedColumnItemSwipeMode.Disabled },
+        swipeMode: GroupedColumnItemSwipeMode = GroupedColumnItemSwipeMode.Disabled,
         textStyle: (@Composable () -> TextStyle)? = null,
-        padding: (index: Int, item: T) -> PaddingValues = { _, _ -> PaddingValues(0.dp) },
-        text: (index: Int, item: T) -> String
+        padding: PaddingValues = PaddingValues(0.dp),
+        text: String
     ) {
-        items.forEachIndexed { index, i ->
-            this.items += internalItem(
-                key = key?.let { it(index, i) },
+        items += internalItem(
+            key = key,
+            modifier = modifier,
+            overlineContent = overlineContent,
+            supportingContent = supportingContent,
+            leadingContent = leadingContent,
+            trailingContent = trailingContent,
+            textColor = textColor,
+            tonalElevation = tonalElevation,
+            shadowElevation = shadowElevation,
+            onClick = onClick,
+            disableRoundedCorners = disableRoundedCorners,
+            swipeMode = swipeMode,
+            padding = padding,
+            headlineContent = {
+                if (isLoading) {
+                    RedactedText(
+                        numberOfLines = 1,
+                        textStyle = textStyle?.invoke() ?: LocalTextStyle.current,
+                        lastLineFraction = Random.nextFloat() * (0.8f - 0.4f) + 0.4f
+                    )
+                }
+                else {
+                    Text(
+                        text = text,
+                        style = textStyle?.invoke() ?: LocalTextStyle.current,
+                    )
+                }
+            }
+        )
+    }
+
+    fun textItems(
+        count: Int,
+        key: ((index: Int) -> Any)? = null,
+        modifier: Modifier = Modifier,
+        overlineContent: @Composable (() -> Unit)? = null,
+        supportingContent: @Composable (() -> Unit)? = null,
+        leadingContent: GroupedColumnItemLeadingContentType = GroupedColumnItemLeadingContentType.None,
+        trailingContent: GroupedColumnItemTrailingContentType = GroupedColumnItemTrailingContentType.None,
+        textColor: (@Composable () -> Color)? = null,
+        tonalElevation: Dp = ListItemDefaults.Elevation,
+        shadowElevation: Dp = ListItemDefaults.Elevation,
+        onClick: ((index: Int) -> Unit)? = null,
+        disableRoundedCorners: Boolean = false,
+        isLoading: Boolean = false,
+        swipeMode: (index: Int) -> GroupedColumnItemSwipeMode = { GroupedColumnItemSwipeMode.Disabled },
+        textStyle: (@Composable () -> TextStyle)? = null,
+        padding: (index: Int) -> PaddingValues = { PaddingValues(0.dp) },
+        text: (index: Int) -> String
+    ) {
+        repeat(count) { index ->
+            items += internalItem(
+                key = key?.let { it(index) },
                 modifier = modifier,
                 overlineContent = overlineContent,
                 supportingContent = supportingContent,
@@ -236,10 +286,10 @@ class GroupedColumnSectionScope(
                 textColor = textColor,
                 tonalElevation = tonalElevation,
                 shadowElevation = shadowElevation,
-                onClick = onClick?.let { { it(index, i) } },
+                onClick = onClick?.let { { it(index) } },
                 disableRoundedCorners = disableRoundedCorners,
-                swipeMode = swipeMode(index, i),
-                padding = padding(index, i),
+                swipeMode = swipeMode(index),
+                padding = padding(index),
                 headlineContent = {
                     if (isLoading) {
                         RedactedText(
@@ -250,7 +300,7 @@ class GroupedColumnSectionScope(
                     }
                     else {
                         Text(
-                            text = text(index, i),
+                            text = text(index),
                             style = textStyle?.invoke() ?: LocalTextStyle.current,
                         )
                     }
@@ -312,9 +362,9 @@ class GroupedColumnSectionScope(
         }
     }
 
-    fun textItems(
-        count: Int,
-        key: ((index: Int) -> Any)? = null,
+    fun <T> textItemsIndexed(
+        items: List<T>,
+        key: ((index: Int, item: T) -> Any)? = null,
         modifier: Modifier = Modifier,
         overlineContent: @Composable (() -> Unit)? = null,
         supportingContent: @Composable (() -> Unit)? = null,
@@ -323,17 +373,17 @@ class GroupedColumnSectionScope(
         textColor: (@Composable () -> Color)? = null,
         tonalElevation: Dp = ListItemDefaults.Elevation,
         shadowElevation: Dp = ListItemDefaults.Elevation,
-        onClick: ((index: Int) -> Unit)? = null,
+        onClick: ((index: Int, item: T) -> Unit)? = null,
         disableRoundedCorners: Boolean = false,
         isLoading: Boolean = false,
-        swipeMode: (index: Int) -> GroupedColumnItemSwipeMode = { GroupedColumnItemSwipeMode.Disabled },
+        swipeMode: (index: Int, item: T) -> GroupedColumnItemSwipeMode = { _, _ -> GroupedColumnItemSwipeMode.Disabled },
         textStyle: (@Composable () -> TextStyle)? = null,
-        padding: (index: Int) -> PaddingValues = { PaddingValues(0.dp) },
-        text: (index: Int) -> String
+        padding: (index: Int, item: T) -> PaddingValues = { _, _ -> PaddingValues(0.dp) },
+        text: (index: Int, item: T) -> String
     ) {
-        repeat(count) { index ->
-            items += internalItem(
-                key = key?.let { it(index) },
+        items.forEachIndexed { index, i ->
+            this.items += internalItem(
+                key = key?.let { it(index, i) },
                 modifier = modifier,
                 overlineContent = overlineContent,
                 supportingContent = supportingContent,
@@ -342,10 +392,10 @@ class GroupedColumnSectionScope(
                 textColor = textColor,
                 tonalElevation = tonalElevation,
                 shadowElevation = shadowElevation,
-                onClick = onClick?.let { { it(index) } },
+                onClick = onClick?.let { { it(index, i) } },
                 disableRoundedCorners = disableRoundedCorners,
-                swipeMode = swipeMode(index),
-                padding = padding(index),
+                swipeMode = swipeMode(index, i),
+                padding = padding(index, i),
                 headlineContent = {
                     if (isLoading) {
                         RedactedText(
@@ -356,63 +406,13 @@ class GroupedColumnSectionScope(
                     }
                     else {
                         Text(
-                            text = text(index),
+                            text = text(index, i),
                             style = textStyle?.invoke() ?: LocalTextStyle.current,
                         )
                     }
                 }
             )
         }
-    }
-
-    fun textItem(
-        key: Any? = null,
-        modifier: Modifier = Modifier,
-        overlineContent: @Composable (() -> Unit)? = null,
-        supportingContent: @Composable (() -> Unit)? = null,
-        leadingContent: GroupedColumnItemLeadingContentType = GroupedColumnItemLeadingContentType.None,
-        trailingContent: GroupedColumnItemTrailingContentType = GroupedColumnItemTrailingContentType.None,
-        textColor: (@Composable () -> Color)? = null,
-        tonalElevation: Dp = ListItemDefaults.Elevation,
-        shadowElevation: Dp = ListItemDefaults.Elevation,
-        onClick: (() -> Unit)? = null,
-        disableRoundedCorners: Boolean = false,
-        isLoading: Boolean = false,
-        swipeMode: GroupedColumnItemSwipeMode = GroupedColumnItemSwipeMode.Disabled,
-        textStyle: (@Composable () -> TextStyle)? = null,
-        padding: PaddingValues = PaddingValues(0.dp),
-        text: String
-    ) {
-        items += internalItem(
-            key = key,
-            modifier = modifier,
-            overlineContent = overlineContent,
-            supportingContent = supportingContent,
-            leadingContent = leadingContent,
-            trailingContent = trailingContent,
-            textColor = textColor,
-            tonalElevation = tonalElevation,
-            shadowElevation = shadowElevation,
-            onClick = onClick,
-            disableRoundedCorners = disableRoundedCorners,
-            swipeMode = swipeMode,
-            padding = padding,
-            headlineContent = {
-                if (isLoading) {
-                    RedactedText(
-                        numberOfLines = 1,
-                        textStyle = textStyle?.invoke() ?: LocalTextStyle.current,
-                        lastLineFraction = Random.nextFloat() * (0.8f - 0.4f) + 0.4f
-                    )
-                }
-                else {
-                    Text(
-                        text = text,
-                        style = textStyle?.invoke() ?: LocalTextStyle.current,
-                    )
-                }
-            }
-        )
     }
 
     private fun internalItem(
@@ -431,6 +431,7 @@ class GroupedColumnSectionScope(
         padding: PaddingValues,
         headlineContent: @Composable (() -> Unit),
     ): GroupedColumnItemData {
+
         return GroupedColumnItemData(
             key = key,
             onClick = when (swipeMode) {
@@ -440,10 +441,9 @@ class GroupedColumnSectionScope(
             disableRoundedCorners = disableRoundedCorners,
             padding = padding
         ) {
-
             when (swipeMode) {
                 GroupedColumnItemSwipeMode.Disabled -> {
-                    listItem(
+                    ListItem(
                         modifier = modifier,
                         overlineContent = overlineContent,
                         supportingContent = supportingContent,
@@ -490,7 +490,7 @@ class GroupedColumnSectionScope(
                         ) {
                             swipeMode.actions(this)
                         }
-                        listItem(
+                        ListItem(
                             modifier = modifier
                                 .fillMaxSize()
                                 .offset {
@@ -558,7 +558,7 @@ class GroupedColumnSectionScope(
     }
 
     @Composable
-    private fun listItem(
+    private fun ListItem(
         modifier: Modifier,
         overlineContent: @Composable (() -> Unit)?,
         supportingContent: @Composable (() -> Unit)?,
@@ -638,7 +638,6 @@ class GroupedColumnSectionScope(
             lazyListScope.item(
                 key = itemData.key
             ) {
-
                 key(index, items.lastIndex) {
                     val isFirst = index == 0
                     val isLast = index == items.lastIndex
@@ -648,7 +647,6 @@ class GroupedColumnSectionScope(
                         isLast -> RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
                         else -> RoundedCornerShape(0.dp)
                     }
-
                     Box(
                         contentAlignment = Alignment.BottomEnd,
                         modifier = Modifier

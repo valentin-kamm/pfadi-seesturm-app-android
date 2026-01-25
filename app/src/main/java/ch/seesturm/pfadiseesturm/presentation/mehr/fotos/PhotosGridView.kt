@@ -73,6 +73,7 @@ fun PhotosGridView(
     if (localSelectedImageIndex != null && localImageResult is UiState.Success) {
         Dialog(
             onDismissRequest = {
+                appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
                 selectedImageIndex.value = null
             },
             properties = DialogProperties(
@@ -87,8 +88,8 @@ fun PhotosGridView(
                     initialIndex = localSelectedImageIndex
                 ),
                 onClose = {
-                    selectedImageIndex.value = null
                     appStateViewModel.updateAllowedOrientation(AllowedOrientation.PortraitOnly)
+                    selectedImageIndex.value = null
                 }
             )
         }

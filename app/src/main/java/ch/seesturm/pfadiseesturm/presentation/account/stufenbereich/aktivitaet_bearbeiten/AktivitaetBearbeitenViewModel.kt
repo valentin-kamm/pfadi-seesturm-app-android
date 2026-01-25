@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,7 +245,11 @@ class AktivitaetBearbeitenViewModel(
                             ),
                             aktivitaetState = UiState.Success(Unit),
                             startDatePickerState = DatePickerState(
-                                initialSelectedDateMillis = result.data.start.toInstant().toEpochMilli(),
+                                initialSelectedDateMillis = result.data.start
+                                    .toLocalDate()
+                                    .atStartOfDay(ZoneOffset.UTC)
+                                    .toInstant()
+                                    .toEpochMilli(),
                                 locale = CalendarLocale.getDefault()
                             ),
                             startTimePickerState = TimePickerState(
@@ -253,7 +258,11 @@ class AktivitaetBearbeitenViewModel(
                                 is24Hour = true
                             ),
                             endDatePickerState = DatePickerState(
-                                initialSelectedDateMillis = result.data.end.toInstant().toEpochMilli(),
+                                initialSelectedDateMillis = result.data.end
+                                    .toLocalDate()
+                                    .atStartOfDay(ZoneOffset.UTC)
+                                    .toInstant()
+                                    .toEpochMilli(),
                                 locale = CalendarLocale.getDefault()
                             ),
                             endTimePickerState = TimePickerState(
