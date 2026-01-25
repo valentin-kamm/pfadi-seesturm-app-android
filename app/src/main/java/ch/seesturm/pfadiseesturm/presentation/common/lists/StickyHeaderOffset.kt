@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.common.forms
+package ch.seesturm.pfadiseesturm.presentation.common.lists
 
 data class StickyHeaderOffset(
     val uniqueKey: String,

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
+import ch.seesturm.pfadiseesturm.presentation.common.lists.StickyHeaderOffset
 import ch.seesturm.pfadiseesturm.util.Constants
 
 fun LazyListScope.seesturmStickyHeader(
