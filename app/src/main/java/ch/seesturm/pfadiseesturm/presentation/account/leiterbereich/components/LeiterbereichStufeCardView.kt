@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
@@ -34,6 +35,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.cardOnCardBackgroundColor
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 
 @Composable
@@ -47,6 +49,7 @@ fun LeiterbereichStufeCardView(
 ) {
 
     CustomCardView(
+        backgroundColor = Color.cardOnCardBackgroundColor(isDarkTheme),
         onClick = {
             onNavigate()
         },
@@ -90,7 +93,7 @@ fun LeiterbereichStufeCardView(
                     icon = SeesturmButtonIconType.Predefined(
                         icon = Icons.Default.Add
                     ),
-                    title = "Neue Aktivität",
+                    title = "Aktivität",
                     onClick = {
                         onButtonClick()
                     },

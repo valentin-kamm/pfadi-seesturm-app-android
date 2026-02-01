@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
+package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates
 
 import ch.seesturm.pfadiseesturm.domain.firestore.model.AktivitaetTemplate
 import ch.seesturm.pfadiseesturm.util.state.ActionState

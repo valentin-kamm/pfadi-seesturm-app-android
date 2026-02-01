@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
+package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates
 
 sealed class TemplateEditMode {
     data class Insert(

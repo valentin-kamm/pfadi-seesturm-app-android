@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomShee
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.UiState
@@ -74,7 +76,10 @@ fun GespeichertePersonenView(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     SimpleModalBottomSheet(
-        show = viewModel.showSheet,
+        show = Binding(
+            get = { viewModel.showSheet.value },
+            set = { viewModel.showSheet.value = it }
+        ),
         detents = SheetDetents.LargeOnly,
         type = SheetScaffoldType.Title("Person hinzufügen"),
         appStateViewModel = appStateViewModel,
@@ -303,6 +308,7 @@ private fun GespeichertePersonenContentView(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview("Loading")
 @Composable
 private fun GespeichertePersonenViewPreview1() {
@@ -319,6 +325,7 @@ private fun GespeichertePersonenViewPreview1() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Error")
 @Composable
 private fun GespeichertePersonenViewPreview2() {
@@ -335,6 +342,7 @@ private fun GespeichertePersonenViewPreview2() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Empty")
 @Composable
 private fun GespeichertePersonenViewPreview3() {
@@ -351,6 +359,7 @@ private fun GespeichertePersonenViewPreview3() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success")
 @Composable
 private fun GespeichertePersonenViewPreview4() {
@@ -371,6 +380,7 @@ private fun GespeichertePersonenViewPreview4() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success, Editing mode")
 @Composable
 private fun GespeichertePersonenViewPreview5() {

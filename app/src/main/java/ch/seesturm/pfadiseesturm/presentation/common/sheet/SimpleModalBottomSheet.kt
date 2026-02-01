@@ -15,13 +15,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarHost
 import ch.seesturm.pfadiseesturm.presentation.common.snackbar.SeesturmSnackbarLocation
+import ch.seesturm.pfadiseesturm.util.Binding
 import com.composables.core.BottomSheetScope
 import com.composables.core.ModalSheetProperties
 import com.composables.core.rememberModalBottomSheetState
 
 @Composable
 fun SimpleModalBottomSheet(
-    show: MutableState<Boolean>,
+    show: Binding<Boolean>,
     detents: SheetDetents,
     type: SheetScaffoldType,
     appStateViewModel: AppStateViewModel,
@@ -51,8 +52,8 @@ fun SimpleModalBottomSheet(
         initialDetent = ModalBottomSheetDetent.Hidden.sheetDetent
     )
 
-    LaunchedEffect(show.value) {
-        sheetState.targetDetent = if (show.value) {
+    LaunchedEffect(show.get()) {
+        sheetState.targetDetent = if (show.get()) {
             detents.defaultDetent.sheetDetent
         }
         else {
@@ -61,7 +62,7 @@ fun SimpleModalBottomSheet(
     }
 
     fun dismiss() {
-        show.value = false
+        show.set(false)
         onDismiss?.invoke()
         viewModelStoreOwner.viewModelStore.clear()
     }

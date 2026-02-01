@@ -11,6 +11,7 @@ import ch.seesturm.pfadiseesturm.data.wordpress.repository.NaechsteAktivitaetRep
 import ch.seesturm.pfadiseesturm.data.wordpress.repository.PhotosRepositoryImpl
 import ch.seesturm.pfadiseesturm.data.wordpress.repository.WeatherRepositoryImpl
 import ch.seesturm.pfadiseesturm.domain.data_store.repository.SelectedStufenRepository
+import ch.seesturm.pfadiseesturm.domain.fcf.repository.CloudFunctionsRepository
 import ch.seesturm.pfadiseesturm.domain.firestore.repository.FirestoreRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AktuellRepository
 import ch.seesturm.pfadiseesturm.domain.wordpress.repository.AnlaesseRepository
@@ -58,6 +59,7 @@ interface WordpressModule {
 
 class WordpressModuleImpl(
     private val firestoreRepository: FirestoreRepository,
+    private val cloudFunctionsRepository: CloudFunctionsRepository,
     selectedStufenRepository: SelectedStufenRepository
 ) : WordpressModule {
 
@@ -84,7 +86,10 @@ class WordpressModuleImpl(
         AnlaesseRepositoryImpl(wordpressApi)
     }
     override val anlaesseService: AnlaesseService by lazy {
-        AnlaesseService(anlaesseRepository)
+        AnlaesseService(
+            repository = anlaesseRepository,
+            cloudFunctionsRepository = cloudFunctionsRepository
+        )
     }
 
     override val weatherRepository: WeatherRepository by lazy {

@@ -20,12 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_YELLOW
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 
 @Composable
 fun SeesturmHTMLEditorToolbar(
     state: RichTextState,
+    buttonTint: Color,
     onInsertLink: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
@@ -61,7 +64,8 @@ fun SeesturmHTMLEditorToolbar(
                         action = action,
                         state = state,
                         enabled = enabled,
-                        onInsertLink = onInsertLink
+                        onInsertLink = onInsertLink,
+                        buttonTint = buttonTint
                     )
                 }
             }
@@ -74,6 +78,7 @@ private fun SeesturmHTMLEditorToolbarButton(
     action: SeesturmHTMLToolbarAction,
     state: RichTextState,
     onInsertLink: () -> Unit,
+    buttonTint: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
@@ -99,11 +104,11 @@ private fun SeesturmHTMLEditorToolbarButton(
         shape = RoundedCornerShape(10.dp),
         colors = IconToggleButtonColors(
             containerColor = Color.Transparent,
-            contentColor = action.buttonTint,
+            contentColor = buttonTint,
             disabledContainerColor = Color.Transparent,
-            disabledContentColor = action.buttonTint,
-            checkedContainerColor = action.buttonTint.copy(alpha = 0.2f),
-            checkedContentColor = action.buttonTint
+            disabledContentColor = buttonTint,
+            checkedContainerColor = buttonTint.copy(alpha = 0.2f),
+            checkedContentColor = buttonTint
         )
     ) {
         Icon(
@@ -120,6 +125,7 @@ private fun SeesturmHTMLEditorToolbarPreview() {
         SeesturmHTMLEditorToolbar(
             state = rememberRichTextState(),
             onInsertLink = {},
+            buttonTint = Color.SEESTURM_YELLOW,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -133,7 +139,8 @@ private fun SeesturmHTMLEditorToolbarButtonPreview() {
         SeesturmHTMLEditorToolbarButton(
             action = SeesturmHTMLToolbarAction.Bold,
             state = rememberRichTextState(),
-            onInsertLink = {}
+            onInsertLink = {},
+            buttonTint = Color.SEESTURM_RED
         )
     }
 }

@@ -9,18 +9,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
+import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.accountModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.wordpressModule
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.AnlaesseView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.AnlaesseViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventView
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementModeNavType
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.viewModelFactoryHelper
+import kotlin.reflect.typeOf
 
 @Composable
 fun AnlaesseNavHost(
+    appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     bottomNavigationInnerPadding: PaddingValues,
     anlaesseNavController: NavHostController = rememberNavController()
 ) {
@@ -69,7 +80,17 @@ fun AnlaesseNavHost(
                             wordpressModule.anlaesseService, SeesturmCalendar.TERMINE
                         )
                     }
-                )
+                ),
+                authViewModel = authViewModel,
+                appStateViewModel = appStateViewModel,
+                onAddEvent = {
+                    anlaesseNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Anlaesse.Destinations.ManageTermin(
+                            calendar = SeesturmCalendar.TERMINE,
+                            mode = EventManagementMode.Insert
+                        )
+                    )
+                }
             )
         }
         composable<AppDestination.MainTabView.Destinations.Anlaesse.Destinations.AnlaesseDetail> {
@@ -87,7 +108,39 @@ fun AnlaesseNavHost(
                             cacheIdentifier = MemoryCacheIdentifier.TryGetFromListCache
                         )
                     }
-                )
+                ),
+                authViewModel = authViewModel,
+                onEditEvent = {
+                    anlaesseNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Anlaesse.Destinations.ManageTermin(
+                            calendar = arguments.calendar,
+                            mode = EventManagementMode.Update(arguments.eventId)
+                        )
+                    )
+                }
+            )
+        }
+        composable<AppDestination.MainTabView.Destinations.Anlaesse.Destinations.ManageTermin>(
+            typeMap = mapOf(typeOf<EventManagementMode>() to EventManagementModeNavType)
+        ) {
+            val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Anlaesse.Destinations.ManageTermin>()
+            ManageEventView(
+                viewModel = viewModel<ManageEventViewModel>(
+                    factory = viewModelFactoryHelper {
+                        ManageEventViewModel(
+                            stufenbereichService = accountModule.stufenbereichService,
+                            anlaesseService = wordpressModule.anlaesseService,
+                            eventType = EventToManageType.Termin(
+                                calendar = arguments.calendar,
+                                mode = arguments.mode
+                            )
+                        )
+                    }
+                ),
+                appStateViewModel = appStateViewModel,
+                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+                navController = anlaesseNavController,
+                onNavigateToTemplates = null
             )
         }
     }

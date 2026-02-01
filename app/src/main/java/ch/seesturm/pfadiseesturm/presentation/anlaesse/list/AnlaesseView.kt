@@ -11,7 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -30,6 +34,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.groupedByYearAndMonth
+import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
@@ -42,6 +48,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.lists.rememberStickyHeaderO
 import ch.seesturm.pfadiseesturm.presentation.common.lists.seesturmStickyHeader
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
@@ -54,13 +61,18 @@ import ch.seesturm.pfadiseesturm.util.types.TopBarStyle
 @Composable
 fun AnlaesseView(
     viewModel: AnlaesseViewModel,
+    authViewModel: AuthViewModel,
+    appStateViewModel: AppStateViewModel,
     calendar: SeesturmCalendar,
+    onAddEvent: () -> Unit,
     onNavigateBack: (() -> Unit)? = null,
     bottomNavigationInnerPadding: PaddingValues,
     onNavigateToDetail: (SeesturmCalendar, String) -> Unit
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val authState by authViewModel.state.collectAsStateWithLifecycle()
+    val appState by appStateViewModel.state.collectAsStateWithLifecycle()
 
     AnlaesseContentView(
         uiState = uiState,
@@ -75,7 +87,10 @@ fun AnlaesseView(
         onNavigateBack = onNavigateBack,
         bottomNavigationInnerPadding = bottomNavigationInnerPadding,
         onNavigateToDetail = onNavigateToDetail,
-        eventsLastUpdated = uiState.lastUpdated
+        eventsLastUpdated = uiState.lastUpdated,
+        canEditEvents = authState.isAdminSignedIn,
+        onAddEvent = onAddEvent,
+        isDarkTheme = appState.theme.isDarkTheme
     )
 }
 
@@ -89,7 +104,10 @@ private fun AnlaesseContentView(
     onGetMoreEvents: () -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
     onNavigateToDetail: (SeesturmCalendar, String) -> Unit,
+    onAddEvent: () -> Unit,
     eventsLastUpdated: String,
+    canEditEvents: Boolean,
+    isDarkTheme: Boolean,
     onNavigateBack: (() -> Unit)? = null,
     columnState: LazyListState = rememberLazyListState(),
     refreshState: PullToRefreshState = rememberPullToRefreshState()
@@ -106,6 +124,17 @@ private fun AnlaesseContentView(
         },
         actions = {
             CalendarSubscriptionButton(calendar)
+            if (canEditEvents) {
+                IconButton(
+                    onClick = onAddEvent
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = if (calendar.isLeitungsteam) Color.SEESTURM_RED else Color.SEESTURM_GREEN
+                    )
+                }
+            }
         }
     ) { topBarInnerPadding ->
 
@@ -223,7 +252,8 @@ private fun AnlaesseContentView(
                                     },
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
-                                        .animateItem()
+                                        .animateItem(),
+                                    isDarkTheme = isDarkTheme
                                 )
                             }
                         }
@@ -327,7 +357,10 @@ private fun AnlaesseViewPreview1() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = true,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }
@@ -347,7 +380,10 @@ private fun AnlaesseViewPreview2() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = false,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }
@@ -367,7 +403,10 @@ private fun AnlaesseViewPreview3() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = true,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }
@@ -390,7 +429,10 @@ private fun AnlaesseViewPreview4() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = false,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }
@@ -413,7 +455,10 @@ private fun AnlaesseViewPreview5() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = true,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }
@@ -436,7 +481,10 @@ private fun AnlaesseViewPreview6() {
             bottomNavigationInnerPadding = PaddingValues(0.dp),
             onNavigateToDetail = { _, _ ->},
             onNavigateBack = {},
-            eventsLastUpdated = ""
+            eventsLastUpdated = "",
+            canEditEvents = false,
+            onAddEvent = {},
+            isDarkTheme = false
         )
     }
 }

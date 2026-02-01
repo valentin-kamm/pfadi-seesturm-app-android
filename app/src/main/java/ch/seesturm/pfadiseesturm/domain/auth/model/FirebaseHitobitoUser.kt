@@ -99,6 +99,12 @@ data class FirebaseHitobitoUser private constructor(
 
     val profilePictureStoragePath: String
         get() = "profilePictures/${userId}.jpg"
+
+    val isAdmin: Boolean
+        get() = when (this.role) {
+            FirebaseHitobitoUserRole.User -> false
+            FirebaseHitobitoUserRole.Admin -> true
+        }
 }
 
 fun List<FirebaseHitobitoUser>.getUserById(uid: String): FirebaseHitobitoUser? {

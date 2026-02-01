@@ -27,6 +27,7 @@ fun SeesturmTextField(
     singleLine: Boolean = true,
     hideLabel: Boolean = false,
     enabled: Boolean = true,
+    iconTint: Color = Color.SEESTURM_GREEN,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     
@@ -45,7 +46,7 @@ fun SeesturmTextField(
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                tint = Color.SEESTURM_GREEN
+                tint = iconTint
             )
         },
         singleLine = singleLine,

@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,6 +62,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -93,7 +95,10 @@ fun OrdersView(
     )
 
     SimpleModalBottomSheet(
-        show = viewModel.showFoodSheet,
+        show = Binding(
+            get = { viewModel.showFoodSheet.value },
+            set = { viewModel.showFoodSheet.value = it }
+        ),
         detents = SheetDetents.MediumOnly,
         type = SheetScaffoldType.Title("Bestellung hinzufügen"),
         appStateViewModel = appStateViewModel,
@@ -310,6 +315,7 @@ private fun OrdersContentView(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview("Loading")
 @Composable
 private fun OrdersViewPreview1() {
@@ -327,6 +333,7 @@ private fun OrdersViewPreview1() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Error")
 @Composable
 private fun OrdersViewPreview2() {
@@ -344,6 +351,7 @@ private fun OrdersViewPreview2() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("No Orders")
 @Composable
 private fun OrdersViewPreview3() {
@@ -361,6 +369,7 @@ private fun OrdersViewPreview3() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success")
 @Composable
 private fun OrdersViewPreview4() {

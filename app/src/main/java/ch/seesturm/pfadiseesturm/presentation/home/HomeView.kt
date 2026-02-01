@@ -400,6 +400,7 @@ private fun HomeContentView(
                                             )
                                         )
                                     },
+                                    isDarkTheme = isDarkTheme,
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
                                         .animateItem()

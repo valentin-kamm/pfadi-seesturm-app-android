@@ -26,6 +26,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_BLUE
+import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorColors
@@ -40,6 +41,7 @@ fun SeesturmHTMLEditor(
     textStyle: TextStyle = LocalTextStyle.current,
     label: (@Composable () -> Unit)? = null,
     placeholder: (@Composable () -> Unit)? = null,
+    buttonTint: Color = Color.SEESTURM_GREEN,
     editorColor: Color = if (LocalScreenContext.current is ScreenContext.ModalBottomSheet) {
         MaterialTheme.colorScheme.tertiaryContainer
     }
@@ -98,6 +100,7 @@ fun SeesturmHTMLEditor(
             onInsertLink = {
                 isAddLinkDialogShown.value = true
             },
+            buttonTint = buttonTint,
             modifier = Modifier
                 .wrapContentHeight()
                 .fillMaxWidth()

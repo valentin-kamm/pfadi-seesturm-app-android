@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
+import ch.seesturm.pfadiseesturm.main.AuthViewModel
+import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.accountModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.authModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.dataStoreModule
 import ch.seesturm.pfadiseesturm.main.SeesturmApplication.Companion.fcmModule
@@ -18,6 +20,10 @@ import ch.seesturm.pfadiseesturm.presentation.aktuell.detail.AktuellDetailView
 import ch.seesturm.pfadiseesturm.presentation.aktuell.detail.AktuellDetailViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventView
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.presentation.home.HomeView
 import ch.seesturm.pfadiseesturm.presentation.home.HomeViewModel
 import ch.seesturm.pfadiseesturm.presentation.mehr.gespeicherte_personen.GespeichertePersonenView
@@ -37,6 +43,7 @@ fun HomeNavHost(
     bottomNavigationInnerPadding: PaddingValues,
     tabNavController: NavHostController,
     appStateViewModel: AppStateViewModel,
+    authViewModel: AuthViewModel,
     homeNavController: NavHostController = rememberNavController()
 ) {
 
@@ -122,7 +129,15 @@ fun HomeNavHost(
                             cacheIdentifier = MemoryCacheIdentifier.TryGetFromHomeCache
                         )
                     }
-                )
+                ),
+                authViewModel = authViewModel,
+                onEditEvent = {
+                    homeNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Home.Destinations.ManageTermin(
+                            eventId = arguments.eventId
+                        )
+                    )
+                }
             )
         }
         composable<AppDestination.MainTabView.Destinations.Home.Destinations.PushNotifications> {
@@ -193,6 +208,27 @@ fun HomeNavHost(
                     }
                 ),
                 appStateViewModel = appStateViewModel
+            )
+        }
+        composable<AppDestination.MainTabView.Destinations.Home.Destinations.ManageTermin> {
+            val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Home.Destinations.ManageTermin>()
+            ManageEventView(
+                viewModel = viewModel<ManageEventViewModel>(
+                    factory = viewModelFactoryHelper {
+                        ManageEventViewModel(
+                            stufenbereichService = accountModule.stufenbereichService,
+                            anlaesseService = wordpressModule.anlaesseService,
+                            eventType = EventToManageType.Termin(
+                                calendar = SeesturmCalendar.TERMINE,
+                                mode = EventManagementMode.Update(eventId = arguments.eventId)
+                            )
+                        )
+                    }
+                ),
+                appStateViewModel = appStateViewModel,
+                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+                navController = homeNavController,
+                onNavigateToTemplates = null
             )
         }
     }

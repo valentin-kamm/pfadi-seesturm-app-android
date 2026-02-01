@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
 enum class SeesturmStufe(
     val id: Int,
     val stufenName: String,
+    val stufenNameShort: String,
     val aktivitaetDescription: String,
     val calendar: SeesturmCalendar,
     val iconReference: Int,
@@ -28,6 +29,7 @@ enum class SeesturmStufe(
     Biber(
         id = 0,
         stufenName = "Biberstufe",
+        stufenNameShort = "Biber",
         aktivitaetDescription = "Biberstufen-Aktivität",
         calendar = SeesturmCalendar.AKTIVITAETEN_BIBERSTUFE,
         iconReference = R.drawable.biber,
@@ -43,6 +45,7 @@ enum class SeesturmStufe(
     Wolf(
         id = 1,
         stufenName = "Wolfsstufe",
+        stufenNameShort = "Wolf",
         aktivitaetDescription = "Wolfsstufen-Aktivität",
         calendar = SeesturmCalendar.AKTIVITAETEN_WOLFSSTUFE,
         iconReference = R.drawable.wolf,
@@ -62,6 +65,7 @@ enum class SeesturmStufe(
     Pfadi(
         id = 2,
         stufenName = "Pfadistufe",
+        stufenNameShort = "Pfadi",
         aktivitaetDescription = "Pfadistufen-Aktivität",
         calendar = SeesturmCalendar.AKTIVITAETEN_PFADISTUFE,
         iconReference = R.drawable.pfadi,
@@ -74,6 +78,7 @@ enum class SeesturmStufe(
     Pio(
         id = 3,
         stufenName = "Piostufe",
+        stufenNameShort = "Pio",
         aktivitaetDescription = "Piostufen-Aktivität",
         calendar = SeesturmCalendar.AKTIVITAETEN_PIOSTUFE,
         iconReference = R.drawable.pio,

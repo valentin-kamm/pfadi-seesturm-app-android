@@ -1,6 +1,7 @@
 package ch.seesturm.pfadiseesturm.presentation.account.leiterbereich
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
@@ -68,6 +69,7 @@ import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.S
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.components.SchoepflialarmSheet
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassCardView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.components.AnlassLoadingCardView
+import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeader
 import ch.seesturm.pfadiseesturm.presentation.common.MainSectionHeaderType
@@ -83,6 +85,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomShee
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsAction
 import ch.seesturm.pfadiseesturm.presentation.mehr.push_notifications.AlertWithSettingsActionType
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -220,7 +223,10 @@ fun LeiterbereichView(
     )
 
     SimpleModalBottomSheet(
-        show = showEditProfileSheet,
+        show = Binding(
+            get = { showEditProfileSheet.value },
+            set = { showEditProfileSheet.value = it }
+        ),
         detents = SheetDetents.LargeOnly,
         type = SheetScaffoldType.Title("Account"),
         appStateViewModel = appStateViewModel,
@@ -248,7 +254,10 @@ fun LeiterbereichView(
     }
 
     SimpleModalBottomSheet(
-        show = showSchoepflialarmSheet,
+        show = Binding(
+            get = { showSchoepflialarmSheet.value },
+            set = { showSchoepflialarmSheet.value = it }
+        ),
         detents = SheetDetents.All,
         type = SheetScaffoldType.Title("Schöpflialarm"),
         appStateViewModel = appStateViewModel,
@@ -496,19 +505,24 @@ private fun LeiterbereichContentView(
                     item(
                         key = "LeiterbereichStufenHorizontalScrollErrorView"
                     ) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.Top,
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            userScrollEnabled = false,
+                        CustomCardView(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .animateItem()
+                                .padding(horizontal = 16.dp)
                         ) {
-                            items(3) {
-                                LeiterbereichStufeLoadingCardView(
-                                    width = 0.85 * (screenWidth - 48.dp) / 2
-                                )
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.Top,
+                                contentPadding = PaddingValues(16.dp),
+                                userScrollEnabled = false,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem()
+                            ) {
+                                items(3) {
+                                    LeiterbereichStufeLoadingCardView(
+                                        width = 0.9 * (screenWidth - 32.dp - 48.dp) / 2
+                                    )
+                                }
                             }
                         }
                     }
@@ -530,11 +544,12 @@ private fun LeiterbereichContentView(
                         key = "LeiterbereichStufenHorizontalScrollView"
                     ) {
                         LeiterbereichStufenScrollView(
-                            selectedStufen = selectedStufen.data,
-                            screenWidth = screenWidth,
+                            stufen = selectedStufen.data,
+                            totalContentWidth = screenWidth - 32.dp,
                             accountNavController = accountNavController,
                             isDarkTheme = isDarkTheme,
                             modifier = Modifier
+                                .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
                                 .animateItem()
                         )
@@ -613,6 +628,7 @@ private fun LeiterbereichContentView(
                                         )
                                     )
                                 },
+                                isDarkTheme = isDarkTheme,
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .animateItem()
@@ -641,6 +657,7 @@ private fun LeiterbereichContentView(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview("Loading", uiMode = UI_MODE_NIGHT_NO)
 @Preview("Loading", uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -663,6 +680,7 @@ private fun LeiterbereichViewPreview1() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Error", uiMode = UI_MODE_NIGHT_NO)
 @Preview("Error", uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -685,6 +703,7 @@ private fun LeiterbereichViewPreview2() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success (termine empty)", uiMode = UI_MODE_NIGHT_NO)
 @Preview("Success (termine empty)", uiMode = UI_MODE_NIGHT_YES)
 @Composable
@@ -707,6 +726,7 @@ private fun LeiterbereichViewPreview3() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success", uiMode = UI_MODE_NIGHT_NO)
 @Preview("Success", uiMode = UI_MODE_NIGHT_YES)
 @Composable

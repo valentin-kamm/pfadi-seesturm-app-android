@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,6 +41,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
@@ -65,7 +67,10 @@ fun AktivitaetDetailView(
     val showGespeichertePersonenDropdown = rememberSaveable { mutableStateOf(false) }
 
     SimpleModalBottomSheet(
-        show = viewModel.showAnAbmeldenSheet,
+        show = Binding(
+            get = { viewModel.showAnAbmeldenSheet.value },
+            set = { viewModel.showAnAbmeldenSheet.value = it }
+        ),
         detents = SheetDetents.LargeOnly,
         type = SheetScaffoldType.TitleAndAction(
             title = stufe.aktivitaetDescription,
@@ -279,6 +284,7 @@ private fun AktivitaetDetailContentView(
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview("Loading")
 @Composable
 private fun AktivitaetDetailViewPreview1() {
@@ -302,6 +308,7 @@ private fun AktivitaetDetailViewPreview1() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Error")
 @Composable
 private fun AktivitaetDetailViewPreview2() {
@@ -325,6 +332,7 @@ private fun AktivitaetDetailViewPreview2() {
         )
     }
 }
+@SuppressLint("UnrememberedMutableState")
 @Preview("Success")
 @Composable
 private fun AktivitaetDetailViewPreview3() {

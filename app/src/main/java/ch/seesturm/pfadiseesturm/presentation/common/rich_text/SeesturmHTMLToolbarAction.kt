@@ -37,9 +37,6 @@ enum class SeesturmHTMLToolbarAction(
         )
     }
 
-    val buttonTint: Color
-        get() = Color.SEESTURM_GREEN
-
     fun isSelected(state: RichTextState): Boolean {
         return when (this) {
             Bold -> state.currentSpanStyle.fontWeight == FontWeight.Bold

@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.domain.account.service
 
+import ch.seesturm.pfadiseesturm.data.fcf.dto.CloudFunctionEventPayloadDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.AktivitaetAnAbmeldungDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.AktivitaetTemplateDto
 import ch.seesturm.pfadiseesturm.data.firestore.dto.toAktivitaetAnAbmeldung
@@ -22,6 +23,9 @@ import ch.seesturm.pfadiseesturm.util.state.SeesturmResult
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
 import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
@@ -64,6 +68,31 @@ class StufenbereichService(
         }
     }
 
+    fun observeAktivitaetTemplates(stufen: Set<SeesturmStufe>): Flow<SeesturmResult<List<AktivitaetTemplate>, DataError.RemoteDatabase>> =
+        firestoreRepository.observeCollection(
+            collection = FirestoreRepository.SeesturmFirestoreCollection.AktivitaetTemplates,
+            type = AktivitaetTemplateDto::class.java,
+            filter = { query ->
+                query.whereIn("stufenId", stufen.map { it.id })
+            }
+        )
+            .map { result ->
+                when (result) {
+                    is SeesturmResult.Error -> {
+                        SeesturmResult.Error(result.error)
+                    }
+                    is SeesturmResult.Success -> {
+                        try {
+                            val templates = result.data.map { it.toAktivitaetTemplate() }
+                            SeesturmResult.Success(templates)
+                        }
+                        catch (e: Exception) {
+                            SeesturmResult.Error(DataError.RemoteDatabase.DECODING_ERROR)
+                        }
+                    }
+                }
+            }
+
     fun observeAktivitaetTemplates(stufe: SeesturmStufe): Flow<SeesturmResult<List<AktivitaetTemplate>, DataError.RemoteDatabase>> =
         firestoreRepository.observeCollection(
             collection = FirestoreRepository.SeesturmFirestoreCollection.AktivitaetTemplates,
@@ -93,23 +122,12 @@ class StufenbereichService(
         event: CloudFunctionEventPayload,
         stufe: SeesturmStufe,
         withNotification: Boolean
-    ): SeesturmResult<String, DataError.CloudFunctionsError> {
+    ): SeesturmResult<Unit, DataError.CloudFunctionsError> {
 
         return try {
             val payload = event.toCloudFunctionEventPayloadDto()
-            val eventResponse = cloudFunctionsRepository.addEvent(
-                calendar = stufe.calendar,
-                event = payload
-            )
-            if (withNotification) {
-                cloudFunctionsRepository.sendPushNotification(
-                    type = SeesturmFCMNotificationType.AktivitaetNew(
-                        stufe = stufe,
-                        eventId = eventResponse.eventId
-                    )
-                )
-            }
-            SeesturmResult.Success(eventResponse.eventId)
+            addAktivitaet(payload = payload, stufe = stufe, withNotification = withNotification)
+            SeesturmResult.Success(Unit)
         }
         catch (e: SerializationException) {
             SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
@@ -122,12 +140,54 @@ class StufenbereichService(
         }
     }
 
+    suspend fun addMultipleAktivitaeten(
+        event: CloudFunctionEventPayload,
+        stufen: Set<SeesturmStufe>,
+        withNotification: Boolean
+    ): SeesturmResult<Unit, DataError.CloudFunctionsError> = coroutineScope {
+
+        try {
+            val payload = event.toCloudFunctionEventPayloadDto()
+            val deferred = stufen.map { stufe ->
+                async {
+                    addAktivitaet(payload = payload, stufe = stufe, withNotification = withNotification)
+                }
+            }
+            deferred.awaitAll()
+            SeesturmResult.Success(Unit)
+        }
+        catch (e: SerializationException) {
+            SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
+        }
+        catch (e: JsonSyntaxException) {
+            SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
+        }
+        catch (e: Exception) {
+            SeesturmResult.Error(DataError.CloudFunctionsError.UNKNOWN(e.localizedMessage ?: "Die Fehlerursache konnte nicht ermittelt werden."))
+        }
+    }
+
+    private suspend fun addAktivitaet(payload: CloudFunctionEventPayloadDto, stufe: SeesturmStufe, withNotification: Boolean) {
+        val eventResponse = cloudFunctionsRepository.addEvent(
+            calendar = stufe.calendar,
+            event = payload
+        )
+        if (withNotification) {
+            cloudFunctionsRepository.sendPushNotification(
+                type = SeesturmFCMNotificationType.AktivitaetNew(
+                    stufe = stufe,
+                    eventId = eventResponse.eventId
+                )
+            )
+        }
+    }
+
     suspend fun updateExistingAktivitaet(
         eventId: String,
         event: CloudFunctionEventPayload,
         stufe: SeesturmStufe,
         withNotification: Boolean
-    ): SeesturmResult<String, DataError.CloudFunctionsError> {
+    ): SeesturmResult<Unit, DataError.CloudFunctionsError> {
 
         return try {
             val payload = event.toCloudFunctionEventPayloadDto()
@@ -144,7 +204,7 @@ class StufenbereichService(
                     )
                 )
             }
-            SeesturmResult.Success(response.eventId)
+            SeesturmResult.Success(Unit)
         }
         catch (e: SerializationException) {
             SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)

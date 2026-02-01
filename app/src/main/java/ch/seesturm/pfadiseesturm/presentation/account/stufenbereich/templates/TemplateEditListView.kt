@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
+package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +27,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SimpleModalBottomSheet
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
 import ch.seesturm.pfadiseesturm.util.state.ActionState
@@ -54,7 +55,10 @@ fun TemplateEditListView(
     }
 
     SimpleModalBottomSheet(
-        show = viewModel.showTemplateSheet,
+        show = Binding(
+            get = { viewModel.showTemplateSheet.value },
+            set = { viewModel.showTemplateSheet.value = it }
+        ),
         detents = SheetDetents.LargeOnly,
         type = SheetScaffoldType.Title(uiState.templateEditMode.navigationTitle),
         appStateViewModel = appStateViewModel,

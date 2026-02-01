@@ -22,15 +22,17 @@ import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.Leiterbereic
 import ch.seesturm.pfadiseesturm.presentation.account.leiterbereich.food.OrdersView
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.StufenbereichView
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.StufenbereichViewModel
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenMode
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenView
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenViewModel
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateEditListView
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates.TemplateViewModel
+import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates.TemplateEditListView
+import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates.TemplateViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.detail.AnlaesseDetailViewModel
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.AnlaesseView
 import ch.seesturm.pfadiseesturm.presentation.anlaesse.list.AnlaesseViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventView
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.ManageEventViewModel
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageNavType
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail.AktivitaetDetailView
 import ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail.AktivitaetDetailViewLocation
 import ch.seesturm.pfadiseesturm.presentation.naechste_aktivitaet.detail.AktivitaetDetailViewModel
@@ -38,6 +40,7 @@ import ch.seesturm.pfadiseesturm.util.ObserveAsEvents
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.viewModelFactoryHelper
+import kotlin.reflect.typeOf
 
 @Composable
 fun AccountNavHost(
@@ -120,6 +123,16 @@ fun AccountNavHost(
                         )
                     )
                 },
+                onAddEvent = {
+                    accountNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent(
+                            type = EventToManageType.Termin(
+                                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
+                                mode = EventManagementMode.Insert
+                            )
+                        )
+                    )
+                },
                 viewModel = viewModel<AnlaesseViewModel>(
                     factory = viewModelFactoryHelper {
                         AnlaesseViewModel(
@@ -128,7 +141,9 @@ fun AccountNavHost(
                         )
                     }
                 ),
-                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM
+                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
+                authViewModel = authViewModel,
+                appStateViewModel = appStateViewModel
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.AccountTermineDetail> {
@@ -146,7 +161,18 @@ fun AccountNavHost(
                         )
                     }
                 ),
-                calendar = arguments.calendar
+                calendar = arguments.calendar,
+                authViewModel = authViewModel,
+                onEditEvent = {
+                    accountNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent(
+                            type = EventToManageType.Termin(
+                                calendar = arguments.calendar,
+                                mode = EventManagementMode.Update(arguments.eventId)
+                            )
+                        )
+                    )
+                }
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.Stufenbereich> {
@@ -223,44 +249,30 @@ fun AccountNavHost(
                 appStateViewModel = appStateViewModel
             )
         }
-        composable<AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet> {
-            val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet>()
-            val viewModel = viewModel<AktivitaetBearbeitenViewModel>(
-                factory = viewModelFactoryHelper {
-                    AktivitaetBearbeitenViewModel(
-                        mode = AktivitaetBearbeitenMode.Insert,
-                        service = accountModule.stufenbereichService,
-                        stufe = arguments.stufe
+        composable<AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent>(
+            typeMap = mapOf(typeOf<EventToManageType>() to EventToManageNavType)
+        ) {
+            val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent>()
+            ManageEventView(
+                viewModel = viewModel<ManageEventViewModel>(
+                    factory = viewModelFactoryHelper {
+                        ManageEventViewModel(
+                            stufenbereichService = accountModule.stufenbereichService,
+                            anlaesseService = wordpressModule.anlaesseService,
+                            eventType = arguments.type
+                        )
+                    }
+                ),
+                appStateViewModel = appStateViewModel,
+                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
+                navController = accountNavController,
+                onNavigateToTemplates = { stufe ->
+                    accountNavController.navigate(
+                        AppDestination.MainTabView.Destinations.Account.Destinations.Templates(
+                            stufe = stufe
+                        )
                     )
                 }
-            )
-            AktivitaetBearbeitenView(
-                viewModel = viewModel,
-                appStateViewModel = appStateViewModel,
-                stufe = arguments.stufe,
-                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-                mode = AktivitaetBearbeitenMode.Insert,
-                accountNavController = accountNavController
-            )
-        }
-        composable<AppDestination.MainTabView.Destinations.Account.Destinations.UpdateAktivitaet> {
-            val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Account.Destinations.UpdateAktivitaet>()
-            val viewModel = viewModel<AktivitaetBearbeitenViewModel>(
-                factory = viewModelFactoryHelper {
-                    AktivitaetBearbeitenViewModel(
-                        mode = AktivitaetBearbeitenMode.Update(arguments.id),
-                        service = accountModule.stufenbereichService,
-                        stufe = arguments.stufe
-                    )
-                }
-            )
-            AktivitaetBearbeitenView(
-                viewModel = viewModel,
-                appStateViewModel = appStateViewModel,
-                stufe = arguments.stufe,
-                mode = AktivitaetBearbeitenMode.Update(arguments.id),
-                bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-                accountNavController = accountNavController
             )
         }
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.Templates> {

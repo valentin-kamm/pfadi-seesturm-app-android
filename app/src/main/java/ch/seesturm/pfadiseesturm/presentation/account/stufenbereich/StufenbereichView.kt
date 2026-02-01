@@ -51,7 +51,6 @@ import androidx.navigation.compose.rememberNavController
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.groupedByYearAndMonth
 import ch.seesturm.pfadiseesturm.main.AppStateViewModel
-import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.AktivitaetBearbeitenMode
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components.StufenbereichAnAbmeldungCell
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components.StufenbereichAnAbmeldungLoadingCell
 import ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.components.StufenbereichAnAbmeldungSheet
@@ -64,6 +63,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonColor
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconType
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeader
 import ch.seesturm.pfadiseesturm.presentation.common.lists.BasicListHeaderMode
 import ch.seesturm.pfadiseesturm.presentation.common.lists.rememberStickyHeaderOffsets
@@ -76,6 +77,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetDetents
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.SheetScaffoldType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
+import ch.seesturm.pfadiseesturm.util.Binding
 import ch.seesturm.pfadiseesturm.util.DateTimeUtil
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.intersectWith
@@ -160,7 +162,10 @@ fun StufenbereichView(
     val sheetItem = retain { mutableStateOf<AnAbmeldungenSheetContent?>(null) }
 
     ModalBottomSheetWithItem(
-        item = sheetItem,
+        item = Binding(
+            get = { sheetItem.value },
+            set = { sheetItem.value = it }
+        ),
         detents = SheetDetents.All,
         type = SheetScaffoldType.Title(
             if (sheetItem.value?.event?.event?.startDateFormatted == null) {
@@ -212,23 +217,14 @@ fun StufenbereichView(
             viewModel.isEditButtonLoading(aktivitaet)
         },
         onEditAktivitaet = { mode ->
-            when (mode) {
-                AktivitaetBearbeitenMode.Insert -> {
-                    accountNavController.navigate(
-                        AppDestination.MainTabView.Destinations.Account.Destinations.NewAktivitaet(
-                            stufe = stufe
-                        )
+            accountNavController.navigate(
+                AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent(
+                    type = EventToManageType.Aktivitaet(
+                        stufe = stufe,
+                        mode = mode
                     )
-                }
-                is AktivitaetBearbeitenMode.Update -> {
-                    accountNavController.navigate(
-                        AppDestination.MainTabView.Destinations.Account.Destinations.UpdateAktivitaet(
-                            stufe = stufe,
-                            id = mode.id
-                        )
-                    )
-                }
-            }
+                )
+            )
         },
         onDisplayAktivitaet = { event ->
             accountNavController.navigate(
@@ -258,7 +254,7 @@ private fun StufenbereichContentView(
     isEditButtonLoading: (GoogleCalendarEventWithAnAbmeldungen) -> Boolean,
     onDeleteAnAbmeldungen: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
     onSendPushNotification: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
-    onEditAktivitaet: (AktivitaetBearbeitenMode) -> Unit,
+    onEditAktivitaet: (EventManagementMode) -> Unit,
     onDisplayAktivitaet: (GoogleCalendarEventWithAnAbmeldungen) -> Unit,
     onOpenAbAbmeldungenSheet: (AnAbmeldungenSheetContent) -> Unit,
     isDarkTheme: Boolean,
@@ -303,7 +299,7 @@ private fun StufenbereichContentView(
             }
             IconButton(
                 onClick = {
-                    onEditAktivitaet(AktivitaetBearbeitenMode.Insert)
+                    onEditAktivitaet(EventManagementMode.Insert)
                 }
             ) {
                 Icon(
@@ -480,7 +476,7 @@ private fun StufenbereichContentView(
                                         onSendPushNotification(aktivitaet)
                                     },
                                     onEditAktivitaet = {
-                                        onEditAktivitaet(AktivitaetBearbeitenMode.Update(aktivitaet.event.id))
+                                        onEditAktivitaet(EventManagementMode.Update(aktivitaet.event.id))
                                     },
                                     onClick = {
                                         onDisplayAktivitaet(aktivitaet)

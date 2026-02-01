@@ -42,4 +42,10 @@ sealed class SeesturmAuthState {
                 false
             }
         }
+
+    val isAdminSignedIn: Boolean
+        get() = when (this) {
+            is SignedInWithHitobito -> user.isAdmin
+            is SignedOut -> false
+        }
 }

@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.common.buttons
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,12 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.House
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -44,13 +45,14 @@ fun SeesturmButton(
     type: SeesturmButtonType,
     onClick: (() -> Unit)?,
     title: String?,
+    modifier: Modifier = Modifier,
     icon: SeesturmButtonIconType = SeesturmButtonIconType.None,
     colors: SeesturmButtonColor = SeesturmButtonColor.Predefined,
     isLoading: Boolean = false,
     enabled: Boolean = !isLoading,
     disabledAlpha: Float = 0.6f,
     iconSize: Dp = 18.dp,
-    modifier: Modifier = Modifier,
+    style: SeesturmButtonStyle = SeesturmButtonStyle.Filled,
     allowHorizontalTextShrink: Boolean = true
 ) {
 
@@ -74,18 +76,44 @@ fun SeesturmButton(
             1f
         }
     }
+    val borderStroke: BorderStroke? = remember(style, buttonColor, enabled) {
+        when (style) {
+            SeesturmButtonStyle.Filled -> null
+            SeesturmButtonStyle.Outlined -> {
+                BorderStroke(
+                    width = 2.dp,
+                    color = if (enabled) {
+                        buttonColor
+                    }
+                    else {
+                        buttonColor.copy(disabledAlpha)
+                    }
+                )
+            }
+        }
+    }
 
     when (type) {
         is SeesturmButtonType.Icon -> {
-            IconButton(
+            OutlinedIconButton(
                 onClick = { onClick?.invoke() },
                 enabled = enabled,
                 colors = IconButtonColors(
-                    containerColor = buttonColor,
-                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    containerColor = when(style) {
+                        SeesturmButtonStyle.Filled -> buttonColor
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
+                    disabledContainerColor = when(style) {
+                        SeesturmButtonStyle.Filled -> buttonColor.copy(alpha = disabledAlpha)
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
                     contentColor = contentColor,
-                    disabledContentColor = contentColor
+                    disabledContentColor = when(style) {
+                        SeesturmButtonStyle.Filled -> contentColor
+                        SeesturmButtonStyle.Outlined -> contentColor.copy(alpha = disabledAlpha)
+                    }
                 ),
+                border = borderStroke,
                 modifier = modifier
             ) {
                 Box(
@@ -125,16 +153,26 @@ fun SeesturmButton(
             }
         }
         is SeesturmButtonType.Primary -> {
-            Button(
+            OutlinedButton(
                 onClick = { onClick?.invoke() },
                 enabled = enabled,
                 colors = ButtonColors(
-                    containerColor = buttonColor,
-                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    containerColor = when (style) {
+                        SeesturmButtonStyle.Filled -> buttonColor
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
+                    disabledContainerColor = when (style) {
+                        SeesturmButtonStyle.Filled -> buttonColor.copy(alpha = disabledAlpha)
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
                     contentColor = contentColor,
-                    disabledContentColor = contentColor
+                    disabledContentColor = when (style) {
+                        SeesturmButtonStyle.Filled -> contentColor
+                        SeesturmButtonStyle.Outlined -> contentColor.copy(alpha = disabledAlpha)
+                    }
                 ),
-                modifier = modifier
+                modifier = modifier,
+                border = borderStroke
             ) {
                 SeesturmButtonContent(
                     icon = icon,
@@ -147,13 +185,22 @@ fun SeesturmButton(
             }
         }
         is SeesturmButtonType.Secondary -> {
-            Button(
+            OutlinedButton(
                 onClick = { onClick?.invoke() },
                 colors = ButtonColors(
-                    containerColor = buttonColor,
-                    disabledContainerColor = buttonColor.copy(alpha = disabledAlpha),
+                    containerColor = when (style) {
+                        SeesturmButtonStyle.Filled -> buttonColor
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
+                    disabledContainerColor = when (style) {
+                        SeesturmButtonStyle.Filled -> buttonColor.copy(alpha = disabledAlpha)
+                        SeesturmButtonStyle.Outlined -> Color.Transparent
+                    },
                     contentColor = contentColor,
-                    disabledContentColor = contentColor
+                    disabledContentColor = when (style) {
+                        SeesturmButtonStyle.Filled -> contentColor
+                        SeesturmButtonStyle.Outlined -> contentColor.copy(alpha = disabledAlpha)
+                    }
                 ),
                 enabled = enabled,
                 modifier = modifier
@@ -161,7 +208,8 @@ fun SeesturmButton(
                 contentPadding = PaddingValues(
                     horizontal = 12.dp,
                     vertical = 6.dp
-                )
+                ),
+                border = borderStroke
             ) {
                 SeesturmButtonContent(
                     icon = icon,

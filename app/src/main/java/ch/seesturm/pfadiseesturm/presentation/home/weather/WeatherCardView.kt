@@ -1,5 +1,6 @@
 package ch.seesturm.pfadiseesturm.presentation.home.weather
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,6 +53,7 @@ import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.cardOnCardBackgroundColor
 import ch.seesturm.pfadiseesturm.util.DummyData
 import ch.seesturm.pfadiseesturm.util.launchWebsite
 
@@ -88,7 +90,6 @@ fun WeatherCardView(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                 ) {
-
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -98,6 +99,7 @@ fun WeatherCardView(
                         Text(
                             text = weather.daily.dayFormatted,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color.Transparent)
@@ -264,7 +266,7 @@ fun WeatherCardView(
                 ) { page ->
                     CustomCardView(
                         shadowColor = Color.Transparent,
-                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                        backgroundColor = Color.cardOnCardBackgroundColor(isDarkTheme),
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
@@ -342,7 +344,17 @@ fun WeatherCardView(
 
 @Preview(showBackground = true)
 @Composable
-private fun WeatherCardViewPreview() {
+private fun WeatherCardViewPreview1() {
+    PfadiSeesturmTheme {
+        WeatherCardView(
+            weather = DummyData.weather,
+            isDarkTheme = false
+        )
+    }
+}
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun WeatherCardViewPreview2() {
     PfadiSeesturmTheme {
         WeatherCardView(
             weather = DummyData.weather,

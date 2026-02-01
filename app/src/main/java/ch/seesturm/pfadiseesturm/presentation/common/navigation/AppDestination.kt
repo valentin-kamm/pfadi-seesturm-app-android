@@ -1,5 +1,7 @@
 package ch.seesturm.pfadiseesturm.presentation.common.navigation
 
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
+import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.util.types.MemoryCacheIdentifier
 import ch.seesturm.pfadiseesturm.util.types.SeesturmCalendar
 import ch.seesturm.pfadiseesturm.util.types.SeesturmStufe
@@ -47,6 +49,11 @@ sealed class AppDestination {
 
                     @Serializable
                     data object GespeichertePersonen: Destinations()
+
+                    @Serializable
+                    data class ManageTermin(
+                        val eventId: String
+                    ): Destinations()
                 }
             }
 
@@ -81,6 +88,12 @@ sealed class AppDestination {
                         val calendar: SeesturmCalendar,
                         val eventId: String
                     ) : Destinations()
+
+                    @Serializable
+                    data class ManageTermin(
+                        val calendar: SeesturmCalendar,
+                        val mode: EventManagementMode
+                    ): Destinations()
                 }
             }
 
@@ -161,14 +174,8 @@ sealed class AppDestination {
                     ): Destinations()
 
                     @Serializable
-                    data class NewAktivitaet(
-                        val stufe: SeesturmStufe,
-                    ): Destinations()
-
-                    @Serializable
-                    data class UpdateAktivitaet(
-                        val stufe: SeesturmStufe,
-                        val id: String
+                    data class ManageEvent(
+                        val type: EventToManageType
                     ): Destinations()
 
                     @Serializable data class Templates(

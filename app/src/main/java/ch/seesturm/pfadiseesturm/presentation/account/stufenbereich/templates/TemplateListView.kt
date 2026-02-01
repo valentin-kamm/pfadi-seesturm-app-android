@@ -1,4 +1,4 @@
-package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.aktivitaet_bearbeiten.templates
+package ch.seesturm.pfadiseesturm.presentation.account.stufenbereich.templates
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -31,8 +31,8 @@ import ch.seesturm.pfadiseesturm.presentation.common.ErrorCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButton
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
-import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumn
+import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemActionIcon
 import ch.seesturm.pfadiseesturm.presentation.common.lists.GroupedColumnItemSwipeMode
 import ch.seesturm.pfadiseesturm.presentation.common.rich_text.HtmlTextView
 import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext

@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
+import ch.seesturm.pfadiseesturm.presentation.common.TopBarNavigationIcon
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import com.composables.core.BottomSheetScope
@@ -158,6 +161,35 @@ fun ModalBottomSheetContentView(
                                         TopAppBar(
                                             title = {
                                                 Text(type.topBarTitle)
+                                            },
+                                            navigationIcon = {
+                                                when (val navigationAction = type.navIcon) {
+                                                    is TopBarNavigationIcon.Back -> {
+                                                        IconButton(
+                                                            onClick = navigationAction.onNavigateBack
+                                                        ) {
+                                                            Icon(
+                                                                Icons.AutoMirrored.Outlined.ArrowBack,
+                                                                contentDescription = "Zurück",
+                                                                tint = Color.SEESTURM_GREEN
+                                                            )
+                                                        }
+                                                    }
+
+                                                    is TopBarNavigationIcon.Close -> {
+                                                        IconButton(
+                                                            onClick = navigationAction.onClose
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Default.Close,
+                                                                contentDescription = "Schliessen",
+                                                                tint = Color.SEESTURM_GREEN
+                                                            )
+                                                        }
+                                                    }
+
+                                                    TopBarNavigationIcon.None -> {}
+                                                }
                                             },
                                             colors = TopAppBarColors(
                                                 containerColor = MaterialTheme.colorScheme.surface,

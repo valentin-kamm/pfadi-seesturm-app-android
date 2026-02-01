@@ -64,6 +64,7 @@ class SeesturmApplication: Application() {
         firestoreModule = FirestoreModuleImpl()
         wordpressModule = WordpressModuleImpl(
             firestoreRepository = firestoreModule.firestoreRepository,
+            cloudFunctionsRepository = fcfModule.fcfRepository,
             selectedStufenRepository = dataStoreModule.selectedStufenRepository
         )
         fcmModule = FCMModuleImpl(

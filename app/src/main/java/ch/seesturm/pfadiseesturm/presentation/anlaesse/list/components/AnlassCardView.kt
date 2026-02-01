@@ -34,6 +34,8 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIcon
 import ch.seesturm.pfadiseesturm.presentation.common.TextWithIconType
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.LocalScreenContext
+import ch.seesturm.pfadiseesturm.presentation.common.sheet.ScreenContext
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_RED
@@ -45,6 +47,7 @@ fun AnlassCardView(
     event: GoogleCalendarEvent,
     calendar: SeesturmCalendar,
     onClick: () -> Unit,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
     CustomCardView(
@@ -60,7 +63,17 @@ fun AnlassCardView(
         ) {
             CustomCardView(
                 shadowColor = Color.Transparent,
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                backgroundColor = if (LocalScreenContext.current is ScreenContext.ModalBottomSheet) {
+                    if (isDarkTheme) {
+                        MaterialTheme.colorScheme.surface
+                    }
+                    else {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    }
+                }
+                else {
+                    MaterialTheme.colorScheme.secondaryContainer
+                },
                 modifier = Modifier
                     .width(110.dp)
                     .height(85.dp)
@@ -98,6 +111,7 @@ fun AnlassCardView(
                     Text(
                         text = secondLine,
                         style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
@@ -119,6 +133,7 @@ fun AnlassCardView(
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, hyphens = Hyphens.Auto),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Start,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,22 +193,26 @@ private fun AnlassCardViewPreview() {
             AnlassCardView(
                 event = DummyData.multiDayEvent,
                 calendar = SeesturmCalendar.TERMINE,
-                onClick = {}
+                onClick = {},
+                isDarkTheme = false
             )
             AnlassCardView(
                 event = DummyData.oneDayEvent,
                 onClick = {},
-                calendar = SeesturmCalendar.TERMINE
+                calendar = SeesturmCalendar.TERMINE,
+                isDarkTheme = false
             )
             AnlassCardView(
                 event = DummyData.allDayMultiDayEvent,
                 onClick = {},
-                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM
+                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
+                isDarkTheme = false
             )
             AnlassCardView(
                 event = DummyData.allDayOneDayEvent,
                 onClick = {},
-                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM
+                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
+                isDarkTheme = false
             )
         }
     }

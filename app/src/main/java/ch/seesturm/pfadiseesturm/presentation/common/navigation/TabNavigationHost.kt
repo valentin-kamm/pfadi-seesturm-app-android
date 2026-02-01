@@ -44,7 +44,8 @@ fun TabNavigationHost(
                     HomeNavHost(
                         bottomNavigationInnerPadding = innerPadding,
                         tabNavController = tabNavController,
-                        appStateViewModel = appStateViewModel
+                        appStateViewModel = appStateViewModel,
+                        authViewModel = authViewModel
                     )
                 }
                 composable<AppDestination.MainTabView.Destinations.Aktuell>{
@@ -54,7 +55,9 @@ fun TabNavigationHost(
                 }
                 composable<AppDestination.MainTabView.Destinations.Anlaesse> {
                     AnlaesseNavHost(
-                        bottomNavigationInnerPadding = innerPadding
+                        bottomNavigationInnerPadding = innerPadding,
+                        appStateViewModel = appStateViewModel,
+                        authViewModel = authViewModel
                     )
                 }
                 composable<AppDestination.MainTabView.Destinations.Mehr> {
