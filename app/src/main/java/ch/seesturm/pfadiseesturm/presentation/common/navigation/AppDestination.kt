@@ -85,7 +85,6 @@ sealed class AppDestination {
 
                     @Serializable
                     data class AnlaesseDetail(
-                        val calendar: SeesturmCalendar,
                         val eventId: String
                     ) : Destinations()
 
@@ -151,7 +150,6 @@ sealed class AppDestination {
                     @Serializable
                     data class AccountTermineDetail(
                         val cacheIdentifier: MemoryCacheIdentifier,
-                        val calendar: SeesturmCalendar,
                         val eventId: String
                     ): Destinations()
 

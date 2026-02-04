@@ -38,7 +38,7 @@ class ManageAktivitaetenController(
     override val selectedStufen = _selectedStufen.asStateFlow()
 
     override val eventPreviewType: EventPreviewType
-        get() = EventPreviewType.MultipleAktivitaeten(selectedStufen.value)
+        get() = EventPreviewType.MultipleAktivitaeten(this.selectedStufen.value)
 
     override fun setSendPushNotification(isOn: Boolean) {
         _sendPushNotification.update {
@@ -114,7 +114,7 @@ class ManageAktivitaetenController(
     }
 
     override suspend fun addEvent(event: CloudFunctionEventPayload): SeesturmResult<Unit, DataError.CloudFunctionsError> =
-        service.addMultipleAktivitaeten(event = event, stufen = this.selectedStufen.value, withNotification = this.sendPushNotification.value)
+        service.addAktivitaeten(event = event, stufen = this.selectedStufen.value, withNotification = this.sendPushNotification.value)
 
     override fun observeTemplates(viewModelScope: CoroutineScope) {
 

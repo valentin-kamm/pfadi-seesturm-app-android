@@ -94,53 +94,20 @@ class StufenbereichService(
             }
 
     fun observeAktivitaetTemplates(stufe: SeesturmStufe): Flow<SeesturmResult<List<AktivitaetTemplate>, DataError.RemoteDatabase>> =
-        firestoreRepository.observeCollection(
-            collection = FirestoreRepository.SeesturmFirestoreCollection.AktivitaetTemplates,
-            type = AktivitaetTemplateDto::class.java,
-            filter = { query ->
-                query.whereEqualTo("stufenId", stufe.id)
-            }
-        )
-            .map { result ->
-                when (result) {
-                    is SeesturmResult.Error -> {
-                        SeesturmResult.Error(result.error)
-                    }
-                    is SeesturmResult.Success -> {
-                        try {
-                            val templates = result.data.map { it.toAktivitaetTemplate() }
-                            SeesturmResult.Success(templates)
-                        }
-                        catch (e: Exception) {
-                            SeesturmResult.Error(DataError.RemoteDatabase.DECODING_ERROR)
-                        }
-                    }
-                }
-            }
+        observeAktivitaetTemplates(stufen = setOf(stufe))
 
-    suspend fun addNewAktivitaet(
+    suspend fun addAktivitaet(
         event: CloudFunctionEventPayload,
         stufe: SeesturmStufe,
         withNotification: Boolean
-    ): SeesturmResult<Unit, DataError.CloudFunctionsError> {
+    ): SeesturmResult<Unit, DataError.CloudFunctionsError> =
+        addAktivitaeten(
+            event = event,
+            stufen = setOf(stufe),
+            withNotification = withNotification
+        )
 
-        return try {
-            val payload = event.toCloudFunctionEventPayloadDto()
-            addAktivitaet(payload = payload, stufe = stufe, withNotification = withNotification)
-            SeesturmResult.Success(Unit)
-        }
-        catch (e: SerializationException) {
-            SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
-        }
-        catch (e: JsonSyntaxException) {
-            SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
-        }
-        catch (e: Exception) {
-            SeesturmResult.Error(DataError.CloudFunctionsError.UNKNOWN(e.localizedMessage ?: "Die Fehlerursache konnte nicht ermittelt werden."))
-        }
-    }
-
-    suspend fun addMultipleAktivitaeten(
+    suspend fun addAktivitaeten(
         event: CloudFunctionEventPayload,
         stufen: Set<SeesturmStufe>,
         withNotification: Boolean
@@ -182,7 +149,7 @@ class StufenbereichService(
         }
     }
 
-    suspend fun updateExistingAktivitaet(
+    suspend fun updateAktivitaet(
         eventId: String,
         event: CloudFunctionEventPayload,
         stufe: SeesturmStufe,

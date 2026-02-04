@@ -55,8 +55,8 @@ import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 class ManageEventViewModel(
-    private val stufenbereichService: StufenbereichService,
-    private val anlaesseService: AnlaesseService,
+    stufenbereichService: StufenbereichService,
+    anlaesseService: AnlaesseService,
     val eventType: EventToManageType
 ): ViewModel() {
 
@@ -84,26 +84,26 @@ class ManageEventViewModel(
     val state: StateFlow<ManageEventState> = combine(
         flow = _commonState,
         flow2 = (controller as? PushNotificationCapableEventController)?.let { c ->
-            c.sendPushNotification.map { f ->
+            c.sendPushNotification.map { sendPush ->
                 Binding(
-                    get = { f },
+                    get = { sendPush },
                     set = { c.setSendPushNotification(it) }
                 )
             }
         } ?: flowOf(null),
         flow3 = (controller as? TemplatesCapableEventController)?.templatesState ?: flowOf(null),
         flow4 = (controller as? TemplatesCapableEventController)?.let { c ->
-            c.showTemplatesSheet.map { f ->
+            c.showTemplatesSheet.map { showSheet ->
                 Binding(
-                    get = { f },
+                    get = { showSheet },
                     set = { c.setShowTemplatesSheet(it) }
                 )
             }
         } ?: flowOf(null),
         flow5 = (controller as? MultiStufenCapableEventController)?.let { c ->
-            c.selectedStufen.map { f ->
+            c.selectedStufen.map { stufen ->
                 Binding(
-                    get = { f },
+                    get = { stufen },
                     set = { c.setSelectedStufen(it) }
                 )
             }
@@ -120,7 +120,7 @@ class ManageEventViewModel(
             showConfirmationDialog = commonState.showConfirmationDialog,
             previewSheetItem = Binding(
                 get = {
-                    eventForPreview.let { e ->
+                    this.eventForPreview.let { e ->
                         if (commonState.showPreviewSheet) {
                             e
                         }
@@ -266,12 +266,8 @@ class ManageEventViewModel(
         }
     val confirmationDialogButtonText: String
         get() = when(publishingValidationStatus) {
-            EventValidationStatus.Valid -> {
-                mode.nomen
-            }
-            else -> {
-                "Trotzdem ${mode.verb}"
-            }
+            EventValidationStatus.Valid -> mode.nomen
+            is EventValidationStatus.Warning, is EventValidationStatus.Error -> "Trotzdem ${mode.verb}"
         }
     val confirmationDialogIcon: ImageVector
         get() = when (publishingValidationStatus) {
@@ -371,8 +367,8 @@ class ManageEventViewModel(
 
     fun fetchEventIfPossible() {
 
-        val localMode = mode as? EventManagementMode.Update ?: return
-        val localController = controller as? UpdateCapableEventController ?: return
+        val localMode = this.mode as? EventManagementMode.Update ?: return
+        val localController = this.controller as? UpdateCapableEventController ?: return
 
         _commonState.update {
             it.copy(
@@ -540,9 +536,9 @@ class ManageEventViewModel(
             }
             is SeesturmResult.Success -> {
                 val message = when (eventType) {
-                    is EventToManageType.Aktivitaet -> "${eventType.stufe.aktivitaetDescription} erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachricht gesendet" else ""}"
-                    EventToManageType.MultipleAktivitaeten -> "Aktivitäten erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachrichten gesendet" else ""}"
-                    is EventToManageType.Termin -> "Anlass erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachricht gesendet" else ""}"
+                    is EventToManageType.Aktivitaet -> "${eventType.stufe.aktivitaetDescription} erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachricht gesendet." else ""}"
+                    EventToManageType.MultipleAktivitaeten -> "Aktivitäten erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachrichten gesendet." else ""}"
+                    is EventToManageType.Termin -> "Anlass erfolgreich ${mode.verbPassiv}.${if (state.value.sendPushNotification?.get() == true) " Push-Nachricht gesendet." else ""}"
                 }
                 _commonState.update {
                     it.copy(

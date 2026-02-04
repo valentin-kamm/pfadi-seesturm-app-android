@@ -110,7 +110,7 @@ class ManageAktivitaetController(
     }
 
     override suspend fun addEvent(event: CloudFunctionEventPayload): SeesturmResult<Unit, DataError.CloudFunctionsError> =
-        service.addNewAktivitaet(event = event, stufe = this.stufe, withNotification = this.sendPushNotification.value)
+        service.addAktivitaet(event = event, stufe = this.stufe, withNotification = this.sendPushNotification.value)
 
     override suspend fun fetchEvent(eventId: String): SeesturmResult<GoogleCalendarEvent, DataError.Network> =
         service.fetchEvent(stufe = this.stufe, eventId = eventId, cacheIdentifier = MemoryCacheIdentifier.ForceReload)
@@ -119,7 +119,7 @@ class ManageAktivitaetController(
         eventId: String,
         event: CloudFunctionEventPayload
     ): SeesturmResult<Unit, DataError.CloudFunctionsError> =
-        service.updateExistingAktivitaet(eventId = eventId, event = event, stufe = this.stufe, withNotification = this.sendPushNotification.value)
+        service.updateAktivitaet(eventId = eventId, event = event, stufe = this.stufe, withNotification = this.sendPushNotification.value)
 
     override fun observeTemplates(viewModelScope: CoroutineScope) {
 

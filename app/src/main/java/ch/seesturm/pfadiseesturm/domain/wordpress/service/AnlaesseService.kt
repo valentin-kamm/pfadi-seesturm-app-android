@@ -75,11 +75,14 @@ class AnlaesseService(
                 event = payload
             )
             SeesturmResult.Success(Unit)
-        } catch (e: SerializationException) {
+        }
+        catch (e: SerializationException) {
             SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
-        } catch (e: JsonSyntaxException) {
+        }
+        catch (e: JsonSyntaxException) {
             SeesturmResult.Error(DataError.CloudFunctionsError.INVALID_DATA)
-        } catch (e: Exception) {
+        }
+        catch (e: Exception) {
             SeesturmResult.Error(
                 DataError.CloudFunctionsError.UNKNOWN(
                     e.localizedMessage ?: "Die Fehlerursache konnte nicht ermittelt werden."

@@ -114,11 +114,10 @@ fun AccountNavHost(
                 onNavigateBack = {
                     accountNavController.navigateUp()
                 },
-                onNavigateToDetail = { calendar, eventId ->
+                onNavigateToDetail = { eventId ->
                     accountNavController.navigate(
                         AppDestination.MainTabView.Destinations.Account.Destinations.AccountTermineDetail(
                             cacheIdentifier = MemoryCacheIdentifier.TryGetFromListCache,
-                            calendar = calendar,
                             eventId = eventId
                         )
                     )
@@ -154,20 +153,20 @@ fun AccountNavHost(
                 viewModel = viewModel<AnlaesseDetailViewModel>(
                     factory = viewModelFactoryHelper {
                         AnlaesseDetailViewModel(
-                            calendar = arguments.calendar,
+                            calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
                             eventId = arguments.eventId,
                             service = wordpressModule.anlaesseService,
                             cacheIdentifier = arguments.cacheIdentifier
                         )
                     }
                 ),
-                calendar = arguments.calendar,
+                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
                 authViewModel = authViewModel,
                 onEditEvent = {
                     accountNavController.navigate(
                         AppDestination.MainTabView.Destinations.Account.Destinations.ManageEvent(
                             type = EventToManageType.Termin(
-                                calendar = arguments.calendar,
+                                calendar = SeesturmCalendar.TERMINE_LEITUNGSTEAM,
                                 mode = EventManagementMode.Update(arguments.eventId)
                             )
                         )

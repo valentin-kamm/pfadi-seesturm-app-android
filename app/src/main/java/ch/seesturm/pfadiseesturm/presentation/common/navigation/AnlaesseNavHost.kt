@@ -65,10 +65,9 @@ fun AnlaesseNavHost(
         composable<AppDestination.MainTabView.Destinations.Anlaesse.Destinations.AnlaesseRoot> {
             AnlaesseView(
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
-                onNavigateToDetail = { calendar, eventId ->
+                onNavigateToDetail = { eventId ->
                     anlaesseNavController.navigate(
                         AppDestination.MainTabView.Destinations.Anlaesse.Destinations.AnlaesseDetail(
-                            calendar = calendar,
                             eventId = eventId
                         )
                     )
@@ -98,11 +97,11 @@ fun AnlaesseNavHost(
             AnlaesseDetailView(
                 bottomNavigationInnerPadding = bottomNavigationInnerPadding,
                 navController = anlaesseNavController,
-                calendar = arguments.calendar,
+                calendar = SeesturmCalendar.TERMINE,
                 viewModel = viewModel<AnlaesseDetailViewModel>(
                     factory = viewModelFactoryHelper {
                         AnlaesseDetailViewModel(
-                            calendar = arguments.calendar,
+                            calendar = SeesturmCalendar.TERMINE,
                             eventId = arguments.eventId,
                             service = wordpressModule.anlaesseService,
                             cacheIdentifier = MemoryCacheIdentifier.TryGetFromListCache
@@ -113,7 +112,7 @@ fun AnlaesseNavHost(
                 onEditEvent = {
                     anlaesseNavController.navigate(
                         AppDestination.MainTabView.Destinations.Anlaesse.Destinations.ManageTermin(
-                            calendar = arguments.calendar,
+                            calendar = SeesturmCalendar.TERMINE,
                             mode = EventManagementMode.Update(arguments.eventId)
                         )
                     )

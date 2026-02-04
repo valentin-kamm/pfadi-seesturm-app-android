@@ -520,6 +520,7 @@ private fun LeiterbereichContentView(
                             ) {
                                 items(3) {
                                     LeiterbereichStufeLoadingCardView(
+                                        isDarkTheme = isDarkTheme,
                                         width = 0.9 * (screenWidth - 32.dp - 48.dp) / 2
                                     )
                                 }
@@ -622,7 +623,6 @@ private fun LeiterbereichContentView(
                                 onClick = {
                                     accountNavController.navigate(
                                         AppDestination.MainTabView.Destinations.Account.Destinations.AccountTermineDetail(
-                                            calendar = calendar,
                                             eventId = event.id,
                                             cacheIdentifier = MemoryCacheIdentifier.TryGetFromHomeCache
                                         )

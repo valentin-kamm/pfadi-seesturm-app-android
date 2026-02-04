@@ -72,7 +72,7 @@ data class ManageEventCommonState (
                     },
                     state = SeesturmBinaryUiState.Success(Unit),
                     onValueChanged = onTitleChanged,
-                    label = "Titel"
+                    label = eventType.titlePlaceholder
                 ),
                 start = initialStartDate,
                 end = initialEndDate,

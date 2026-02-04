@@ -47,6 +47,13 @@ sealed interface EventToManageType {
             }
         }
 
+    val titlePlaceholder: String
+        get() = when (this) {
+            is Aktivitaet -> stufe.aktivitaetDescription
+            MultipleAktivitaeten -> "Titel der Aktivität"
+            is Termin -> "Titel des Anlasses"
+        }
+
     @Composable
     fun accentColor(isDarkTheme: Boolean): Color {
         return when (this) {

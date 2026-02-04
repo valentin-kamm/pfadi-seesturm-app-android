@@ -33,7 +33,6 @@ import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonIconT
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonStyle
 import ch.seesturm.pfadiseesturm.presentation.common.buttons.SeesturmButtonType
 import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventManagementMode
-import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageNavType
 import ch.seesturm.pfadiseesturm.presentation.common.event_management.types.EventToManageType
 import ch.seesturm.pfadiseesturm.presentation.common.navigation.AppDestination
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
@@ -157,10 +156,11 @@ fun LeiterbereichStufenScrollView(
 private fun LeiterbereichStufenScrollViewPreview() {
     PfadiSeesturmTheme {
         BoxWithConstraints {
-            val width = this.maxWidth
+            val width = this.maxWidth - 32.dp
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {

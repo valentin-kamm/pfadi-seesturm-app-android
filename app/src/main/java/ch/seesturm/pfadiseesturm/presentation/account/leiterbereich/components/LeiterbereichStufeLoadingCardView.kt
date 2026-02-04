@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,13 +24,16 @@ import ch.seesturm.pfadiseesturm.presentation.common.CustomCardView
 import ch.seesturm.pfadiseesturm.presentation.common.RedactedText
 import ch.seesturm.pfadiseesturm.presentation.common.customLoadingBlinking
 import ch.seesturm.pfadiseesturm.presentation.common.theme.PfadiSeesturmTheme
+import ch.seesturm.pfadiseesturm.presentation.common.theme.cardOnCardBackgroundColor
 
 @Composable
 fun LeiterbereichStufeLoadingCardView(
     width: Dp,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
     CustomCardView(
+        backgroundColor = Color.cardOnCardBackgroundColor(isDarkTheme),
         modifier = modifier
             .width(width)
     ) {
@@ -61,6 +65,7 @@ fun LeiterbereichStufeLoadingCardView(
 private fun LeiterbereichStufeLoadingCardViewPreview() {
     PfadiSeesturmTheme {
         LeiterbereichStufeLoadingCardView(
+            isDarkTheme = false,
             width = 200.dp
         )
     }

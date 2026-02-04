@@ -487,7 +487,7 @@ private fun ManageEventContentView(
                                     BasicListHeaderMode.Normal(
                                         text = when (eventType) {
                                             is EventToManageType.Aktivitaet, EventToManageType.MultipleAktivitaeten -> "Treffpunkt am Anfang der Aktivität"
-                                            is EventToManageType.Termin -> "Treffpunkt am Anfang des Anlass"
+                                            is EventToManageType.Termin -> "Treffpunkt am Anfang des Anlasses"
                                         }
                                     )
                                 )

@@ -67,7 +67,7 @@ fun AnlaesseView(
     onAddEvent: () -> Unit,
     onNavigateBack: (() -> Unit)? = null,
     bottomNavigationInnerPadding: PaddingValues,
-    onNavigateToDetail: (SeesturmCalendar, String) -> Unit
+    onNavigateToDetail: (String) -> Unit
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -103,7 +103,7 @@ private fun AnlaesseContentView(
     onGetInitialEvents: (Boolean) -> Unit,
     onGetMoreEvents: () -> Unit,
     bottomNavigationInnerPadding: PaddingValues,
-    onNavigateToDetail: (SeesturmCalendar, String) -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     onAddEvent: () -> Unit,
     eventsLastUpdated: String,
     canEditEvents: Boolean,
@@ -245,10 +245,7 @@ private fun AnlaesseContentView(
                                     event = item,
                                     calendar = calendar,
                                     onClick = {
-                                        onNavigateToDetail(
-                                            calendar,
-                                            item.id
-                                        )
+                                        onNavigateToDetail(item.id)
                                     },
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
@@ -355,7 +352,7 @@ private fun AnlaesseViewPreview1() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = true,
@@ -378,7 +375,7 @@ private fun AnlaesseViewPreview2() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = false,
@@ -401,7 +398,7 @@ private fun AnlaesseViewPreview3() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = true,
@@ -427,7 +424,7 @@ private fun AnlaesseViewPreview4() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = false,
@@ -453,7 +450,7 @@ private fun AnlaesseViewPreview5() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = true,
@@ -479,7 +476,7 @@ private fun AnlaesseViewPreview6() {
             onGetInitialEvents = {},
             onGetMoreEvents = {},
             bottomNavigationInnerPadding = PaddingValues(0.dp),
-            onNavigateToDetail = { _, _ ->},
+            onNavigateToDetail = { },
             onNavigateBack = {},
             eventsLastUpdated = "",
             canEditEvents = false,
