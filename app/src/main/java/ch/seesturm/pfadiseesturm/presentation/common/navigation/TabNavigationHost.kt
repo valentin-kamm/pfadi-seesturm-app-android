@@ -63,14 +63,14 @@ fun TabNavigationHost(
                 composable<AppDestination.MainTabView.Destinations.Mehr> {
                     MehrNavHost(
                         bottomNavigationInnerPadding = innerPadding,
-                        tabNavController = tabNavController,
+                        tabBackStackEntry = it,
                         appStateViewModel = appStateViewModel
                     )
                 }
                 composable<AppDestination.MainTabView.Destinations.Account> {
                     AccountNavHost(
                         bottomNavigationInnerPadding = innerPadding,
-                        tabNavController = tabNavController,
+                        tabBackStackEntry = it,
                         appStateViewModel = appStateViewModel,
                         authViewModel = authViewModel
                     )

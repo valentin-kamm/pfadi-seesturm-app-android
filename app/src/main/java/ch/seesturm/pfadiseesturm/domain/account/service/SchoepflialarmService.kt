@@ -134,17 +134,21 @@ class SchoepflialarmService(
     suspend fun sendSchoepflialarmReaction(
         userId: String,
         userDisplayNameShort: String,
-        reaction: SchoepflialarmReactionType
+        reaction: SchoepflialarmReactionType,
+        runInParallel: Boolean = false
     ): SeesturmResult<Unit, DataError.RemoteDatabase> {
 
         try {
-
             // check that user does not have a reaction yet
-            val currentReactions = firestoreRepository.readCollection(
-                collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions,
-                type = SchoepflialarmReactionDto::class.java
-            )
-            if (currentReactions.map { it.userId }.contains(userId)) {
+            if (
+                firestoreRepository.readCollection(
+                    collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions,
+                    type = SchoepflialarmReactionDto::class.java,
+                    filter = { query ->
+                        query.whereEqualTo("userId", userId)
+                    }
+                ).isNotEmpty()
+            ) {
                 return SeesturmResult.Error(DataError.RemoteDatabase.SAVING_ERROR)
             }
 
@@ -155,16 +159,38 @@ class SchoepflialarmService(
                 reaction = reaction.rawValue
             )
 
-            fcfRepository.sendPushNotification(
-                type = SeesturmFCMNotificationType.SchoepflialarmReactionGeneric(
-                    userName = userDisplayNameShort,
-                    type = reaction
+            if (runInParallel) {
+                coroutineScope {
+                    val notificationJob = async {
+                        fcfRepository.sendPushNotification(
+                            type = SeesturmFCMNotificationType.SchoepflialarmReactionGeneric(
+                                userName = userDisplayNameShort,
+                                type = reaction
+                            )
+                        )
+                    }
+                    val insertJob = async {
+                        firestoreRepository.insertDocument(
+                            item = payload,
+                            collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions
+                        )
+                    }
+                    notificationJob.await()
+                    insertJob.await()
+                }
+            }
+            else {
+                fcfRepository.sendPushNotification(
+                    type = SeesturmFCMNotificationType.SchoepflialarmReactionGeneric(
+                        userName = userDisplayNameShort,
+                        type = reaction
+                    )
                 )
-            )
-            firestoreRepository.insertDocument(
-                item = payload,
-                collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions
-            )
+                firestoreRepository.insertDocument(
+                    item = payload,
+                    collection = FirestoreRepository.SeesturmFirestoreCollection.SchoepflialarmReactions
+                )
+            }
             return SeesturmResult.Success(Unit)
         }
         catch (e: Exception) {

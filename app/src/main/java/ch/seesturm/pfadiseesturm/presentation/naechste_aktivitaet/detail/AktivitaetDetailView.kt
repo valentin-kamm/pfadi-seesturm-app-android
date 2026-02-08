@@ -172,7 +172,6 @@ fun AktivitaetDetailView(
         isDarkTheme = appState.theme.isDarkTheme,
         modifier = modifier
     )
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

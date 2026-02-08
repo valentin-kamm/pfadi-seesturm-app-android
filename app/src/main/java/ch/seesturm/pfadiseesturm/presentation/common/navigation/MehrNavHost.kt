@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,7 +35,7 @@ import ch.seesturm.pfadiseesturm.util.viewModelFactoryHelper
 @Composable
 fun MehrNavHost(
     bottomNavigationInnerPadding: PaddingValues,
-    tabNavController: NavHostController,
+    tabBackStackEntry: NavBackStackEntry,
     appStateViewModel: AppStateViewModel,
     mehrNavController: NavHostController = rememberNavController()
 ) {
@@ -67,7 +68,7 @@ fun MehrNavHost(
     ) {
         composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.MehrRoot> {
             val viewModel = viewModel<GalleriesViewModel>(
-                tabNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Mehr>(), // important: Scope viewmodel to the entire tab
+                tabBackStackEntry, // important: Scope viewmodel to the entire tab
                 factory = viewModelFactoryHelper {
                     GalleriesViewModel(
                         service = wordpressModule.photosService,
@@ -85,7 +86,7 @@ fun MehrNavHost(
         }
         composable<AppDestination.MainTabView.Destinations.Mehr.Destinations.Pfadijahre> {
             val viewModel = viewModel<GalleriesViewModel>(
-                tabNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Mehr>(), // important: Scope viewmodel to the entire tab
+                tabBackStackEntry, // important: Scope viewmodel to the entire tab
                 factory = viewModelFactoryHelper {
                     GalleriesViewModel(
                         service = wordpressModule.photosService,

@@ -32,19 +32,28 @@ class SchoepflialarmNotificationActionReceiver: BroadcastReceiver() {
 
         NotificationManagerCompat.from(context).cancel(notificationId)
 
+        val pendingResult = goAsync()
+
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
 
-            when (val authResult = authModule.authService.reauthenticateWithHitobito(false)) {
-                is SeesturmResult.Error -> {
-                    return@launch
+            try {
+                when (val authResult = authModule.authService.reauthenticateWithHitobito(false)) {
+                    is SeesturmResult.Error -> {
+                        return@launch
+                    }
+
+                    is SeesturmResult.Success -> {
+                        accountModule.schoepflialarmService.sendSchoepflialarmReaction(
+                            userId = authResult.data.userId,
+                            userDisplayNameShort = authResult.data.displayNameShort,
+                            reaction = reaction,
+                            runInParallel = true
+                        )
+                    }
                 }
-                is SeesturmResult.Success -> {
-                    accountModule.schoepflialarmService.sendSchoepflialarmReaction(
-                        userId = authResult.data.userId,
-                        userDisplayNameShort = authResult.data.displayNameShort,
-                        reaction = reaction
-                    )
-                }
+            }
+            finally {
+                pendingResult.finish()
             }
         }
     }

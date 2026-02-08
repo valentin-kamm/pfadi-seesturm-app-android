@@ -81,44 +81,46 @@ fun <D> ModalBottomSheetWithItem(
         }
     }
 
-    BoxWithConstraints {
-        ModalBottomSheetContentView(
-            sheetState = sheetState,
-            detents = detents,
-            type = type,
-            properties = ModalSheetProperties(
-                dismissOnBackPress = dismissOnBackPress,
-                dismissOnClickOutside = dismissOnClickOutside
-            ),
-            onDismiss = {
-                dismiss()
-            },
-            modifier = modifier,
-            enabled = enabled,
-            isDarkMode = appState.theme.isDarkTheme,
-            snackbarHost = {
-                SeesturmSnackbarHost(
-                    location = SeesturmSnackbarLocation.Sheet,
-                    modifier = Modifier
-                        .padding(
-                            bottom = sheetState.visibleAreaBottomPadding(
-                                density = density,
-                                maxHeight = maxHeight,
-                                detents = detents
+    if (sheetState.currentDetent != ModalBottomSheetDetent.Hidden.sheetDetent) {
+        BoxWithConstraints {
+            ModalBottomSheetContentView(
+                sheetState = sheetState,
+                detents = detents,
+                type = type,
+                properties = ModalSheetProperties(
+                    dismissOnBackPress = dismissOnBackPress,
+                    dismissOnClickOutside = dismissOnClickOutside
+                ),
+                onDismiss = {
+                    dismiss()
+                },
+                modifier = modifier,
+                enabled = enabled,
+                isDarkMode = appState.theme.isDarkTheme,
+                snackbarHost = {
+                    SeesturmSnackbarHost(
+                        location = SeesturmSnackbarLocation.Sheet,
+                        modifier = Modifier
+                            .padding(
+                                bottom = sheetState.visibleAreaBottomPadding(
+                                    density = density,
+                                    maxHeight = maxHeight,
+                                    detents = detents
+                                )
                             )
-                        )
-                )
-            },
-            content = {
-                currentItem?.let {
-                    content(
-                        it,
-                        { dismiss() },
-                        viewModelStoreOwner
                     )
-                }
-            },
-            keyboardResponse = keyboardResponse
-        )
+                },
+                content = {
+                    currentItem?.let {
+                        content(
+                            it,
+                            { dismiss() },
+                            viewModelStoreOwner
+                        )
+                    }
+                },
+                keyboardResponse = keyboardResponse
+            )
+        }
     }
 }

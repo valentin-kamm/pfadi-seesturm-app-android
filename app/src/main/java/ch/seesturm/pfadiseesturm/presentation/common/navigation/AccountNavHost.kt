@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -44,8 +44,8 @@ import kotlin.reflect.typeOf
 
 @Composable
 fun AccountNavHost(
-    tabNavController: NavController,
     bottomNavigationInnerPadding: PaddingValues,
+    tabBackStackEntry: NavBackStackEntry,
     appStateViewModel: AppStateViewModel,
     authViewModel: AuthViewModel,
     accountNavController: NavHostController = rememberNavController()
@@ -84,7 +84,7 @@ fun AccountNavHost(
                 leiterbereich = { user ->
                     {
                         val leiterbereichViewModel = viewModel<LeiterbereichViewModel>(
-                            tabNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Account>(),
+                            tabBackStackEntry,
                             factory = viewModelFactoryHelper {
                                 LeiterbereichViewModel(
                                     leiterbereichService = accountModule.leiterbereichService,
@@ -228,7 +228,7 @@ fun AccountNavHost(
         composable<AppDestination.MainTabView.Destinations.Account.Destinations.Food> {
             val arguments = it.toRoute<AppDestination.MainTabView.Destinations.Account.Destinations.Food>()
             val viewModel = viewModel<LeiterbereichViewModel>(
-                tabNavController.getBackStackEntry<AppDestination.MainTabView.Destinations.Account>(),
+                tabBackStackEntry,
                 factory = viewModelFactoryHelper {
                     LeiterbereichViewModel(
                         leiterbereichService = accountModule.leiterbereichService,

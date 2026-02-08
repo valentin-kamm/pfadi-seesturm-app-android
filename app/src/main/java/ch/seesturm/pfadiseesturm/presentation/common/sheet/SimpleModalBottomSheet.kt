@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -67,39 +66,41 @@ fun SimpleModalBottomSheet(
         viewModelStoreOwner.viewModelStore.clear()
     }
 
-    BoxWithConstraints {
-        ModalBottomSheetContentView(
-            sheetState = sheetState,
-            detents = detents,
-            type = type,
-            properties = ModalSheetProperties(
-                dismissOnBackPress = dismissOnBackPress,
-                dismissOnClickOutside = dismissOnClickOutside
-            ),
-            onDismiss = { dismiss() },
-            modifier = modifier,
-            enabled = enabled,
-            isDarkMode = appState.theme.isDarkTheme,
-            snackbarHost = {
-                SeesturmSnackbarHost(
-                    location = SeesturmSnackbarLocation.Sheet,
-                    modifier = Modifier
-                        .padding(
-                            bottom = sheetState.visibleAreaBottomPadding(
-                                density = density,
-                                maxHeight = maxHeight,
-                                detents = detents
+    if (sheetState.currentDetent != ModalBottomSheetDetent.Hidden.sheetDetent) {
+        BoxWithConstraints {
+            ModalBottomSheetContentView(
+                sheetState = sheetState,
+                detents = detents,
+                type = type,
+                properties = ModalSheetProperties(
+                    dismissOnBackPress = dismissOnBackPress,
+                    dismissOnClickOutside = dismissOnClickOutside
+                ),
+                onDismiss = { dismiss() },
+                modifier = modifier,
+                enabled = enabled,
+                isDarkMode = appState.theme.isDarkTheme,
+                snackbarHost = {
+                    SeesturmSnackbarHost(
+                        location = SeesturmSnackbarLocation.Sheet,
+                        modifier = Modifier
+                            .padding(
+                                bottom = sheetState.visibleAreaBottomPadding(
+                                    density = density,
+                                    maxHeight = maxHeight,
+                                    detents = detents
+                                )
                             )
-                        )
-                )
-            },
-            content = {
-                content(
-                    { dismiss() },
-                    viewModelStoreOwner
-                )
-            },
-            keyboardResponse = keyboardResponse
-        )
+                    )
+                },
+                content = {
+                    content(
+                        { dismiss() },
+                        viewModelStoreOwner
+                    )
+                },
+                keyboardResponse = keyboardResponse
+            )
+        }
     }
 }

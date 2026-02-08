@@ -111,7 +111,7 @@ fun CircleProfilePictureView(
                     else {
                         SubcomposeAsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(type.user?.profilePictureUrl)
+                                .data(type.user.profilePictureUrl)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = null,

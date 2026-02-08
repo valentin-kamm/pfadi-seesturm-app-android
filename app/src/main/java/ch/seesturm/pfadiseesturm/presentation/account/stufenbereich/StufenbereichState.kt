@@ -5,9 +5,8 @@ import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEvent
 import ch.seesturm.pfadiseesturm.domain.wordpress.model.GoogleCalendarEventWithAnAbmeldungen
 import ch.seesturm.pfadiseesturm.util.state.ActionState
 import ch.seesturm.pfadiseesturm.util.state.UiState
-import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 data class StufenbereichState(
@@ -27,5 +26,9 @@ data class StufenbereichState(
 
     // other state
     val refreshing: Boolean = false,
-    val selectedDate: ZonedDateTime = ZonedDateTime.now(ZoneId.systemDefault()).minusMonths(3).with(LocalTime.MIDNIGHT)
+    val selectedDate: ZonedDateTime = ZonedDateTime
+        .now(ZoneId.systemDefault())
+        .toLocalDate()
+        .atStartOfDay(ZoneOffset.UTC)
+        .minusMonths(3)
 )

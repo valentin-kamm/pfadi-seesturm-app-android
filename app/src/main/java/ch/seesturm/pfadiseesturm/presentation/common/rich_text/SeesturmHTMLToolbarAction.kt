@@ -8,13 +8,11 @@ import androidx.compose.material.icons.outlined.FormatListNumbered
 import androidx.compose.material.icons.outlined.FormatStrikethrough
 import androidx.compose.material.icons.outlined.FormatUnderlined
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import ch.seesturm.pfadiseesturm.presentation.common.theme.SEESTURM_GREEN
 import com.mohamedrejeb.richeditor.model.RichTextState
 
 enum class SeesturmHTMLToolbarAction(
@@ -41,8 +39,8 @@ enum class SeesturmHTMLToolbarAction(
         return when (this) {
             Bold -> state.currentSpanStyle.fontWeight == FontWeight.Bold
             Italic -> state.currentSpanStyle.fontStyle == FontStyle.Italic
-            Underline -> state.currentSpanStyle.textDecoration == TextDecoration.Underline
-            Strikethrough -> state.currentSpanStyle.textDecoration == TextDecoration.LineThrough
+            Underline -> state.currentSpanStyle.textDecoration?.contains(TextDecoration.Underline) ?: false
+            Strikethrough -> state.currentSpanStyle.textDecoration?.contains(TextDecoration.LineThrough) ?: false
             Link -> state.isLink
             OrderedList -> state.isOrderedList
             UnorderedList -> state.isUnorderedList

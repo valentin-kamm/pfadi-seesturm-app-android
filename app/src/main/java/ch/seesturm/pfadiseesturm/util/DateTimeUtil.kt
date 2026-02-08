@@ -1,6 +1,7 @@
 package ch.seesturm.pfadiseesturm.util
 
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -125,25 +126,53 @@ class DateTimeUtil {
         val firstPart = if (isAllDay && isSingleDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(startDate) + ", ganztägig"
         }
         else if (isAllDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(startDate) + " bis "
         }
         else if (isSingleDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(startDate) + " bis "
         }
         else {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(startDate) + " Uhr bis "
         }
 
@@ -153,19 +182,40 @@ class DateTimeUtil {
         else if (isAllDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(endDate) + ", ganztägig"
         }
         else if (isSingleDay) {
             val formatter = DateTimeFormatter
                 .ofPattern("HH:mm")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(endDate) + " Uhr"
         }
         else {
             val formatter = DateTimeFormatter
                 .ofPattern("EEEE, dd. MMMM yyyy, HH:mm")
-                .withLocale(Locale("de", "CH"))
+                .withLocale(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        Locale.of("de", "CH")
+                    }
+                    else {
+                        Locale("de", "CH")
+                    }
+                )
             formatter.format(endDate) + " Uhr"
         }
 
